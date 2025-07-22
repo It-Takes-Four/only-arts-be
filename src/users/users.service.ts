@@ -1,26 +1,38 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { User } from './entities/user.entity';
+import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
+  constructor(
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+  ) {}
+
+  async findAll(): Promise<User[]> {
+    return this.userRepository.find({ relations: ['arts'] });
   }
 
-  findAll() {
-    return `This action returns all users`;
+  async findById(id: number): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { id }, relations: ['arts'] });
+    if (!user) throw new NotFoundException('User not found');
+    return user;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async create(dto: CreateUserDto): Promise<User> {
+    const hashedPassword = await bcrypt.hash(dto.password, 10);
+    const user = this.userRepository.create({
+      ...dto,
+      password: hashedPassword,
+    });
+    return this.userRepository.save(user);
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async findByEmail(email: string): Promise<User | null> {
+    return this.userRepository.findOne({ where: { email } });
   }
-
-  remove(id: number) {
-    return `This action removes a #${id} user`;
-  }
+  
 }
