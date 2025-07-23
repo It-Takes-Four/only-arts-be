@@ -18,7 +18,7 @@ export class ArtService {
     return this.artRepository.find({ relations: ['user', 'comments'] });
   }
 
-  async create(dto: CreateArtDto, userId: number): Promise<Art> {
+  async create(dto: CreateArtDto, userId: string): Promise<Art> {
     const user = await this.userRepository.findOneBy({ id: userId });
 
     if (!user) {

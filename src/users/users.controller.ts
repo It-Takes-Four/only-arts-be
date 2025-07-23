@@ -14,7 +14,7 @@ export class UsersController {
   }
 
   @Get(':id')
-  getUserById(@Param('id') id: number): Promise<User> {
+  getUserById(@Param('id') id: string): Promise<User> { 
     return this.usersService.findById(id);
   }
 
@@ -26,12 +26,12 @@ export class UsersController {
 
   @Patch(':id')
   @UsePipes(new ValidationPipe({ whitelist: true }))
-  updateUser(@Param('id') id: number, @Body() body: UpdateUserDto,): Promise<User> {
+  updateUser(@Param('id') id: string, @Body() body: UpdateUserDto): Promise<User> { 
     return this.usersService.update(id, body);
   }
-  
+
   @Delete(':id')
-  deleteUser(@Param('id') id: number): Promise<void> {
+  deleteUser(@Param('id') id: string): Promise<void> {  
     return this.usersService.delete(id);
   }
 }

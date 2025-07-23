@@ -1,10 +1,11 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, CreateDateColumn } from 'typeorm';
 import { User } from 'src/users/entities/user.entity';
+import { Comment } from 'src/comments/entities/comment.entity';
 
 @Entity('arts')
 export class Art {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column()
   imageUrl: string;
@@ -18,6 +19,6 @@ export class Art {
   @ManyToOne(() => User, (user) => user.arts)
   user: User;
 
-//   @OneToMany(() => Comment, (comment) => comment.art)
-//   comments: Comment[];
+  @OneToMany(() => Comment, (comment) => comment.art)
+  comments: Comment[];
 }

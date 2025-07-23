@@ -5,23 +5,23 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 model User {
-  id             Int     @id @default(autoincrement())
-  email          String  @unique
+  id             String   @id @default(uuid())
+  email          String   @unique
   password       String
   name           String
   profilePicture String?
   arts           Art[]
-  comments       Comment[]  
+  comments       Comment[]
 
-  @@map("users") 
+  @@map("users")
 }
 
 model Art {
-  id          Int       @id @default(autoincrement())
+  id          String    @id @default(uuid())
   imageUrl    String
   datePosted  DateTime  @default(now())
   description String
-  userId      Int
+  userId      String
   user        User      @relation(fields: [userId], references: [id])
   comments    Comment[]
 
@@ -29,11 +29,11 @@ model Art {
 }
 
 model Comment {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(uuid())
   content   String
   createdAt DateTime @default(now())
-  userId    Int
-  artId     Int
+  userId    String
+  artId     String
   user      User     @relation(fields: [userId], references: [id])
   art       Art      @relation(fields: [artId], references: [id])
 

@@ -14,7 +14,7 @@ export class ArtController {
 
   @Post(':userId')
   @UsePipes(new ValidationPipe({ whitelist: true }))
-  create(@Param('userId') userId: number, @Body() body: CreateArtDto): Promise<Art> {
+  create(@Param('userId') userId: string, @Body() body: CreateArtDto): Promise<Art> {
     return this.artService.create(body, userId);
   }
 }
