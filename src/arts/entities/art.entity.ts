@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, CreateDateColumn } from 'typeorm';
-import { User } from 'src/users/entities/user.entity';
 import { Comment } from 'src/comments/entities/comment.entity';
+import { Artist } from 'src/artists/entities/artist.entity';
 
 @Entity('arts')
 export class Art {
@@ -10,14 +10,14 @@ export class Art {
   @Column()
   imageUrl: string;
 
-  @CreateDateColumn()
+  @Column({ default: () => 'NOW()' })
   datePosted: Date;
 
   @Column({ type: 'text' })
   description: string;
 
-  @ManyToOne(() => User, (user) => user.arts)
-  user: User;
+  @ManyToOne(() => Artist, (artist) => artist.arts)
+  artist: Artist;
 
   @OneToMany(() => Comment, (comment) => comment.art)
   comments: Comment[];

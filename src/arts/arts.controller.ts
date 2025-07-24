@@ -1,7 +1,6 @@
 import { Controller, Get, Post, Body, Param, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ArtService } from './arts.service';
 import { Art } from './entities/art.entity';
-import { CreateArtDto } from './dto/create-art.dto';
 
 @Controller('arts')
 export class ArtController {
@@ -12,9 +11,8 @@ export class ArtController {
     return this.artService.findAll();
   }
 
-  @Post(':userId')
-  @UsePipes(new ValidationPipe({ whitelist: true }))
-  create(@Param('userId') userId: string, @Body() body: CreateArtDto): Promise<Art> {
-    return this.artService.create(body, userId);
+  @Post()
+  create(@Body() body: any) {
+    return this.artService.create(body);
   }
 }

@@ -8,21 +8,30 @@ model User {
   id             String   @id @default(uuid())
   email          String   @unique
   password       String
-  name           String
+  username       String
   profilePicture String?
-  arts           Art[]
   comments       Comment[]
+  artist         Artist?  @relation("UserArtist")
 
   @@map("users")
 }
 
+model Artist {
+  id     String  @id @default(uuid())
+  user   User    @relation("UserArtist", fields: [userId], references: [id])
+  userId String  @unique
+  arts   Art[]
+
+  @@map("artists")
+}
+
 model Art {
-  id          String    @id @default(uuid())
+  id          String   @id @default(uuid())
   imageUrl    String
-  datePosted  DateTime  @default(now())
+  datePosted  DateTime @default(now())
   description String
-  userId      String
-  user        User      @relation(fields: [userId], references: [id])
+  artistId    String
+  artist      Artist   @relation(fields: [artistId], references: [id])
   comments    Comment[]
 
   @@map("arts")
@@ -33,12 +42,13 @@ model Comment {
   content   String
   createdAt DateTime @default(now())
   userId    String
-  artId     String
   user      User     @relation(fields: [userId], references: [id])
+  artId     String
   art       Art      @relation(fields: [artId], references: [id])
 
   @@map("comments")
 }
+
 
 generator client {
   provider = "prisma-client-js"

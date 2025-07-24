@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
-import { ArtModule } from './arts/arts.module';
+import { ArtsModule } from './arts/arts.module';
 import { CommentsModule } from './comments/comments.module';
+import { ArtistsModule } from './artists/artists.module';
 
 @Module({
   imports: [
@@ -17,7 +18,8 @@ import { CommentsModule } from './comments/comments.module';
       synchronize: true,
     }),
     UsersModule,
-    ArtModule,
+    ArtistsModule,
+    ArtsModule,
     CommentsModule,
   ],
 })
