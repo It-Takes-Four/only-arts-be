@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Art } from './entities/art.entity';
 import { Repository } from 'typeorm';
@@ -22,13 +22,18 @@ export class ArtService {
     });
   }
 
-  async create(createArtDto: CreateArtDto): Promise<Art> {
+  async create(createArtDto: CreateArtDto, userId: string): Promise<Art> {
     const artist = await this.artistRepository.findOne({
       where: { id: createArtDto.artistId },
+      relations: ['user'],
     });
 
     if (!artist) {
       throw new NotFoundException('Artist not found');
+    }
+
+    if (artist.user.id !== userId) {
+      throw new UnauthorizedException('You do not own this artist profile');
     }
 
     const art = this.artRepository.create({
