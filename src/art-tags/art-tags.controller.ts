@@ -1,8 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { ArtTagsService } from './art-tags.service';
 import { CreateArtTagDto } from './dto/create-art-tag.dto';
 import { UpdateArtTagDto } from './dto/update-art-tag.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('art-tags')
 export class ArtTagsController {
   constructor(private readonly artTagsService: ArtTagsService) {}

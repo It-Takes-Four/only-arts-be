@@ -1,8 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { ArtCollectionsService } from './art-collections.service';
 import { CreateArtCollectionDto } from './dto/create-art-collection.dto';
 import { UpdateArtCollectionDto } from './dto/update-art-collection.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('art-collections')
 export class ArtCollectionsController {
   constructor(private readonly artCollectionsService: ArtCollectionsService) {}

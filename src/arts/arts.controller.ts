@@ -14,7 +14,6 @@ export class ArtController {
     return this.artService.findAll();
   }
 
-  @UseGuards(JwtAuthGuard)
   @Post()
   create(@Body() dto: CreateArtDto, @Req() req) {
     const userId = req.user.sub;
