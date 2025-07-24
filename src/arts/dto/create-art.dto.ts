@@ -5,11 +5,12 @@ export class CreateArtDto {
   @IsNotEmpty()
   artistId: string;
 
-  @IsNotEmpty()
   @IsUrl()
+  @IsNotEmpty()
   imageUrl: string;
 
-  @IsOptional()
   @IsString()
+  @IsOptional()
   description?: string;
+
 }

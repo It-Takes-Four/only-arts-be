@@ -5,6 +5,12 @@ import { ArtsModule } from './arts/arts.module';
 import { CommentsModule } from './comments/comments.module';
 import { ArtistsModule } from './artists/artists.module';
 import { AuthModule } from './auth/auth.module';
+import { ArtCollectionsModule } from './art-collections/art-collections.module';
+import { ArtTagsModule } from './art-tags/art-tags.module';
+import { FollowersModule } from './followers/followers.module';
+import { FeedsModule } from './feeds/feeds.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { ArtToTagModule } from './art-to-tag/art-to-tag.module';
 
 @Module({
   imports: [
@@ -23,6 +29,12 @@ import { AuthModule } from './auth/auth.module';
     ArtsModule,
     CommentsModule,
     AuthModule,
+    ArtCollectionsModule,
+    ArtTagsModule,
+    FollowersModule,
+    FeedsModule,
+    NotificationsModule,
+    ArtToTagModule,
   ],
 })
 export class AppModule {}

@@ -10,8 +10,11 @@ model User {
   password       String
   username       String
   profilePicture String?
-  comments       Comment[]
+
   artist         Artist?  @relation("UserArtist")
+  notifications  Notification[]
+  comments       Comment[]
+  followers      Follower[]
 
   @@map("users")
 }
@@ -20,19 +23,37 @@ model Artist {
   id     String  @id @default(uuid())
   user   User    @relation("UserArtist", fields: [userId], references: [id])
   userId String  @unique
-  arts   Art[]
+
+  arts          Art[]
+  collections   ArtCollection[]
+  feed          Feed[]
+  followers     Follower[]
+  notifications Notification[]
 
   @@map("artists")
+}
+
+model Follower {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  artistId  String
+  artist    Artist   @relation(fields: [artistId], references: [id])
+
+  @@map("followers")
 }
 
 model Art {
   id          String   @id @default(uuid())
   imageUrl    String
-  datePosted  DateTime @default(now())
   description String
+  datePosted  DateTime @default(now())
   artistId    String
   artist      Artist   @relation(fields: [artistId], references: [id])
+
   comments    Comment[]
+  tags        ArtToArtTag[]
+  collections ArtCollection[]
 
   @@map("arts")
 }
@@ -47,6 +68,63 @@ model Comment {
   art       Art      @relation(fields: [artId], references: [id])
 
   @@map("comments")
+}
+
+model ArtTag {
+  id       String  @id @default(uuid())
+  tagName  String
+  arts     ArtToArtTag[]
+
+  @@map("art_tags")
+}
+
+model ArtCollection {
+  id              String   @id @default(uuid())
+  collectionName  String
+  createdAt       DateTime @default(now())
+
+  artist          Artist   @relation(fields: [artistId], references: [id])
+  artistId        String
+
+  artId           String
+  art             Art      @relation(fields: [artId], references: [id])
+
+  @@map("art_collections")
+}
+
+model Feed {
+  id         String   @id @default(uuid())
+  artist     Artist   @relation(fields: [artistId], references: [id])
+  artistId   String
+  content    String
+  datePosted DateTime @default(now())
+  
+  @@map("feeds")
+}
+
+model Notification {
+  id String   @id @default(uuid())
+  user           User     @relation(fields: [userId], references: [id])
+  userId         String
+
+  artistId       String?
+  artist         Artist?  @relation(fields: [artistId], references: [id])
+
+  content        String
+  createdAt      DateTime @default(now())
+  
+  @@map("notifications")
+}
+
+model ArtToArtTag {
+  art       Art     @relation(fields: [artId], references: [id])
+  artId     String
+
+  tag       ArtTag  @relation(fields: [tagId], references: [id])
+  tagId     String
+
+  @@id([artId, tagId])
+  @@map("art_to_art_tag") 
 }
 
 
