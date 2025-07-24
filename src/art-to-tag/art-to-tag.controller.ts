@@ -1,7 +1,16 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+} from '@nestjs/common';
 import { ArtToTagService } from './art-to-tag.service';
-import { UpdateArtToTagDto } from './dto/update-art-to-tag.dto';
 import { CreateArtToArtTagDto } from './dto/create-art-to-tag.dto';
+import { UpdateArtToTagDto } from './dto/update-art-to-tag.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @UseGuards(JwtAuthGuard)
@@ -10,8 +19,8 @@ export class ArtToTagController {
   constructor(private readonly artToTagService: ArtToTagService) {}
 
   @Post()
-  create(@Body() createArtToTagDto: CreateArtToArtTagDto) {
-    return this.artToTagService.create(createArtToTagDto);
+  create(@Body() dto: CreateArtToArtTagDto) {
+    return this.artToTagService.create(dto);
   }
 
   @Get()
@@ -19,18 +28,28 @@ export class ArtToTagController {
     return this.artToTagService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.artToTagService.findOne(+id);
+  @Get(':artId/:tagId')
+  findOne(
+    @Param('artId') artId: string,
+    @Param('tagId') tagId: string,
+  ) {
+    return this.artToTagService.findOne({ artId, tagId });
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateArtToTagDto: UpdateArtToTagDto) {
-    return this.artToTagService.update(+id, updateArtToTagDto);
+  @Patch(':artId/:tagId')
+  update(
+    @Param('artId') artId: string,
+    @Param('tagId') tagId: string,
+    @Body() dto: UpdateArtToTagDto,
+  ) {
+    return this.artToTagService.update({ artId, tagId }, dto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.artToTagService.remove(+id);
+  @Delete(':artId/:tagId')
+  remove(
+    @Param('artId') artId: string,
+    @Param('tagId') tagId: string,
+  ) {
+    return this.artToTagService.remove({ artId, tagId });
   }
 }

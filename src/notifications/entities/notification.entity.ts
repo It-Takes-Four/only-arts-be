@@ -1,29 +1,29 @@
-import { Artist } from "src/artists/entities/artist.entity";
-import { User } from "src/users/entities/user.entity";
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+// import { Artist } from "src/artists/entities/artist.entity";
+// import { User } from "src/users/entities/user.entity";
+// import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
-@Entity('notifications')
+// @Entity('notifications')
 export class Notification {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+//   @PrimaryGeneratedColumn('uuid')
+//   id: string;
 
-  @Column('uuid')
-  userId: string;
+//   @Column('uuid')
+//   userId: string;
 
-  @ManyToOne(() => User, (user) => user.notifications)
-  @JoinColumn({ name: 'userId' })
-  user: User;
+//   @ManyToOne(() => User, (user) => user.notifications)
+//   @JoinColumn({ name: 'userId' })
+//   user: User;
 
-  @Column('uuid', { nullable: true })
-  artistId: string;
+//   @Column('uuid', { nullable: true })
+//   artistId: string;
 
-  @ManyToOne(() => Artist, (artist) => artist.notifications)
-  @JoinColumn({ name: 'artistId' })
-  artist: Artist;
+//   @ManyToOne(() => Artist, (artist) => artist.notifications)
+//   @JoinColumn({ name: 'artistId' })
+//   artist: Artist;
 
-  @Column()
-  content: string;
+//   @Column()
+//   content: string;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  createdAt: Date;
+//   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+//   createdAt: Date;
 }

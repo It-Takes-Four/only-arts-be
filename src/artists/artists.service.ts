@@ -1,34 +1,41 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Artist } from './entities/artist.entity';
-import { UsersService } from 'src/users/users.service';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { CreateArtistDto } from './dto/create-artist.dto';
 
 @Injectable()
 export class ArtistsService {
-  constructor(
-    @InjectRepository(Artist) private artistRepository: Repository<Artist>,
-    private readonly usersService: UsersService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async createForUser(userId: string): Promise<Artist> {
-    const user = await this.usersService.findById(userId);
+  async create(dto: CreateArtistDto) {
+    // Ensure user exists
+    const user = await this.prisma.user.findUnique({ where: { id: dto.userId } });
     if (!user) throw new NotFoundException('User not found');
 
-    const artist = this.artistRepository.create({ user });
-    return this.artistRepository.save(artist);
+    return this.prisma.artist.create({
+      data: {
+        userId: dto.userId,
+      },
+    });
   }
 
-  findAll(): Promise<Artist[]> {
-    return this.artistRepository.find({ relations: ['user', 'arts'] });
+  findAll() {
+    return this.prisma.artist.findMany({
+      include: {
+        user: true,
+        arts: true,
+      },
+    });
   }
 
-  async findById(id: string): Promise<Artist> {
-    const artist = await this.artistRepository.findOne({
+  async findOne(id: string) {
+    const artist = await this.prisma.artist.findUnique({
       where: { id },
-      relations: ['user', 'arts'],
+      include: {
+        user: true,
+        arts: true,
+      },
     });
     if (!artist) throw new NotFoundException('Artist not found');
     return artist;
   }
-}
+}  

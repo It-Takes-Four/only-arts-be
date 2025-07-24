@@ -1,4 +1,16 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Req,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import { FeedsService } from './feeds.service';
 import { CreateFeedDto } from './dto/create-feed.dto';
 import { UpdateFeedDto } from './dto/update-feed.dto';
@@ -9,9 +21,11 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 export class FeedsController {
   constructor(private readonly feedsService: FeedsService) {}
 
+  @UsePipes(new ValidationPipe({ whitelist: true }))
   @Post()
-  create(@Body() createFeedDto: CreateFeedDto) {
-    return this.feedsService.create(createFeedDto);
+  create(@Body() createFeedDto: CreateFeedDto, @Req() req) {
+    const userId = req.user.sub;
+    return this.feedsService.create(createFeedDto, userId);
   }
 
   @Get()
@@ -21,16 +35,16 @@ export class FeedsController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.feedsService.findOne(+id);
+    return this.feedsService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateFeedDto: UpdateFeedDto) {
-    return this.feedsService.update(+id, updateFeedDto);
+    return this.feedsService.update(id, updateFeedDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.feedsService.remove(+id);
+    return this.feedsService.remove(id);
   }
 }

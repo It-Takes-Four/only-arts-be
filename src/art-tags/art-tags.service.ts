@@ -1,26 +1,38 @@
 import { Injectable } from '@nestjs/common';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateArtTagDto } from './dto/create-art-tag.dto';
 import { UpdateArtTagDto } from './dto/update-art-tag.dto';
 
 @Injectable()
 export class ArtTagsService {
-  create(createArtTagDto: CreateArtTagDto) {
-    return 'This action adds a new artTag';
+  constructor(private readonly prisma: PrismaService) {}
+
+  create(dto: CreateArtTagDto) {
+    return this.prisma.artTag.create({
+      data: dto,
+    });
   }
 
   findAll() {
-    return `This action returns all artTags`;
+    return this.prisma.artTag.findMany();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} artTag`;
+  findOne(id: string) {
+    return this.prisma.artTag.findUnique({
+      where: { id },
+    });
   }
 
-  update(id: number, updateArtTagDto: UpdateArtTagDto) {
-    return `This action updates a #${id} artTag`;
+  update(id: string, dto: UpdateArtTagDto) {
+    return this.prisma.artTag.update({
+      where: { id },
+      data: dto,
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} artTag`;
+  remove(id: string) {
+    return this.prisma.artTag.delete({
+      where: { id },
+    });
   }
 }

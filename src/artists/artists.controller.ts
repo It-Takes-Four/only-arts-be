@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ValidationPipe, UsePipes, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  UseGuards,
+  ValidationPipe,
+  UsePipes,
+} from '@nestjs/common';
 import { ArtistsService } from './artists.service';
 import { CreateArtistDto } from './dto/create-artist.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
@@ -10,8 +19,8 @@ export class ArtistsController {
 
   @UsePipes(new ValidationPipe({ whitelist: true }))
   @Post()
-  create(@Body() createArtistDto: CreateArtistDto) {
-    return this.artistsService.createForUser(createArtistDto.userId);
+  create(@Body() dto: CreateArtistDto) {
+    return this.artistsService.create(dto);
   }
 
   @Get()
@@ -21,6 +30,6 @@ export class ArtistsController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.artistsService.findById(id);
+    return this.artistsService.findOne(id);
   }
 }

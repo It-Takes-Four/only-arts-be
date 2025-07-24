@@ -1,26 +1,47 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateFeedDto } from './dto/create-feed.dto';
 import { UpdateFeedDto } from './dto/update-feed.dto';
 
 @Injectable()
 export class FeedsService {
-  create(createFeedDto: CreateFeedDto) {
-    return 'This action adds a new feed';
+  constructor(private readonly prisma: PrismaService) {}
+
+  async create(dto: CreateFeedDto, artistId: string) {
+    return this.prisma.feed.create({
+      data: {
+        title: dto.title,
+        content: dto.content,
+        artistId,
+      },
+    });
   }
 
-  findAll() {
-    return `This action returns all feeds`;
+  async findAll() {
+    return this.prisma.feed.findMany({
+      include: { artist: true },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} feed`;
+  async findOne(id: string) {
+    const feed = await this.prisma.feed.findUnique({
+      where: { id },
+      include: { artist: true },
+    });
+    if (!feed) throw new NotFoundException('Feed not found');
+    return feed;
   }
 
-  update(id: number, updateFeedDto: UpdateFeedDto) {
-    return `This action updates a #${id} feed`;
+  async update(id: string, dto: UpdateFeedDto) {
+    return this.prisma.feed.update({
+      where: { id },
+      data: dto,
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} feed`;
+  async remove(id: string) {
+    return this.prisma.feed.delete({
+      where: { id },
+    });
   }
 }

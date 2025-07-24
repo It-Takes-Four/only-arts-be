@@ -4,130 +4,6 @@
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
-model User {
-  id             String   @id @default(uuid())
-  email          String   @unique
-  password       String
-  username       String
-  profilePicture String?
-
-  artist         Artist?  @relation("UserArtist")
-  notifications  Notification[]
-  comments       Comment[]
-  followers      Follower[]
-
-  @@map("users")
-}
-
-model Artist {
-  id     String  @id @default(uuid())
-  user   User    @relation("UserArtist", fields: [userId], references: [id])
-  userId String  @unique
-
-  arts          Art[]
-  collections   ArtCollection[]
-  feed          Feed[]
-  followers     Follower[]
-  notifications Notification[]
-
-  @@map("artists")
-}
-
-model Follower {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  artistId  String
-  artist    Artist   @relation(fields: [artistId], references: [id])
-
-  @@map("followers")
-}
-
-model Art {
-  id          String   @id @default(uuid())
-  imageUrl    String
-  description String
-  datePosted  DateTime @default(now())
-  artistId    String
-  artist      Artist   @relation(fields: [artistId], references: [id])
-
-  comments    Comment[]
-  tags        ArtToArtTag[]
-  collections ArtCollection[]
-
-  @@map("arts")
-}
-
-model Comment {
-  id        String   @id @default(uuid())
-  content   String
-  createdAt DateTime @default(now())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  artId     String
-  art       Art      @relation(fields: [artId], references: [id])
-
-  @@map("comments")
-}
-
-model ArtTag {
-  id       String  @id @default(uuid())
-  tagName  String
-  arts     ArtToArtTag[]
-
-  @@map("art_tags")
-}
-
-model ArtCollection {
-  id              String   @id @default(uuid())
-  collectionName  String
-  createdAt       DateTime @default(now())
-
-  artist          Artist   @relation(fields: [artistId], references: [id])
-  artistId        String
-
-  artId           String
-  art             Art      @relation(fields: [artId], references: [id])
-
-  @@map("art_collections")
-}
-
-model Feed {
-  id         String   @id @default(uuid())
-  artist     Artist   @relation(fields: [artistId], references: [id])
-  artistId   String
-  content    String
-  datePosted DateTime @default(now())
-  
-  @@map("feeds")
-}
-
-model Notification {
-  id String   @id @default(uuid())
-  user           User     @relation(fields: [userId], references: [id])
-  userId         String
-
-  artistId       String?
-  artist         Artist?  @relation(fields: [artistId], references: [id])
-
-  content        String
-  createdAt      DateTime @default(now())
-  
-  @@map("notifications")
-}
-
-model ArtToArtTag {
-  art       Art     @relation(fields: [artId], references: [id])
-  artId     String
-
-  tag       ArtTag  @relation(fields: [tagId], references: [id])
-  tagId     String
-
-  @@id([artId, tagId])
-  @@map("art_to_art_tag") 
-}
-
-
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/prisma"
@@ -136,4 +12,101 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String         @id @default(uuid())
+  email          String         @unique
+  password       String
+  username       String
+  profilePicture String?
+  artist         Artist?        @relation("UserArtist")
+  comments       Comment[]
+  followers      Follower[]
+  notifications  Notification[]
+}
+
+model Artist {
+  id            String          @id @default(uuid())
+  userId        String          @unique
+  collections   ArtCollection[]
+  user          User            @relation("UserArtist", fields: [userId], references: [id])
+  arts          Art[]
+  feed          Feed[]
+  followers     Follower[]
+  notifications Notification[]
+}
+
+model Follower {
+  id       String @id @default(uuid())
+  userId   String
+  artistId String
+  artist   Artist @relation(fields: [artistId], references: [id])
+  user     User   @relation(fields: [userId], references: [id])
+}
+
+model Art {
+  id          String          @id @default(uuid())
+  imageUrl    String
+  description String
+  datePosted  DateTime        @default(now())
+  artistId    String
+  collections ArtCollection[]
+  tags        ArtToArtTag[]
+  artist      Artist          @relation(fields: [artistId], references: [id])
+  comments    Comment[]
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+  createdAt DateTime @default(now())
+  userId    String
+  artId     String
+  art       Art      @relation(fields: [artId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model ArtTag {
+  id      String        @id @default(uuid())
+  tagName String
+  arts    ArtToArtTag[]
+}
+
+model ArtCollection {
+  id             String   @id @default(uuid())
+  collectionName String
+  createdAt      DateTime @default(now())
+  artistId       String
+  artId          String
+  art            Art      @relation(fields: [artId], references: [id])
+  artist         Artist   @relation(fields: [artistId], references: [id])
+}
+
+model Feed {
+  id         String   @id @default(uuid())
+  artistId   String
+  title      String
+  content    String
+  datePosted DateTime @default(now())
+  artist     Artist   @relation(fields: [artistId], references: [id])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  artistId  String?
+  content   String
+  createdAt DateTime @default(now())
+  artist    Artist?  @relation(fields: [artistId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model ArtToArtTag {
+  artId String
+  tagId String
+  art   Art    @relation(fields: [artId], references: [id])
+  tag   ArtTag @relation(fields: [tagId], references: [id])
+
+  @@id([artId, tagId])
 }

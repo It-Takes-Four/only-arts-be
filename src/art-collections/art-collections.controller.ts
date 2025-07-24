@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+} from '@nestjs/common';
 import { ArtCollectionsService } from './art-collections.service';
 import { CreateArtCollectionDto } from './dto/create-art-collection.dto';
 import { UpdateArtCollectionDto } from './dto/update-art-collection.dto';
@@ -21,16 +30,19 @@ export class ArtCollectionsController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.artCollectionsService.findOne(+id);
+    return this.artCollectionsService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateArtCollectionDto: UpdateArtCollectionDto) {
-    return this.artCollectionsService.update(+id, updateArtCollectionDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateArtCollectionDto: UpdateArtCollectionDto,
+  ) {
+    return this.artCollectionsService.update(id, updateArtCollectionDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.artCollectionsService.remove(+id);
+    return this.artCollectionsService.remove(id);
   }
 }

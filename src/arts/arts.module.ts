@@ -1,15 +1,12 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Art } from './entities/art.entity';
 import { ArtService } from './arts.service';
 import { ArtController } from './arts.controller';
-import { Artist } from 'src/artists/entities/artist.entity';
-import { ArtistsModule } from 'src/artists/artists.module';
-import { AuthModule } from 'src/auth/auth.module';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { ArtistsModule } from '../artists/artists.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Art, Artist]), ArtistsModule, AuthModule],
   controllers: [ArtController],
-  providers: [ArtService],
+  providers: [ArtService, PrismaService],
+  imports: [ArtistsModule],
 })
 export class ArtsModule {}

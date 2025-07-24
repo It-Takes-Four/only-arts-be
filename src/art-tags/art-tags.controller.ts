@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+} from '@nestjs/common';
 import { ArtTagsService } from './art-tags.service';
 import { CreateArtTagDto } from './dto/create-art-tag.dto';
 import { UpdateArtTagDto } from './dto/update-art-tag.dto';
@@ -21,16 +30,16 @@ export class ArtTagsController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.artTagsService.findOne(+id);
+    return this.artTagsService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateArtTagDto: UpdateArtTagDto) {
-    return this.artTagsService.update(+id, updateArtTagDto);
+    return this.artTagsService.update(id, updateArtTagDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.artTagsService.remove(+id);
+    return this.artTagsService.remove(id);
   }
 }

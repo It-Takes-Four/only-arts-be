@@ -1,21 +1,21 @@
-import { Artist } from "src/artists/entities/artist.entity";
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+// import { Artist } from "src/artists/entities/artist.entity";
+// import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
-@Entity('feeds')
+// @Entity('feeds')
 export class Feed {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+//   @PrimaryGeneratedColumn('uuid')
+//   id: string;
 
-  @Column('uuid')
-  artistId: string;
+//   @Column('uuid')
+//   artistId: string;
 
-  @ManyToOne(() => Artist, (artist) => artist.feed)
-  @JoinColumn({ name: 'artistId' })
-  artist: Artist;
+//   @ManyToOne(() => Artist, (artist) => artist.feed)
+//   @JoinColumn({ name: 'artistId' })
+//   artist: Artist;
 
-  @Column()
-  content: string;
+//   @Column()
+//   content: string;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  datePosted: Date;
+//   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+//   datePosted: Date;
 }

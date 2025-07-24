@@ -1,6 +1,15 @@
-import { Controller, Get, Post, Body, Param, UsePipes, ValidationPipe, UseGuards, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  UseGuards,
+  Req,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import { ArtService } from './arts.service';
-import { Art } from './entities/art.entity';
 import { CreateArtDto } from './dto/create-art.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
@@ -10,10 +19,11 @@ export class ArtController {
   constructor(private readonly artService: ArtService) {}
 
   @Get()
-  findAll(): Promise<Art[]> {
+  findAll() {
     return this.artService.findAll();
   }
 
+  @UsePipes(new ValidationPipe({ whitelist: true }))
   @Post()
   create(@Body() dto: CreateArtDto, @Req() req) {
     const userId = req.user.sub;

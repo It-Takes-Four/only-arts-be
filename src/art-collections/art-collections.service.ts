@@ -1,26 +1,38 @@
 import { Injectable } from '@nestjs/common';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateArtCollectionDto } from './dto/create-art-collection.dto';
 import { UpdateArtCollectionDto } from './dto/update-art-collection.dto';
 
 @Injectable()
 export class ArtCollectionsService {
-  create(createArtCollectionDto: CreateArtCollectionDto) {
-    return 'This action adds a new artCollection';
+  constructor(private readonly prisma: PrismaService) {}
+
+  create(dto: CreateArtCollectionDto) {
+    return this.prisma.artCollection.create({
+      data: dto,
+    });
   }
 
   findAll() {
-    return `This action returns all artCollections`;
+    return this.prisma.artCollection.findMany();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} artCollection`;
+  findOne(id: string) {
+    return this.prisma.artCollection.findUnique({
+      where: { id },
+    });
   }
 
-  update(id: number, updateArtCollectionDto: UpdateArtCollectionDto) {
-    return `This action updates a #${id} artCollection`;
+  update(id: string, dto: UpdateArtCollectionDto) {
+    return this.prisma.artCollection.update({
+      where: { id },
+      data: dto,
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} artCollection`;
+  remove(id: string) {
+    return this.prisma.artCollection.delete({
+      where: { id },
+    });
   }
 }

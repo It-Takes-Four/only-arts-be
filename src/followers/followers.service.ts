@@ -1,26 +1,41 @@
 import { Injectable } from '@nestjs/common';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateFollowerDto } from './dto/create-follower.dto';
 import { UpdateFollowerDto } from './dto/update-follower.dto';
 
 @Injectable()
 export class FollowersService {
-  create(createFollowerDto: CreateFollowerDto) {
-    return 'This action adds a new follower';
+  constructor(private readonly prisma: PrismaService) {}
+
+  create(dto: CreateFollowerDto, userId: string) {
+    return this.prisma.follower.create({
+      data: {
+        userId, // the follower
+        artistId: dto.artistId, // the followed artist
+      },
+    });
   }
 
   findAll() {
-    return `This action returns all followers`;
+    return this.prisma.follower.findMany();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} follower`;
+  findOne(id: string) {
+    return this.prisma.follower.findUnique({
+      where: { id },
+    });
   }
 
-  update(id: number, updateFollowerDto: UpdateFollowerDto) {
-    return `This action updates a #${id} follower`;
+  update(id: string, dto: UpdateFollowerDto) {
+    return this.prisma.follower.update({
+      where: { id },
+      data: dto,
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} follower`;
+  remove(id: string) {
+    return this.prisma.follower.delete({
+      where: { id },
+    });
   }
 }

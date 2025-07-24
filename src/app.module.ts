@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
 import { ArtsModule } from './arts/arts.module';
 import { CommentsModule } from './comments/comments.module';
@@ -11,19 +10,21 @@ import { FollowersModule } from './followers/followers.module';
 import { FeedsModule } from './feeds/feeds.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { ArtToTagModule } from './art-to-tag/art-to-tag.module';
+import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'postgres',
-      password: '123456',
-      database: 'onlyarts',
-      entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: true,
-    }),
+    // TypeOrmModule.forRoot({
+    //   type: 'postgres',
+    //   host: 'localhost',
+    //   port: 5432,
+    //   username: 'postgres',
+    //   password: '123456',
+    //   database: 'onlyarts',
+    //   entities: [__dirname + '/**/*.entity{.ts,.js}'],
+    //   synchronize: true,
+    // }),
+    PrismaModule,
     UsersModule,
     ArtistsModule,
     ArtsModule,
@@ -35,6 +36,7 @@ import { ArtToTagModule } from './art-to-tag/art-to-tag.module';
     FeedsModule,
     NotificationsModule,
     ArtToTagModule,
+    PrismaModule,
   ],
 })
 export class AppModule {}
