@@ -1,4 +1,15 @@
-import { PartialType } from '@nestjs/swagger';
-import { CreateNotificationDto } from './create-notification.dto';
+import { IsString, IsOptional, IsUUID } from 'class-validator';
 
-export class UpdateNotificationDto extends PartialType(CreateNotificationDto) {}
+export class UpdateNotificationDto {
+  @IsOptional()
+  @IsUUID()
+  userId?: string;
+
+  @IsOptional()
+  @IsUUID()
+  artistId?: string;
+
+  @IsOptional()
+  @IsString()
+  content?: string;
+}

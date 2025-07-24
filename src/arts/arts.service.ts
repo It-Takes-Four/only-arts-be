@@ -1,13 +1,10 @@
-import {
-  Injectable,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateArtDto } from './dto/create-art.dto';
+import { UpdateArtDto } from './dto/update-art.dto';
 
 @Injectable()
-export class ArtService {
+export class ArtsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async findAll() {
@@ -15,26 +12,88 @@ export class ArtService {
       include: {
         artist: true,
         comments: true,
+        tags: { include: { tag: true } },
+        collections: true,
       },
+      orderBy: { datePosted: 'desc' },
     });
   }
 
-  async create(dto: CreateArtDto, userId: string) {
-    const artist = await this.prisma.artist.findUnique({
-      where: { id: dto.artistId },
-      include: { user: true },
+  async findById(id: string) {
+    const art = await this.prisma.art.findUnique({
+      where: { id },
+      include: {
+        artist: true,
+        comments: true,
+        tags: { include: { tag: true } },
+        collections: true,
+      },
     });
+    if (!art) throw new NotFoundException(`Art with ID ${id} not found`);
+    return art;
+  }
 
-    if (!artist) throw new NotFoundException('Artist not found');
-    if (artist.user.id !== userId)
-      throw new UnauthorizedException('You do not own this artist profile');
+  async findByArtist(artistId: string) {
+    return this.prisma.art.findMany({
+      where: { artistId },
+      include: {
+        tags: { include: { tag: true } },
+        comments: true,
+        collections: true,
+      },
+      orderBy: { datePosted: 'desc' },
+    });
+  }
+
+  async createWithTags(dto: CreateArtDto) {
+    const { tagIds = [], ...artData } = dto;
 
     return this.prisma.art.create({
       data: {
-        imageUrl: dto.imageUrl,
-        description: dto.description ?? "",
-        artistId: dto.artistId,
+        ...artData,
+        tags: {
+          create: tagIds.map((tagId) => ({
+            tag: { connect: { id: tagId } },
+          })),
+        },
+      },
+      include: {
+        artist: true,
+        tags: { include: { tag: true } },
       },
     });
   }
-}  
+
+  async updateWithTags(id: string, dto: UpdateArtDto) {
+    const { tagIds, ...updateData } = dto;
+
+    if (tagIds) {
+      await this.prisma.artToArtTag.deleteMany({ where: { artId: id } });
+    }
+
+    return this.prisma.art.update({
+      where: { id },
+      data: {
+        ...updateData,
+        ...(tagIds
+          ? {
+              tags: {
+                create: tagIds.map((tagId) => ({
+                  tag: { connect: { id: tagId } },
+                })),
+              },
+            }
+          : {}),
+      },
+      include: {
+        artist: true,
+        tags: { include: { tag: true } },
+      },
+    });
+  }
+
+  async delete(id: string) {
+    await this.findById(id);
+    return this.prisma.art.delete({ where: { id } });
+  }
+}

@@ -19,7 +19,9 @@ export class UsersService {
       where: { id },
       include: { artist: true },
     });
-    if (!user) throw new NotFoundException(`User with ID ${id} not found`);
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
     return user;
   }
 
@@ -27,7 +29,9 @@ export class UsersService {
     const user = await this.prisma.user.findUnique({
       where: { email },
     });
-    if (!user) throw new NotFoundException(`User with email ${email} not found`);
+    if (!user) {
+      throw new NotFoundException(`User with email ${email} not found`);
+    }
     return user;
   }
 
@@ -55,8 +59,8 @@ export class UsersService {
   }
 
   async delete(id: string) {
-    await this.findById(id); 
-    await this.prisma.user.delete({
+    await this.findById(id);
+    return this.prisma.user.delete({
       where: { id },
     });
   }

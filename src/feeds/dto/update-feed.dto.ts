@@ -1,4 +1,11 @@
-import { PartialType } from '@nestjs/swagger';
-import { CreateFeedDto } from './create-feed.dto';
+import { IsString, IsOptional } from 'class-validator';
 
-export class UpdateFeedDto extends PartialType(CreateFeedDto) {}
+export class UpdateFeedDto {
+  @IsOptional()
+  @IsString()
+  title?: string;
+
+  @IsOptional()
+  @IsString()
+  content?: string;
+}

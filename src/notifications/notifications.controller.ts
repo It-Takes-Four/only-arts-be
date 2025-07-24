@@ -2,45 +2,50 @@ import {
   Controller,
   Get,
   Post,
-  Body,
   Patch,
-  Param,
   Delete,
-  UseGuards,
-  Req,
+  Param,
+  Body,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { UpdateNotificationDto } from './dto/update-notification.dto';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
-@UseGuards(JwtAuthGuard)
 @Controller('notifications')
+@UsePipes(new ValidationPipe({ whitelist: true }))
 export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 
-  @UsePipes(new ValidationPipe({ whitelist: true }))
-  @Post()
-  create(@Body() dto: CreateNotificationDto, @Req() req) {
-    const userId = req.user.sub;
-    return this.notificationsService.create(dto, userId);
-  }
-
   @Get()
-  findAll() {
+  getAll() {
     return this.notificationsService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  getById(@Param('id') id: string) {
     return this.notificationsService.findOne(id);
   }
 
+  @Get('user/:userId')
+  getByUser(@Param('userId') userId: string) {
+    return this.notificationsService.findByUser(userId);
+  }
+
+  @Get('artist/:artistId')
+  getByArtist(@Param('artistId') artistId: string) {
+    return this.notificationsService.findByArtist(artistId);
+  }
+
+  @Post()
+  create(@Body() body: CreateNotificationDto) {
+    return this.notificationsService.create(body);
+  }
+
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateNotificationDto) {
-    return this.notificationsService.update(id, dto);
+  update(@Param('id') id: string, @Body() body: UpdateNotificationDto) {
+    return this.notificationsService.update(id, body);
   }
 
   @Delete(':id')

@@ -1,41 +1,72 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateArtistDto } from './dto/create-artist.dto';
+import { UpdateArtistDto } from './dto/update-artist.dto';
 
 @Injectable()
 export class ArtistsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(dto: CreateArtistDto) {
-    // Ensure user exists
-    const user = await this.prisma.user.findUnique({ where: { id: dto.userId } });
-    if (!user) throw new NotFoundException('User not found');
-
-    return this.prisma.artist.create({
-      data: {
-        userId: dto.userId,
-      },
-    });
-  }
-
-  findAll() {
+  async findAll() {
     return this.prisma.artist.findMany({
       include: {
         user: true,
+        collections: true,
         arts: true,
+        feed: true,
+        followers: true,
+        notifications: true,
       },
     });
   }
 
-  async findOne(id: string) {
+  async findById(id: string) {
     const artist = await this.prisma.artist.findUnique({
       where: { id },
       include: {
         user: true,
+        collections: true,
         arts: true,
+        feed: true,
+        followers: true,
+        notifications: true,
       },
     });
-    if (!artist) throw new NotFoundException('Artist not found');
+
+    if (!artist) throw new NotFoundException(`Artist with ID ${id} not found`);
     return artist;
   }
-}  
+
+  async findByUserId(userId: string) {
+    const artist = await this.prisma.artist.findUnique({
+      where: { userId },
+      include: {
+        user: true,
+        collections: true,
+        arts: true,
+        feed: true,
+        followers: true,
+        notifications: true,
+      },
+    });
+
+    if (!artist) throw new NotFoundException(`Artist for user ID ${userId} not found`);
+    return artist;
+  }
+
+  async create(dto: CreateArtistDto) {
+    return this.prisma.artist.create({ data: dto });
+  }
+
+  async update(id: string, dto: UpdateArtistDto) {
+    return this.prisma.artist.update({
+      where: { id },
+      data: dto,
+    });
+  }
+
+  async delete(id: string) {
+    await this.findById(id);
+    return this.prisma.artist.delete({ where: { id } });
+  }
+}

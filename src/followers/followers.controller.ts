@@ -29,7 +29,7 @@ export class FollowersController {
   }
 
   @Get()
-  findAll() {
+  getAllFollowers() {
     return this.followersService.findAll();
   }
 
@@ -43,8 +43,23 @@ export class FollowersController {
     return this.followersService.update(id, updateFollowerDto);
   }
 
+  @Get(':id')
+  getFollowById(@Param('id') id: string) {
+    return this.followersService.findById(id);
+  }
+
+  @Get('artist/:artistId')
+  getFollowersByArtist(@Param('artistId') artistId: string) {
+    return this.followersService.findByArtist(artistId);
+  }
+
+  @Get('user/:userId')
+  getFollowingByUser(@Param('userId') userId: string) {
+    return this.followersService.findByUser(userId);
+  }
+
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  removeFollow(@Param('id') id: string) {
     return this.followersService.remove(id);
   }
 }

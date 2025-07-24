@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { UpdateNotificationDto } from './dto/update-notification.dto';
@@ -7,35 +7,55 @@ import { UpdateNotificationDto } from './dto/update-notification.dto';
 export class NotificationsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(dto: CreateNotificationDto, userId: string) {
-    return this.prisma.notification.create({
-      data: {
-        content: dto.content,
-        userId,
+  async create(dto: CreateNotificationDto) {
+    return this.prisma.notification.create({ data: dto });
+  }
+
+  async findAll() {
+    return this.prisma.notification.findMany({
+      include: {
+        user: { select: { id: true, username: true } },
+        artist: {
+          select: { id: true, user: { select: { username: true } } },
+        },
       },
     });
   }
 
-  findAll() {
-    return this.prisma.notification.findMany();
-  }
-
-  findOne(id: string) {
-    return this.prisma.notification.findUnique({
+  async findOne(id: string) {
+    const notification = await this.prisma.notification.findUnique({
       where: { id },
     });
+    if (!notification) {
+      throw new NotFoundException(`Notification with ID ${id} not found`);
+    }
+    return notification;
   }
 
-  update(id: string, dto: UpdateNotificationDto) {
+  async update(id: string, dto: UpdateNotificationDto) {
+    await this.findOne(id); 
     return this.prisma.notification.update({
       where: { id },
       data: dto,
     });
   }
 
-  remove(id: string) {
-    return this.prisma.notification.delete({
-      where: { id },
+  async remove(id: string) {
+    await this.findOne(id);
+    return this.prisma.notification.delete({ where: { id } });
+  }
+
+  async findByUser(userId: string) {
+    return this.prisma.notification.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async findByArtist(artistId: string) {
+    return this.prisma.notification.findMany({
+      where: { artistId },
+      orderBy: { createdAt: 'desc' },
     });
   }
 }

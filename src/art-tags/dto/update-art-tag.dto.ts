@@ -1,4 +1,8 @@
-import { PartialType } from '@nestjs/swagger';
-import { CreateArtTagDto } from './create-art-tag.dto';
+import { IsOptional, IsString, MinLength } from 'class-validator';
 
-export class UpdateArtTagDto extends PartialType(CreateArtTagDto) {}
+export class UpdateArtTagDto {
+  @IsOptional()
+  @IsString()
+  @MinLength(2)
+  tagName?: string;
+}

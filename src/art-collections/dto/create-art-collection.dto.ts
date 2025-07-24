@@ -13,9 +13,3 @@ export class CreateArtCollectionDto {
   @IsNotEmpty()
   artId: string;
 }
-
-// export class CreateArtCollectionDto {
-//   collectionName: string;
-//   artistId: string;
-//   artId: string;
-// }

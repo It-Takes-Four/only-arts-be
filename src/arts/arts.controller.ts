@@ -2,31 +2,50 @@ import {
   Controller,
   Get,
   Post,
+  Delete,
+  Patch,
   Body,
   Param,
-  UseGuards,
-  Req,
+  Query,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { ArtService } from './arts.service';
+import { ArtsService } from './arts.service';
 import { CreateArtDto } from './dto/create-art.dto';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { UpdateArtDto } from './dto/update-art.dto';
 
-@UseGuards(JwtAuthGuard)
-@Controller('arts')
+@Controller('art')
+@UsePipes(new ValidationPipe({ whitelist: true }))
 export class ArtController {
-  constructor(private readonly artService: ArtService) {}
+  constructor(private readonly artService: ArtsService) {}
 
   @Get()
-  findAll() {
+  getAllArt() {
     return this.artService.findAll();
   }
 
-  @UsePipes(new ValidationPipe({ whitelist: true }))
+  @Get(':id')
+  getArtById(@Param('id') id: string) {
+    return this.artService.findById(id);
+  }
+
+  @Get('artist/:artistId')
+  getArtByArtist(@Param('artistId') artistId: string) {
+    return this.artService.findByArtist(artistId);
+  }
+
   @Post()
-  create(@Body() dto: CreateArtDto, @Req() req) {
-    const userId = req.user.sub;
-    return this.artService.create(dto, userId);
+  createArt(@Body() body: CreateArtDto) {
+    return this.artService.createWithTags(body);
+  }
+
+  @Patch(':id')
+  updateArt(@Param('id') id: string, @Body() body: UpdateArtDto) {
+    return this.artService.updateWithTags(id, body);
+  }
+
+  @Delete(':id')
+  deleteArt(@Param('id') id: string) {
+    return this.artService.delete(id);
   }
 }

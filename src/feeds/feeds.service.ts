@@ -7,32 +7,42 @@ import { UpdateFeedDto } from './dto/update-feed.dto';
 export class FeedsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(dto: CreateFeedDto, artistId: string) {
-    return this.prisma.feed.create({
-      data: {
-        title: dto.title,
-        content: dto.content,
-        artistId,
-      },
-    });
+  async create(dto: CreateFeedDto) {
+    return this.prisma.feed.create({ data: dto });
   }
 
   async findAll() {
     return this.prisma.feed.findMany({
-      include: { artist: true },
+      include: {
+        artist: {
+          select: {
+            id: true,
+            user: { select: { username: true, profilePicture: true } },
+          },
+        },
+      },
+      orderBy: { datePosted: 'desc' },
     });
   }
 
   async findOne(id: string) {
     const feed = await this.prisma.feed.findUnique({
       where: { id },
-      include: { artist: true },
+      include: {
+        artist: {
+          select: {
+            id: true,
+            user: { select: { username: true } },
+          },
+        },
+      },
     });
-    if (!feed) throw new NotFoundException('Feed not found');
+    if (!feed) throw new NotFoundException(`Feed with ID ${id} not found`);
     return feed;
   }
 
   async update(id: string, dto: UpdateFeedDto) {
+    await this.findOne(id); // Ensure it exists
     return this.prisma.feed.update({
       where: { id },
       data: dto,
@@ -40,8 +50,14 @@ export class FeedsService {
   }
 
   async remove(id: string) {
-    return this.prisma.feed.delete({
-      where: { id },
+    await this.findOne(id);
+    return this.prisma.feed.delete({ where: { id } });
+  }
+
+  async findByArtist(artistId: string) {
+    return this.prisma.feed.findMany({
+      where: { artistId },
+      orderBy: { datePosted: 'desc' },
     });
   }
 }

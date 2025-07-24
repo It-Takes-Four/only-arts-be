@@ -1,16 +1,25 @@
-import { IsNotEmpty, IsString, IsUrl, IsOptional, IsUUID } from 'class-validator';
+import {
+  IsString,
+  IsUrl,
+  IsNotEmpty,
+  IsOptional,
+  IsArray,
+  IsUUID,
+} from 'class-validator';
 
 export class CreateArtDto {
-  @IsUUID()
-  @IsNotEmpty()
-  artistId: string;
-
   @IsUrl()
-  @IsNotEmpty()
   imageUrl: string;
 
   @IsString()
-  @IsOptional()
-  description?: string;
+  @IsNotEmpty()
+  description: string;
 
+  @IsUUID()
+  artistId: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsUUID("all", { each: true }) 
+  tagIds?: string[];
 }

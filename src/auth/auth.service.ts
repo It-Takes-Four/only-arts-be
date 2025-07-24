@@ -6,15 +6,21 @@ import { User } from '../../generated/prisma';
 export class AuthService {
   constructor(private readonly jwtService: JwtService) {}
 
-  async generateJwt(user: User): Promise<{ access_token: string }> {
+  async generateJwt(user: User): Promise<{ accessToken: string; expiresIn: number }> {
     const payload = {
       sub: user.id,
       email: user.email,
       username: user.username,
     };
+
+    const expiresInSeconds = parseInt(process.env.JWT_EXPIRES_IN || '3600');
+    const accessToken = await this.jwtService.signAsync(payload, {
+      expiresIn: expiresInSeconds,
+    });
+
     return {
-      access_token: this.jwtService.sign(payload),
+      accessToken,
+      expiresIn: expiresInSeconds,
     };
   }
-
 }
