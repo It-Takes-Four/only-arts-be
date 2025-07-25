@@ -1,11 +1,9 @@
-import { ApiProperty } from '@nestjs/swagger';
+﻿import { ApiProperty } from '@nestjs/swagger';
 import {
   IsAlphanumeric,
   IsEmail,
   IsNotEmpty,
-  IsOptional,
   IsString,
-  IsUrl,
   MinLength,
 } from 'class-validator';
 import { IsPasswordMatch } from '../validators/password-match.validator';
@@ -42,6 +40,7 @@ export class CreateUserDto {
   @IsAlphanumeric()
   @MinLength(6)
   @IsNotEmpty()
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   @IsPasswordMatch('password')
   confirm_password: string;
 
@@ -52,13 +51,4 @@ export class CreateUserDto {
   @IsString()
   @IsNotEmpty()
   username: string;
-
-  @ApiProperty({
-    description: 'URL to the user’s profile picture. Optional.',
-    example: 'https://cdn.example.com/user/profile.png',
-    required: false,
-  })
-  @IsOptional()
-  @IsUrl()
-  profilePicture?: string;
 }

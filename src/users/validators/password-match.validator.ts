@@ -6,6 +6,11 @@ import {
   ValidationOptions,
 } from 'class-validator';
 
+// Define proper type for object with constructor
+interface ObjectWithConstructor {
+  constructor: new (...args: any[]) => any;
+}
+
 @ValidatorConstraint({ name: 'isPasswordMatch', async: false })
 export class IsPasswordMatchConstraint implements ValidatorConstraintInterface {
   validate(confirmPassword: string, args: ValidationArguments): boolean {
@@ -25,11 +30,20 @@ export class IsPasswordMatchConstraint implements ValidatorConstraintInterface {
   }
 }
 
-export function IsPasswordMatch(property: string, validationOptions?: ValidationOptions) {
-  return function (target: object, propertyName: string): void {
+/**
+ * Validates that the decorated property matches the value of the related property.
+ * @param property The name of the related property to compare against
+ * @param validationOptions Additional validation options
+ */
+export function IsPasswordMatch(
+  property: string,
+  validationOptions?: ValidationOptions,
+): PropertyDecorator {
+  return function (target: ObjectWithConstructor, propertyName: string | symbol): void {
     registerDecorator({
-      target: (target as any).constructor,
-      propertyName: propertyName,
+      name: 'isPasswordMatch',
+      target: target.constructor,
+      propertyName: propertyName as string,
       options: validationOptions,
       constraints: [property],
       validator: IsPasswordMatchConstraint,

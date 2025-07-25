@@ -44,7 +44,6 @@ export class AuthController {
       email: body.email,
       password: body.password,
       username: body.username,
-      profilePicture: body.profilePicture,
     };
     
     const newUser = await this.usersService.create(userCreateData);
