@@ -3,6 +3,7 @@ import { AuthService } from './auth.service';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
+import { ApiBody } from '@nestjs/swagger';
 
 @Controller('auth')
 export class AuthController {
@@ -12,6 +13,10 @@ export class AuthController {
   ) {}
 
   @Post('login')
+  @ApiBody({ 
+      type: LoginDto,
+      description: 'User registration credentials'
+    })
   async login(@Body() body: LoginDto) {
     const user = await this.usersService.findByEmail(body.email);
     const isPasswordValid = user && await bcrypt.compare(body.password, user.password);

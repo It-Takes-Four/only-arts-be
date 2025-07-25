@@ -3,6 +3,7 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 
 @Controller('users')
 @UsePipes(new ValidationPipe({ whitelist: true }))
@@ -21,6 +22,7 @@ export class UsersController {
 
   @Get('me')
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
   async getUserProfile(@Request() req) {
     const user = req.user as { userId: string; email: string };
     return this.usersService.findById(req.user.userId);
@@ -32,6 +34,10 @@ export class UsersController {
   }
 
   @Post()
+  @ApiBody({ 
+    type: CreateUserDto,
+    description: 'User registration credentials'
+  })
   createUser(@Body() body: CreateUserDto) {
     return this.usersService.create(body);
   }

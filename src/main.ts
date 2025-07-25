@@ -12,6 +12,17 @@ async function bootstrap() {
     .setDescription('The OnlyArts API Documentation')
     .setVersion('1.0')
     .addTag('default')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'JWT',
+        description: 'Enter JWT token',
+        in: 'header',
+      },
+      'JWT-auth',
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
