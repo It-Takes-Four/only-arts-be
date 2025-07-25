@@ -6,7 +6,7 @@ import { User } from '@prisma/client';
 export class AuthService {
   constructor(private readonly jwtService: JwtService) {}
 
-  async generateJwt(user: User): Promise<{ accessToken: string; expiresIn: number }> {
+  async generateJwt(user: { id: string; email: string; username: string | null }): Promise<{ accessToken: string; expiresIn: number }> {
     const payload = {
       sub: user.id,
       email: user.email,
