@@ -1,10 +1,11 @@
-import { Controller, Post, Body, UnauthorizedException, ConflictException } from '@nestjs/common';
+import { Controller, Post, Body, UnauthorizedException, ConflictException, HttpCode, HttpStatus } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { NonceRequest, VerifyRequest } from './interfaces/auth.interface';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -13,6 +14,19 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly usersService: UsersService,
   ) {}
+
+  @Post('nonce')
+  @HttpCode(HttpStatus.OK)
+  async generateNonce(@Body() request: NonceRequest) {
+    const nonce = this.authService.generateNonce(request.address);
+    return { nonce };
+  }
+
+  @Post('verify')
+  @HttpCode(HttpStatus.OK)
+  async verifySignature(@Body() request: VerifyRequest) {
+    return await this.authService.verifySignature(request);
+  }
 
   @Post('login')
   @ApiBody({ 
