@@ -8,6 +8,14 @@ import {
   IsUrl,
   MinLength,
 } from 'class-validator';
+import { IsPasswordMatch } from '../validators/password-match.validator';
+
+export interface CreateUserData {
+  email: string;
+  password: string;
+  username: string;
+  profilePicture?: string;
+}
 
 export class CreateUserDto {
   @ApiProperty({
@@ -26,6 +34,16 @@ export class CreateUserDto {
   @MinLength(6)
   @IsNotEmpty()
   password: string;
+
+  @ApiProperty({
+    description: 'Confirm password - must match the password field.',
+    example: 'securePass1',
+  })
+  @IsAlphanumeric()
+  @MinLength(6)
+  @IsNotEmpty()
+  @IsPasswordMatch('password')
+  confirm_password: string;
 
   @ApiProperty({
     description: 'Unique username displayed publicly.',
