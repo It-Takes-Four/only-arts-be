@@ -9,7 +9,9 @@ import { PassportModule } from '@nestjs/passport';
 
 @Module({
   imports: [
-    PassportModule,
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     JwtModule.registerAsync({
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET') || 'your-secret-key',
@@ -17,6 +19,7 @@ import { PassportModule } from '@nestjs/passport';
       }),
       inject: [ConfigService],
     }),
+    PassportModule,
     UsersModule, 
     ConfigModule,
   ],

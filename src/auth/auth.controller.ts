@@ -5,7 +5,8 @@ import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
-import { NonceRequest, VerifyRequest } from './interfaces/auth.interface';
+import { NonceRequest } from './dto/request/nonce.dto';
+import { VerifyRequest } from './dto/request/verify.dto';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -17,13 +18,21 @@ export class AuthController {
 
   @Post('nonce')
   @HttpCode(HttpStatus.OK)
-  async generateNonce(@Body() request: NonceRequest) {
-    const nonce = this.authService.generateNonce(request.address);
+  @ApiBody({ 
+    type: NonceRequest,
+    description: 'User wallet address'
+  })
+  async generateNonce(@Body() body: NonceRequest) {
+    const nonce = this.authService.generateNonce(body.address);
     return { nonce };
   }
 
   @Post('verify')
   @HttpCode(HttpStatus.OK)
+  @ApiBody({ 
+    type: VerifyRequest,
+    description: 'User wallet address'
+  })
   async verifySignature(@Body() request: VerifyRequest) {
     return await this.authService.verifySignature(request);
   }
