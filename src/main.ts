@@ -11,7 +11,6 @@ async function bootstrap() {
     .setTitle('OnlyArts API') 
     .setDescription('The OnlyArts API Documentation')
     .setVersion('1.0')
-    .addTag('default')
     .addBearerAuth(
       {
         type: 'http',
