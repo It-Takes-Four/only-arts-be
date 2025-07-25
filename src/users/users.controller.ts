@@ -63,16 +63,6 @@ export class UsersController {
     return this.usersService.findById(id);
   }
 
-  @Post()
-  @ApiOperation({ summary: 'Create a new user' })
-  @ApiBody({
-    type: CreateUserDto,
-    description: 'User registration credentials',
-  })
-  createUser(@Body() body: CreateUserDto) {
-    return this.usersService.create(body);
-  }
-
   @Patch(':id')
   @ApiOperation({ summary: 'Update user information' })
   @ApiParam({ name: 'id', description: 'User ID to update' })

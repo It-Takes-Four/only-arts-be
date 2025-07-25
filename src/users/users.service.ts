@@ -23,42 +23,18 @@ export class UsersService {
             collections: true,
             arts: {
               include: {
-                tags: {
-                  include: {
-                    tag: true,
-                  },
-                },
-                comments: {
-                  include: {
-                    user: true,
-                  },
-                },
+                tags: { include: { tag: true } },
+                comments: { include: { user: true } },
               },
             },
             feed: true,
-            followers: {
-              include: {
-                user: true,
-              },
-            },
+            followers: { include: { user: true } },
             notifications: true,
           },
         },
-        comments: {
-          include: {
-            art: true,
-          },
-        },
-        followers: {
-          include: {
-            artist: true,
-          },
-        },
-        notifications: {
-          include: {
-            artist: true,
-          },
-        },
+        comments: { include: { art: true } },
+        followers: { include: { artist: true } },
+        notifications: { include: { artist: true } },
       },
     });
 
@@ -70,13 +46,15 @@ export class UsersService {
   }
 
   async findByEmail(email: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { email },
-    });
+    const user = await this.findByEmailNullable(email);
     if (!user) {
       throw new NotFoundException(`User with email ${email} not found`);
     }
     return user;
+  }
+
+  async findByEmailNullable(email: string) {
+    return this.prisma.user.findUnique({ where: { email } });
   }
 
   async create(dto: CreateUserDto) {
@@ -103,14 +81,12 @@ export class UsersService {
   }
 
   async delete(id: string) {
-    await this.findById(id);
-    return this.prisma.user.delete({
-      where: { id },
-    });
+    await this.findById(id); // throws if not found
+    return this.prisma.user.delete({ where: { id } });
   }
 
-  isArtist(user: { artist?: any }) {
-    return !!user.artist;
+  isArtist(user: { artist?: unknown }) {
+    return Boolean(user.artist);
   }
 
   private async hashPassword(password: string) {
