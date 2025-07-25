@@ -7,6 +7,10 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api/v1');
 
+  app.enableCors({
+    
+  });
+
   const config = new DocumentBuilder()
     .setTitle('OnlyArts API') 
     .setDescription('The OnlyArts API Documentation')
