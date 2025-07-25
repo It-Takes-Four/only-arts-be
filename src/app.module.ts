@@ -11,6 +11,8 @@ import { FeedsModule } from './feeds/feeds.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { ArtToTagModule } from './art-to-tag/art-to-tag.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { ConfigModule } from './config/config.module';
+import { SharedModule } from './shared/shared.module';
 
 @Module({
   imports: [
@@ -27,6 +29,8 @@ import { PrismaModule } from './prisma/prisma.module';
     NotificationsModule,
     ArtToTagModule,
     PrismaModule,
+    ConfigModule,
+    SharedModule,
   ],
 })
 export class AppModule {}
