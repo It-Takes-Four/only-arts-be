@@ -17,11 +17,55 @@ export class UsersService {
   async findById(id: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },
-      include: { artist: true },
+      include: {
+        artist: {
+          include: {
+            collections: true,
+            arts: {
+              include: {
+                tags: {
+                  include: {
+                    tag: true,
+                  },
+                },
+                comments: {
+                  include: {
+                    user: true,
+                  },
+                },
+              },
+            },
+            feed: true,
+            followers: {
+              include: {
+                user: true,
+              },
+            },
+            notifications: true,
+          },
+        },
+        comments: {
+          include: {
+            art: true,
+          },
+        },
+        followers: {
+          include: {
+            artist: true,
+          },
+        },
+        notifications: {
+          include: {
+            artist: true,
+          },
+        },
+      },
     });
+
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
+
     return user;
   }
 

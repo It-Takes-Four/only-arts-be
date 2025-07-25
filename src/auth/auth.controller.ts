@@ -14,9 +14,9 @@ export class AuthController {
 
   @Post('login')
   @ApiBody({ 
-      type: LoginDto,
-      description: 'User registration credentials'
-    })
+    type: LoginDto,
+    description: 'User login credentials'
+  })
   async login(@Body() body: LoginDto) {
     const user = await this.usersService.findByEmail(body.email);
     const isPasswordValid = user && await bcrypt.compare(body.password, user.password);
