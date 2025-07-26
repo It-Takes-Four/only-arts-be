@@ -22,14 +22,20 @@ export class AuthController {
     description: 'User login credentials'
   })
   async login(@Body() body: LoginDto) {
-    const user = await this.usersService.findByEmail(body.email);
-    const isPasswordValid = user && await bcrypt.compare(body.password, user.password);
+    const user = await this.usersService.findWithPasswordByEmail(body.email);
+
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const isPasswordValid = await bcrypt.compare(body.password, user.password);
 
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    return this.authService.generateJwt(user);
+    const { password, ...safeUser } = user;
+    return this.authService.generateJwt(safeUser);
   }
 
   @Post('register')

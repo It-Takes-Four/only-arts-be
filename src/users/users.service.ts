@@ -9,9 +9,29 @@ export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
   async findAll() {
-    return this.prisma.user.findMany({
-      include: { artist: true },
+    const users = await this.prisma.user.findMany({
+      include: {
+        artist: {
+          include: {
+            collections: true,
+            arts: {
+              include: {
+                tags: { include: { tag: true } },
+                comments: { include: { user: true } },
+              },
+            },
+            feed: true,
+            followers: { include: { user: true } },
+            notifications: true,
+          },
+        },
+        comments: { include: { art: true } },
+        followers: { include: { artist: true } },
+        notifications: { include: { artist: true } },
+      },
     });
+
+    return users.map(({ password, ...user }) => user);
   }
 
   async findById(id: string) {
@@ -42,24 +62,51 @@ export class UsersService {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
 
-    return user;
+    const { password, ...safeUser } = user;
+    return safeUser;
   }
 
   async findByEmail(email: string) {
-    const user = await this.findByEmailNullable(email);
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        profilePicture: true,
+      },
+    });
+
     if (!user) {
       throw new NotFoundException(`User with email ${email} not found`);
     }
+
     return user;
   }
 
+  async findWithPasswordByEmail(email: string) {
+    return this.prisma.user.findUnique({
+      where: { email },
+    });
+  }
+
   async findByEmailNullable(email: string) {
-    return this.prisma.user.findUnique({ where: { email } });
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        profilePicture: true,
+      },
+    });
+
+    return user || null;
   }
 
   async create(dto: CreateUserData) {
     const hashedPassword = await this.hashPassword(dto.password);
-    return this.prisma.user.create({
+    const user = await this.prisma.user.create({
       data: {
         email: dto.email,
         password: hashedPassword,
@@ -67,6 +114,9 @@ export class UsersService {
         profilePicture: dto.profilePicture,
       },
     });
+
+    const { password, ...safeUser } = user;
+    return safeUser;
   }
 
   async update(id: string, dto: UpdateUserDto) {
@@ -74,14 +124,17 @@ export class UsersService {
       dto.password = await this.hashPassword(dto.password);
     }
 
-    return this.prisma.user.update({
+    const user = await this.prisma.user.update({
       where: { id },
       data: dto,
     });
+
+    const { password, ...safeUser } = user;
+    return safeUser;
   }
 
   async delete(id: string) {
-    await this.findById(id); // throws if not found
+    await this.findById(id);
     return this.prisma.user.delete({ where: { id } });
   }
 
