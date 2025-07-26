@@ -8,17 +8,17 @@ datasource db {
 }
 
 model User {
-  id             String         @id @default(uuid()) @db.Uuid
-  email          String         @unique
+  id             String     @id @default(uuid()) @db.Uuid
+  email          String     @unique
   password       String
-  username       String         @unique
+  username       String     @unique
   profilePicture String?
-  createdAt      DateTime       @default(now())
-  artist         Artist?        @relation("UserArtist")
-  comments       Comment[]
-  followers      Follower[]     @relation("UserFollower")
-  purchases      Purchase[]
+  createdAt      DateTime   @default(now())
   artLikes       ArtLike[]
+  artist         Artist?    @relation("UserArtist")
+  comments       Comment[]
+  followers      Follower[] @relation("UserFollower")
+  purchases      Purchase[]
 
   @@index([email])
   @@index([username])
@@ -26,22 +26,22 @@ model User {
 }
 
 model Artist {
-  id                String          @id @default(uuid()) @db.Uuid
-  userId            String          @unique @db.Uuid
-  artistName        String          @unique
-  isNsfw            Boolean         @default(false)
-  bio               String?         @db.Text
-  walletAddress     String?         @unique // For blockchain integration
-  totalFollowers    Int             @default(0)
-  totalArts         Int             @default(0)
-  totalCollections  Int             @default(0)
-  isVerified        Boolean         @default(false)
-  createdAt         DateTime        @default(now())
-  arts              Art[]
-  collections       ArtCollection[]
-  user              User            @relation("UserArtist", fields: [userId], references: [id], onDelete: Cascade)
-  feed              Feed[]
-  followers         Follower[]      @relation("ArtistFollower")
+  id               String          @id @default(uuid()) @db.Uuid
+  userId           String          @unique @db.Uuid
+  artistName       String          @unique
+  isNsfw           Boolean         @default(false)
+  bio              String?
+  walletAddress    String?         @unique
+  totalFollowers   Int             @default(0)
+  totalArts        Int             @default(0)
+  totalCollections Int             @default(0)
+  isVerified       Boolean         @default(false)
+  createdAt        DateTime        @default(now())
+  collections      ArtCollection[]
+  user             User            @relation("UserArtist", fields: [userId], references: [id], onDelete: Cascade)
+  arts             Art[]
+  feed             Feed[]
+  followers        Follower[]      @relation("ArtistFollower")
 
   @@index([artistName])
   @@index([walletAddress])
@@ -64,20 +64,20 @@ model Follower {
 }
 
 model Art {
-  id           String            @id @default(uuid()) @db.Uuid
-  imageUrl     String
-  title        String
-  description  String            @db.Text
-  datePosted   DateTime          @default(now())
-  artistId     String            @db.Uuid
-  tokenId      BigInt            @unique // Blockchain token ID
-  likesCount   Int               @default(0)
-  isInACollection    Boolean           @default(false)
-  artist       Artist            @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  collections  ArtToCollection[]
-  tags         ArtToArtTag[]
-  comments     Comment[]
-  likes        ArtLike[]
+  id              String            @id @default(uuid()) @db.Uuid
+  imageUrl        String
+  title           String
+  description     String
+  datePosted      DateTime          @default(now())
+  artistId        String            @db.Uuid
+  tokenId         BigInt            @unique
+  likesCount      Int               @default(0)
+  isInACollection Boolean           @default(false)
+  likes           ArtLike[]
+  tags            ArtToArtTag[]
+  collections     ArtToCollection[]
+  artist          Artist            @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  comments        Comment[]
 
   @@index([artistId])
   @@index([tokenId])
@@ -91,8 +91,8 @@ model ArtLike {
   userId    String   @db.Uuid
   artId     String   @db.Uuid
   createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   art       Art      @relation(fields: [artId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, artId])
   @@index([artId])
@@ -101,7 +101,7 @@ model ArtLike {
 
 model Comment {
   id        String   @id @default(uuid()) @db.Uuid
-  content   String   @db.Text
+  content   String
   createdAt DateTime @default(now())
   userId    String   @db.Uuid
   artId     String   @db.Uuid
@@ -115,11 +115,11 @@ model Comment {
 }
 
 model ArtTag {
-  id       String        @id @default(uuid()) @db.Uuid
-  tagName  String        @unique
-  usageCount Int         @default(0)
-  createdAt DateTime     @default(now())
-  arts     ArtToArtTag[]
+  id         String        @id @default(uuid()) @db.Uuid
+  tagName    String        @unique
+  usageCount Int           @default(0)
+  createdAt  DateTime      @default(now())
+  arts       ArtToArtTag[]
 
   @@index([tagName])
   @@map("art_tags")
@@ -128,10 +128,10 @@ model ArtTag {
 model ArtCollection {
   id             String            @id @default(uuid()) @db.Uuid
   collectionName String
-  description    String?           @db.Text
+  description    String?
   coverImageUrl  String?
-  price          Decimal?          @db.Decimal(18, 8) // For collection access price
-  tokenId        BigInt?           @unique // Collection NFT token ID
+  price          Decimal?          @db.Decimal(18, 8)
+  tokenId        BigInt?           @unique
   createdAt      DateTime          @default(now())
   artistId       String            @db.Uuid
   artist         Artist            @relation(fields: [artistId], references: [id], onDelete: Cascade)
@@ -159,14 +159,14 @@ model ArtToCollection {
 model Purchase {
   id           String         @id @default(uuid()) @db.Uuid
   userId       String         @db.Uuid
-  collectionId String         @db.Uuid // For collection access purchases
+  collectionId String         @db.Uuid
   price        Decimal        @db.Decimal(18, 8)
-  txHash       String?        @unique // Blockchain transaction hash
+  txHash       String?        @unique
   status       PurchaseStatus @default(PENDING)
   createdAt    DateTime       @default(now())
   completedAt  DateTime?
-  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   collection   ArtCollection  @relation(fields: [collectionId], references: [id], onDelete: SetNull)
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([collectionId])
@@ -179,7 +179,7 @@ model Feed {
   id         String   @id @default(uuid()) @db.Uuid
   artistId   String   @db.Uuid
   title      String
-  content    String   @db.Text
+  content    String
   imageUrl   String?
   datePosted DateTime @default(now())
   artist     Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
@@ -199,7 +199,6 @@ model ArtToArtTag {
   @@map("art_to_art_tags")
 }
 
-// Enums
 enum PurchaseStatus {
   PENDING
   COMPLETED

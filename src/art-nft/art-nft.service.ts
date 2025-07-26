@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { ethers } from 'ethers';
 import { Web3ProviderService } from '../shared/services/web3-provider.service';
 import { TokenInfo } from './interfaces/art-nft.interface';
+import { CreateArtResponse } from './dto/response/create-art.dto';
 
 
 const tokenAbi = artNftABI;
@@ -65,14 +66,13 @@ export class ArtNftService implements OnModuleInit {
     };
   }
 
-  // returns the art token id
-  public async createArt(address: string): Promise<string> {
+  public async createArt(artistId: string, artId: string): Promise<CreateArtResponse> {
     if (!this.contract) {
       throw new BadRequestException('Contract not initialized');
     }
 
     try {
-      const tx = await this.contract.createArt(address);
+      const tx = await this.contract.createArt(artistId, artId);
       this.logger.log('Transaction sent:', tx.hash);
       
       const receipt = await tx.wait();
@@ -83,14 +83,14 @@ export class ArtNftService implements OnModuleInit {
       }
 
       // Method 1: Parse logs manually (works for both ethers v5 and v6)
-      let tokenId: string | null = null;
+      let tokenId: bigint | null = null;
       
       for (const log of receipt.logs) {
         try {
           const parsedLog = this.contract.interface.parseLog(log);
           if (parsedLog && parsedLog.name === 'ArtCreated') {
             const artistAddress = parsedLog.args[0];
-            tokenId = parsedLog.args[1].toString();
+            tokenId = parsedLog.args[1];
             this.logger.log(`Art created - Artist: ${artistAddress}, Token ID: ${tokenId}`);
             break;
           }
@@ -104,7 +104,7 @@ export class ArtNftService implements OnModuleInit {
         throw new BadRequestException('Failed to retrieve token ID from art creation');
       }
 
-      return tokenId;
+      return new CreateArtResponse(artistId, artId, tokenId);
 
     } catch (error) {
       this.logger.error('Error creating art:', error);

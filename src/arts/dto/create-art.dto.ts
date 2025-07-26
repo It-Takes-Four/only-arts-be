@@ -9,6 +9,11 @@ import {
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateArtDto {
+  @ApiProperty({ description: 'Title of the artwork', example: 'Sungazer.' })
+  @IsString()
+  @IsNotEmpty()
+  title: string;
+
   @ApiProperty({ description: 'URL of the artwork image', example: 'https://example.com/image.jpg' })
   @IsUrl()
   imageUrl: string;

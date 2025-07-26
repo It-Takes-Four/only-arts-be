@@ -3,10 +3,11 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateArtDto } from './dto/create-art.dto';
 import { UpdateArtDto } from './dto/update-art.dto';
 import { ArtNftService } from 'src/art-nft/art-nft.service';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class ArtsService {
-  constructor(private readonly prisma: PrismaService, private readonly artNftService: ArtNftService) {}
+  constructor(private readonly prisma: PrismaService, private readonly artNftService: ArtNftService) { }
 
   async findAll() {
     return this.prisma.art.findMany({
@@ -47,16 +48,19 @@ export class ArtsService {
   }
 
   async createWithTags(dto: CreateArtDto) {
-    const { tagIds = [], artistWalletAddress, ...artData } = dto;
+    const artId = uuidv4();
+    const tagIds = dto.tagIds?.length ? dto.tagIds : [];
 
-    const artTokenId = await this.artNftService.createArt(artistWalletAddress);
-
-    const tokenId = BigInt(artTokenId)
+    const createArtResult = await this.artNftService.createArt(dto.artistId, artId);
+    const tokenId = BigInt(createArtResult.tokenId);
 
     return this.prisma.art.create({
       data: {
-        ...artData,
+        id: artId,
         tokenId: tokenId,
+        description: dto.description,
+        imageUrl: dto.imageUrl,
+        artistId: dto.artistId,
         tags: {
           create: tagIds.map((tagId) => ({
             tag: { connect: { id: tagId } },
@@ -69,6 +73,7 @@ export class ArtsService {
       },
     });
   }
+
 
   async updateWithTags(id: string, dto: UpdateArtDto) {
     const { tagIds, ...updateData } = dto;
@@ -83,12 +88,12 @@ export class ArtsService {
         ...updateData,
         ...(tagIds
           ? {
-              tags: {
-                create: tagIds.map((tagId) => ({
-                  tag: { connect: { id: tagId } },
-                })),
-              },
-            }
+            tags: {
+              create: tagIds.map((tagId) => ({
+                tag: { connect: { id: tagId } },
+              })),
+            },
+          }
           : {}),
       },
       include: {
