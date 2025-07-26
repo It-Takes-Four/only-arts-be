@@ -16,6 +16,27 @@ export class AuthController {
     private readonly usersService: UsersService,
   ) {}
 
+  @Post('nonce')
+  @HttpCode(HttpStatus.OK)
+  @ApiBody({ 
+    type: NonceRequest,
+    description: 'User wallet address'
+  })
+  async generateNonce(@Body() body: NonceRequest) {
+    const nonce = this.authService.generateNonce(body.address);
+    return { nonce };
+  }
+
+  @Post('verify')
+  @HttpCode(HttpStatus.OK)
+  @ApiBody({ 
+    type: VerifyRequest,
+    description: 'User wallet address'
+  })
+  async verifySignature(@Body() request: VerifyRequest) {
+    return await this.authService.verifySignature(request);
+  }
+
   @Post('login')
   @ApiBody({ 
     type: LoginDto,

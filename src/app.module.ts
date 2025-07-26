@@ -11,6 +11,9 @@ import { FeedsModule } from './feeds/feeds.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { ArtToTagModule } from './art-to-tag/art-to-tag.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { SharedModule } from './shared/shared.module';
+import { ArtNftModule } from './art-nft/art-nft.module';
+import { CollectionAccessModule } from './collection-access/collection-access.module';
 
 @Module({
   imports: [
@@ -27,6 +30,9 @@ import { PrismaModule } from './prisma/prisma.module';
     NotificationsModule,
     ArtToTagModule,
     PrismaModule,
+    SharedModule,
+    ArtNftModule,
+    CollectionAccessModule,
   ],
 })
 export class AppModule {}
