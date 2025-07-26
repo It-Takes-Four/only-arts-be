@@ -5,6 +5,7 @@ import { ethers } from 'ethers';
 import { Web3ProviderService } from '../shared/services/web3-provider.service';
 import { TokenInfo } from './interfaces/art-nft.interface';
 import { CreateArtResponse } from './dto/response/create-art.dto';
+import { CreateCollectionResponse } from './dto/response/create-collection.dto';
 
 
 const tokenAbi = artNftABI;
@@ -111,13 +112,13 @@ export class ArtNftService implements OnModuleInit {
   }
 
   // returns the art token id
-  public async createCollection(address: string): Promise<string> {
+  public async createCollection(artistId: string, collectionId: string): Promise<CreateCollectionResponse> {
     if (!this.contract) {
       throw new BadRequestException('Contract not initialized');
     }
 
     try {
-      const tx = await this.contract.createCollection(address);
+      const tx = await this.contract.createCollection(artistId, collectionId);
       this.logger.log('Transaction sent:', tx.hash);
       
       const receipt = await tx.wait();
@@ -127,15 +128,14 @@ export class ArtNftService implements OnModuleInit {
         throw new BadRequestException('Transaction failed');
       }
 
-      // Method 1: Parse logs manually (works for both ethers v5 and v6)
-      let tokenId: string | null = null;
+      let tokenId: bigint | null = null;
       
       for (const log of receipt.logs) {
         try {
           const parsedLog = this.contract.interface.parseLog(log);
           if (parsedLog && parsedLog.name === 'CollectionCreated') {
             const artistAddress = parsedLog.args[0];
-            tokenId = parsedLog.args[1].toString();
+            tokenId = parsedLog.args[2];
             this.logger.log(`Collection created - Artist: ${artistAddress}, Token ID: ${tokenId}`);
             break;
           }
@@ -149,8 +149,7 @@ export class ArtNftService implements OnModuleInit {
         throw new BadRequestException('Failed to retrieve token ID from collection creation');
       }
 
-      return tokenId;
-
+      return new CreateCollectionResponse(artistId, collectionId, tokenId);
     } catch (error) {
       this.logger.error('Error creating collection:', error);
       throw new BadRequestException(`Failed to create collection: ${error.message}`);
