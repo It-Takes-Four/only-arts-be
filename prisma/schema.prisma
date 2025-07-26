@@ -42,6 +42,8 @@ model Follower {
   artistId String
   artist   Artist @relation(fields: [artistId], references: [id])
   user     User   @relation(fields: [userId], references: [id])
+
+  @@unique([userId, artistId]) 
 }
 
 model Art {
@@ -50,7 +52,7 @@ model Art {
   description String
   datePosted  DateTime        @default(now())
   artistId    String
-  collections ArtCollection[]
+  collections ArtToCollection[]
   tags        ArtToArtTag[]
   artist      Artist          @relation(fields: [artistId], references: [id])
   comments    Comment[]
@@ -68,18 +70,25 @@ model Comment {
 
 model ArtTag {
   id      String        @id @default(uuid())
-  tagName String
+  tagName String        @unique
   arts    ArtToArtTag[]
 }
 
 model ArtCollection {
-  id             String   @id @default(uuid())
+  id             String             @id @default(uuid())
   collectionName String
-  createdAt      DateTime @default(now())
+  createdAt      DateTime           @default(now())
   artistId       String
-  artId          String
-  art            Art      @relation(fields: [artId], references: [id])
-  artist         Artist   @relation(fields: [artistId], references: [id])
+  artist         Artist             @relation(fields: [artistId], references: [id])
+  arts           ArtToCollection[]
+}
+
+model ArtToCollection {
+  id           String   @id @default(uuid())
+  artId        String
+  collectionId String
+  art          Art      @relation(fields: [artId], references: [id])
+  collection   ArtCollection @relation(fields: [collectionId], references: [id])
 }
 
 model Feed {

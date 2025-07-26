@@ -48,14 +48,6 @@ export class UsersController {
     return this.usersService.findByEmail(email);
   }
 
-  @Get('me')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Get current authenticated user profile' })
-  async getUserProfile(@Request() req) {
-    return this.usersService.findById(req.user.userId);
-  }
-
   @Get(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
