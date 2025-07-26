@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Request,
 } from '@nestjs/common';
 import { ArtCollectionsService } from './art-collections.service';
 import { CreateArtCollectionDto } from './dto/create-art-collection.dto';
@@ -19,6 +20,7 @@ import {
   ApiOperation,
   ApiParam,
 } from '@nestjs/swagger';
+import { AuthenticatedRequest } from 'src/auth/types/auth.types';
 
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth('JWT-auth')
@@ -47,7 +49,13 @@ export class ArtCollectionsController {
   @ApiOperation({ summary: 'Get an art collection by ID' })
   @ApiParam({ name: 'id', type: String, description: 'Art collection ID' })
   findOne(@Param('id') id: string) {
-    return this.artCollectionsService.findOne(id);
+    return this.artCollectionsService.findArtsInCollection(id);
+  }
+
+  @Get('my/arts')
+  @ApiOperation({ summary: 'Get all arts from all collections of current user' })
+  findArtsFromMyCollections(@Request() req: AuthenticatedRequest) {
+    return this.artCollectionsService.findAllArtsFromUserCollections(req.user.userId);
   }
 
   @Patch(':id')
@@ -57,6 +65,7 @@ export class ArtCollectionsController {
     type: UpdateArtCollectionDto,
     description: 'Payload for updating an art collection',
   })
+
   update(
     @Param('id') id: string,
     @Body() updateArtCollectionDto: UpdateArtCollectionDto,

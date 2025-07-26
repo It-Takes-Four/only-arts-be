@@ -12,10 +12,28 @@ export class ArtistsService {
       include: {
         user: true,
         collections: true,
-        arts: true,
         feed: true,
         followers: true,
         notifications: true,
+        arts: {
+          include: {
+            collections: {
+              include: {
+                collection: true,
+              },
+            },
+            tags: {
+              include: {
+                tag: true,
+              },
+            },
+            comments: {
+              include: {
+                user: true,
+              },
+            },
+          },
+        },
       },
     });
   }
@@ -26,7 +44,25 @@ export class ArtistsService {
       include: {
         user: true,
         collections: true,
-        arts: true,
+        arts: {
+          include: {
+            collections: {
+              include: {
+                collection: true,
+              },
+            },
+            tags: {
+              include: {
+                tag: true,
+              },
+            },
+            comments: {
+              include: {
+                user: true,
+              },
+            },
+          },
+        },
         feed: true,
         followers: true,
         notifications: true,
@@ -50,7 +86,8 @@ export class ArtistsService {
       },
     });
 
-    if (!artist) throw new NotFoundException(`Artist for user ID ${userId} not found`);
+    if (!artist)
+      throw new NotFoundException(`Artist for user ID ${userId} not found`);
     return artist;
   }
 
@@ -64,7 +101,6 @@ export class ArtistsService {
       },
     });
   }
-
 
   async update(id: string, dto: UpdateArtistDto) {
     return this.prisma.artist.update({
