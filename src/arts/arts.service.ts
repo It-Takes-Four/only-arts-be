@@ -2,10 +2,11 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateArtDto } from './dto/create-art.dto';
 import { UpdateArtDto } from './dto/update-art.dto';
+import { ArtNftService } from 'src/art-nft/art-nft.service';
 
 @Injectable()
 export class ArtsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService, private readonly artNftService: ArtNftService) {}
 
   async findAll() {
     return this.prisma.art.findMany({
@@ -46,11 +47,16 @@ export class ArtsService {
   }
 
   async createWithTags(dto: CreateArtDto) {
-    const { tagIds = [], ...artData } = dto;
+    const { tagIds = [], artistWalletAddress, ...artData } = dto;
+
+    const artTokenId = await this.artNftService.createArt(artistWalletAddress);
+
+    const tokenId = BigInt(artTokenId)
 
     return this.prisma.art.create({
       data: {
         ...artData,
+        tokenId: tokenId,
         tags: {
           create: tagIds.map((tagId) => ({
             tag: { connect: { id: tagId } },
