@@ -58,6 +58,7 @@ export class ArtsService {
       data: {
         id: artId,
         tokenId: tokenId,
+        title: dto.title, 
         description: dto.description,
         imageUrl: dto.imageUrl,
         artistId: dto.artistId,

@@ -19,6 +19,7 @@ model User {
   comments       Comment[]
   followers      Follower[] @relation("UserFollower")
   purchases      Purchase[]
+  notifications  Notification[]
 
   @@index([email])
   @@index([username])
@@ -42,11 +43,26 @@ model Artist {
   arts             Art[]
   feed             Feed[]
   followers        Follower[]      @relation("ArtistFollower")
+  notifications   Notification[]
 
   @@index([artistName])
   @@index([walletAddress])
   @@index([isVerified])
   @@map("artists")
+}
+
+model Notification {
+  id        String   @id @default(uuid()) @db.Uuid
+  message   String
+  userId    String   @db.Uuid
+  artistId  String?  @db.Uuid
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  artist    Artist?   @relation(fields: [artistId], references: [id])
+
+  @@index([userId])
+  @@index([artistId])
+  @@map("notifications")
 }
 
 model Follower {
@@ -165,8 +181,8 @@ model Purchase {
   status       PurchaseStatus @default(PENDING)
   createdAt    DateTime       @default(now())
   completedAt  DateTime?
-  collection   ArtCollection  @relation(fields: [collectionId], references: [id], onDelete: SetNull)
-  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  collection   ArtCollection  @relation(fields: [collectionId], references: [id])
+  user         User           @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([collectionId])

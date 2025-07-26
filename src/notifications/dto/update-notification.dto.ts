@@ -15,5 +15,5 @@ export class UpdateNotificationDto {
   @ApiPropertyOptional({ description: 'Content of the notification', type: String })
   @IsOptional()
   @IsString()
-  content?: string;
+  message?: string;
 }

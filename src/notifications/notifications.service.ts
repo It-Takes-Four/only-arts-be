@@ -8,15 +8,34 @@ export class NotificationsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(dto: CreateNotificationDto) {
-    return this.prisma.notification.create({ data: dto });
+    return this.prisma.notification.create({
+      data: {
+        message: dto.message,
+        userId: dto.userId,
+        artistId: dto.artistId,
+      },
+    });
   }
 
   async findAll() {
     return this.prisma.notification.findMany({
+      orderBy: { createdAt: 'desc' },
       include: {
-        user: { select: { id: true, username: true } },
+        user: {
+          select: {
+            id: true,
+            username: true,
+            profilePicture: true,
+          },
+        },
         artist: {
-          select: { id: true, user: { select: { username: true } } },
+          select: {
+            id: true,
+            artistName: true,
+            user: {
+              select: { username: true, profilePicture: true },
+            },
+          },
         },
       },
     });
@@ -25,30 +44,60 @@ export class NotificationsService {
   async findOne(id: string) {
     const notification = await this.prisma.notification.findUnique({
       where: { id },
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+          },
+        },
+        artist: {
+          select: {
+            id: true,
+            artistName: true,
+          },
+        },
+      },
     });
+
     if (!notification) {
       throw new NotFoundException(`Notification with ID ${id} not found`);
     }
+
     return notification;
   }
 
   async update(id: string, dto: UpdateNotificationDto) {
-    await this.findOne(id); 
+    await this.findOne(id); // to trigger 404 if not found
     return this.prisma.notification.update({
       where: { id },
-      data: dto,
+      data: {
+        message: dto.message,
+        userId: dto.userId,
+        artistId: dto.artistId,
+      },
     });
   }
 
   async remove(id: string) {
     await this.findOne(id);
-    return this.prisma.notification.delete({ where: { id } });
+    return this.prisma.notification.delete({
+      where: { id },
+    });
   }
 
   async findByUser(userId: string) {
     return this.prisma.notification.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
+      include: {
+        artist: {
+          select: {
+            id: true,
+            artistName: true,
+          },
+        },
+      },
     });
   }
 
@@ -56,6 +105,14 @@ export class NotificationsService {
     return this.prisma.notification.findMany({
       where: { artistId },
       orderBy: { createdAt: 'desc' },
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+          },
+        },
+      },
     });
   }
 }

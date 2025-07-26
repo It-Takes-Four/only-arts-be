@@ -123,6 +123,8 @@ async function main() {
       update: {},
       create: {
         id: artId,
+        title: faker.lorem.words(3), 
+        tokenId: faker.number.int({ min: 1, max: 99999 }), 
         imageUrl: faker.image.urlLoremFlickr({ category: 'art' }),
         description: faker.lorem.sentence(),
         artistId: artistId,
@@ -158,7 +160,7 @@ async function main() {
         data: {
           id: uuidv4(),
           userId,
-          content: `New comment on your art by ${commenter.userId}`,
+          message: `New comment on your art by ${commenter.userId}`,
           artistId,
         },
       });
@@ -220,7 +222,7 @@ async function main() {
           id: uuidv4(),
           userId: target.userId,
           artistId: target.artistId,
-          content: `You have a new follower!`,
+          message: `You have a new follower!`,
         },
       });
     }

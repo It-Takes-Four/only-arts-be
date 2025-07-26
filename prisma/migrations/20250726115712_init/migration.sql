@@ -1,96 +1,5 @@
-/*
-  Warnings:
-
-  - You are about to drop the `Art` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `ArtCollection` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `ArtTag` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `ArtToArtTag` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `ArtToCollection` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Artist` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Comment` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Feed` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Follower` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Notification` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `User` table. If the table is not empty, all the data it contains will be lost.
-
-*/
 -- CreateEnum
 CREATE TYPE "PurchaseStatus" AS ENUM ('PENDING', 'COMPLETED', 'FAILED', 'CANCELLED');
-
--- DropForeignKey
-ALTER TABLE "Art" DROP CONSTRAINT "Art_artistId_fkey";
-
--- DropForeignKey
-ALTER TABLE "ArtCollection" DROP CONSTRAINT "ArtCollection_artistId_fkey";
-
--- DropForeignKey
-ALTER TABLE "ArtToArtTag" DROP CONSTRAINT "ArtToArtTag_artId_fkey";
-
--- DropForeignKey
-ALTER TABLE "ArtToArtTag" DROP CONSTRAINT "ArtToArtTag_tagId_fkey";
-
--- DropForeignKey
-ALTER TABLE "ArtToCollection" DROP CONSTRAINT "ArtToCollection_artId_fkey";
-
--- DropForeignKey
-ALTER TABLE "ArtToCollection" DROP CONSTRAINT "ArtToCollection_collectionId_fkey";
-
--- DropForeignKey
-ALTER TABLE "Artist" DROP CONSTRAINT "Artist_userId_fkey";
-
--- DropForeignKey
-ALTER TABLE "Comment" DROP CONSTRAINT "Comment_artId_fkey";
-
--- DropForeignKey
-ALTER TABLE "Comment" DROP CONSTRAINT "Comment_userId_fkey";
-
--- DropForeignKey
-ALTER TABLE "Feed" DROP CONSTRAINT "Feed_artistId_fkey";
-
--- DropForeignKey
-ALTER TABLE "Follower" DROP CONSTRAINT "Follower_artistId_fkey";
-
--- DropForeignKey
-ALTER TABLE "Follower" DROP CONSTRAINT "Follower_userId_fkey";
-
--- DropForeignKey
-ALTER TABLE "Notification" DROP CONSTRAINT "Notification_artistId_fkey";
-
--- DropForeignKey
-ALTER TABLE "Notification" DROP CONSTRAINT "Notification_userId_fkey";
-
--- DropTable
-DROP TABLE "Art";
-
--- DropTable
-DROP TABLE "ArtCollection";
-
--- DropTable
-DROP TABLE "ArtTag";
-
--- DropTable
-DROP TABLE "ArtToArtTag";
-
--- DropTable
-DROP TABLE "ArtToCollection";
-
--- DropTable
-DROP TABLE "Artist";
-
--- DropTable
-DROP TABLE "Comment";
-
--- DropTable
-DROP TABLE "Feed";
-
--- DropTable
-DROP TABLE "Follower";
-
--- DropTable
-DROP TABLE "Notification";
-
--- DropTable
-DROP TABLE "User";
 
 -- CreateTable
 CREATE TABLE "users" (
@@ -122,6 +31,17 @@ CREATE TABLE "artists" (
 );
 
 -- CreateTable
+CREATE TABLE "notifications" (
+    "id" UUID NOT NULL,
+    "message" TEXT NOT NULL,
+    "userId" UUID NOT NULL,
+    "artistId" UUID,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "notifications_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "followers" (
     "id" UUID NOT NULL,
     "userId" UUID NOT NULL,
@@ -141,7 +61,7 @@ CREATE TABLE "arts" (
     "artistId" UUID NOT NULL,
     "tokenId" BIGINT NOT NULL,
     "likesCount" INTEGER NOT NULL DEFAULT 0,
-    "isForSale" BOOLEAN NOT NULL DEFAULT false,
+    "isInACollection" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "arts_pkey" PRIMARY KEY ("id")
 );
@@ -266,6 +186,12 @@ CREATE INDEX "artists_walletAddress_idx" ON "artists"("walletAddress");
 CREATE INDEX "artists_isVerified_idx" ON "artists"("isVerified");
 
 -- CreateIndex
+CREATE INDEX "notifications_userId_idx" ON "notifications"("userId");
+
+-- CreateIndex
+CREATE INDEX "notifications_artistId_idx" ON "notifications"("artistId");
+
+-- CreateIndex
 CREATE INDEX "followers_userId_idx" ON "followers"("userId");
 
 -- CreateIndex
@@ -287,7 +213,7 @@ CREATE INDEX "arts_tokenId_idx" ON "arts"("tokenId");
 CREATE INDEX "arts_datePosted_idx" ON "arts"("datePosted");
 
 -- CreateIndex
-CREATE INDEX "arts_isForSale_idx" ON "arts"("isForSale");
+CREATE INDEX "arts_isInACollection_idx" ON "arts"("isInACollection");
 
 -- CreateIndex
 CREATE INDEX "art_likes_artId_idx" ON "art_likes"("artId");
@@ -350,6 +276,12 @@ CREATE INDEX "feeds_datePosted_idx" ON "feeds"("datePosted");
 ALTER TABLE "artists" ADD CONSTRAINT "artists_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "notifications" ADD CONSTRAINT "notifications_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "notifications" ADD CONSTRAINT "notifications_artistId_fkey" FOREIGN KEY ("artistId") REFERENCES "artists"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "followers" ADD CONSTRAINT "followers_artistId_fkey" FOREIGN KEY ("artistId") REFERENCES "artists"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -359,10 +291,10 @@ ALTER TABLE "followers" ADD CONSTRAINT "followers_userId_fkey" FOREIGN KEY ("use
 ALTER TABLE "arts" ADD CONSTRAINT "arts_artistId_fkey" FOREIGN KEY ("artistId") REFERENCES "artists"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "art_likes" ADD CONSTRAINT "art_likes_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "art_likes" ADD CONSTRAINT "art_likes_artId_fkey" FOREIGN KEY ("artId") REFERENCES "arts"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "art_likes" ADD CONSTRAINT "art_likes_artId_fkey" FOREIGN KEY ("artId") REFERENCES "arts"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "art_likes" ADD CONSTRAINT "art_likes_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "comments" ADD CONSTRAINT "comments_artId_fkey" FOREIGN KEY ("artId") REFERENCES "arts"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -380,10 +312,10 @@ ALTER TABLE "art_to_collections" ADD CONSTRAINT "art_to_collections_artId_fkey" 
 ALTER TABLE "art_to_collections" ADD CONSTRAINT "art_to_collections_collectionId_fkey" FOREIGN KEY ("collectionId") REFERENCES "art_collections"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "purchases" ADD CONSTRAINT "purchases_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "purchases" ADD CONSTRAINT "purchases_collectionId_fkey" FOREIGN KEY ("collectionId") REFERENCES "art_collections"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "purchases" ADD CONSTRAINT "purchases_collectionId_fkey" FOREIGN KEY ("collectionId") REFERENCES "art_collections"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "purchases" ADD CONSTRAINT "purchases_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "feeds" ADD CONSTRAINT "feeds_artistId_fkey" FOREIGN KEY ("artistId") REFERENCES "artists"("id") ON DELETE CASCADE ON UPDATE CASCADE;
