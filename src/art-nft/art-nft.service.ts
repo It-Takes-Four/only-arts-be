@@ -82,7 +82,6 @@ export class ArtNftService implements OnModuleInit {
         throw new BadRequestException('Transaction failed');
       }
 
-      // Method 1: Parse logs manually (works for both ethers v5 and v6)
       let tokenId: bigint | null = null;
       
       for (const log of receipt.logs) {
@@ -90,7 +89,7 @@ export class ArtNftService implements OnModuleInit {
           const parsedLog = this.contract.interface.parseLog(log);
           if (parsedLog && parsedLog.name === 'ArtCreated') {
             const artistAddress = parsedLog.args[0];
-            tokenId = parsedLog.args[1];
+            tokenId = parsedLog.args[2];
             this.logger.log(`Art created - Artist: ${artistAddress}, Token ID: ${tokenId}`);
             break;
           }
@@ -105,7 +104,6 @@ export class ArtNftService implements OnModuleInit {
       }
 
       return new CreateArtResponse(artistId, artId, tokenId);
-
     } catch (error) {
       this.logger.error('Error creating art:', error);
       throw new BadRequestException(`Failed to create art: ${error.message}`);
