@@ -54,9 +54,17 @@ export class ArtistsService {
     return artist;
   }
 
-  async create(dto: CreateArtistDto) {
-    return this.prisma.artist.create({ data: dto });
+  async create(createArtistDto: CreateArtistDto) {
+    return this.prisma.artist.create({
+      data: {
+        userId: createArtistDto.userId,
+        artistName: createArtistDto.artistName,
+        bio: createArtistDto.bio,
+        isNsfw: createArtistDto.isNsfw,
+      },
+    });
   }
+
 
   async update(id: string, dto: UpdateArtistDto) {
     return this.prisma.artist.update({

@@ -56,21 +56,29 @@ export class ArtistsController {
   getArtistByUserId(@Param('userId') userId: string) {
     return this.artistService.findByUserId(userId);
   }
-  
+
   @Post('register-as-artist')
   @ApiOperation({ summary: 'Register current user as an artist' })
-  async registerAsArtist(@Request() req: AuthenticatedRequest) {
+  async registerAsArtist(
+    @Request() req: AuthenticatedRequest,
+    @Body() createArtistDto: CreateArtistDto,
+  ) {
     const user = await this.usersService.findById(req.user.userId);
     if (this.usersService.isArtist(user)) {
       throw new ConflictException('User is already registered as an artist');
     }
-    const artist = await this.artistService.create({ userId: req.user.userId });
-    
+
+    const artist = await this.artistService.create({
+      ...createArtistDto,
+      userId: req.user.userId, 
+    });
+
     return {
       message: 'Successfully registered as an artist',
       artist,
     };
   }
+
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update artist information' })

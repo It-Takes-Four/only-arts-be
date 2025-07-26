@@ -28,6 +28,9 @@ model User {
 model Artist {
   id            String          @id @default(uuid())
   userId        String          @unique
+  artistName    String          
+  isNsfw        Boolean         @default(false) 
+  bio           String?         
   collections   ArtCollection[]
   user          User            @relation("UserArtist", fields: [userId], references: [id])
   arts          Art[]

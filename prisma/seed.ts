@@ -70,6 +70,9 @@ async function main() {
     create: {
       id: templateArtistId,
       userId: templateUser.id,
+      artistName: 'TemplateArtist',
+      bio: faker.lorem.sentence(),
+      isNsfw: false,
     },
   });
 
@@ -103,6 +106,9 @@ async function main() {
       create: {
         id: artistId,
         userId: user.id,
+        artistName: faker.person.fullName(),
+        bio: faker.lorem.paragraph(),
+        isNsfw: faker.datatype.boolean(),
       },
     });
 
