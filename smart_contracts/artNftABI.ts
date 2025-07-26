@@ -162,13 +162,19 @@ export const artNftABI =
     "anonymous": false,
     "inputs": [
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "artist",
-        "type": "address"
+        "indexed": false,
+        "internalType": "string",
+        "name": "artistId",
+        "type": "string"
       },
       {
         "indexed": false,
+        "internalType": "string",
+        "name": "artId",
+        "type": "string"
+      },
+      {
+        "indexed": true,
         "internalType": "uint256",
         "name": "tokenId",
         "type": "uint256"
@@ -181,13 +187,19 @@ export const artNftABI =
     "anonymous": false,
     "inputs": [
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "artist",
-        "type": "address"
+        "indexed": false,
+        "internalType": "string",
+        "name": "artistId",
+        "type": "string"
       },
       {
         "indexed": false,
+        "internalType": "string",
+        "name": "collectionId",
+        "type": "string"
+      },
+      {
+        "indexed": true,
         "internalType": "uint256",
         "name": "tokenId",
         "type": "uint256"
@@ -250,9 +262,14 @@ export const artNftABI =
     "name": "artArtists",
     "outputs": [
       {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
+        "internalType": "string",
+        "name": "artId",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "artistId",
+        "type": "string"
       }
     ],
     "stateMutability": "view",
@@ -288,9 +305,14 @@ export const artNftABI =
     "name": "collectionArtists",
     "outputs": [
       {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
+        "internalType": "string",
+        "name": "collectionId",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "artistId",
+        "type": "string"
       }
     ],
     "stateMutability": "view",
@@ -299,9 +321,14 @@ export const artNftABI =
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "artist",
-        "type": "address"
+        "internalType": "string",
+        "name": "artistId",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "artId",
+        "type": "string"
       }
     ],
     "name": "createArt",
@@ -318,9 +345,14 @@ export const artNftABI =
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "artist",
-        "type": "address"
+        "internalType": "string",
+        "name": "artistId",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "collectionId",
+        "type": "string"
       }
     ],
     "name": "createCollection",
@@ -357,16 +389,197 @@ export const artNftABI =
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "collectionId",
+        "name": "tokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getArtArtist",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "artId",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "artistId",
+            "type": "string"
+          }
+        ],
+        "internalType": "struct OnlyArtsArtNFT.ArtArtist",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "artId",
+        "type": "string"
+      }
+    ],
+    "name": "getArtArtistByArtId",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "artId",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "artistId",
+            "type": "string"
+          }
+        ],
+        "internalType": "struct OnlyArtsArtNFT.ArtArtist",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "artistId",
+        "type": "string"
+      }
+    ],
+    "name": "getArtistArts",
+    "outputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "",
+        "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "artistId",
+        "type": "string"
+      }
+    ],
+    "name": "getArtistCollections",
+    "outputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "",
+        "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
         "type": "uint256"
       }
     ],
     "name": "getCollectionArtist",
     "outputs": [
       {
-        "internalType": "address",
+        "components": [
+          {
+            "internalType": "string",
+            "name": "collectionId",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "artistId",
+            "type": "string"
+          }
+        ],
+        "internalType": "struct OnlyArtsArtNFT.CollectionArtist",
         "name": "",
-        "type": "address"
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "collectionId",
+        "type": "string"
+      }
+    ],
+    "name": "getCollectionArtistByCollectionId",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "collectionId",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "artistId",
+            "type": "string"
+          }
+        ],
+        "internalType": "struct OnlyArtsArtNFT.CollectionArtist",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "artId",
+        "type": "string"
+      }
+    ],
+    "name": "getTokenIdByArtId",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "collectionId",
+        "type": "string"
+      }
+    ],
+    "name": "getTokenIdByCollectionId",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -386,6 +599,54 @@ export const artNftABI =
       }
     ],
     "name": "isApprovedForAll",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "artistId",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "artId",
+        "type": "string"
+      }
+    ],
+    "name": "isArtistOwnerOfArt",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "artistId",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "collectionId",
+        "type": "string"
+      }
+    ],
+    "name": "isArtistOwnerOfCollection",
     "outputs": [
       {
         "internalType": "bool",
