@@ -90,7 +90,7 @@ export class AuthService {
     expiredAddresses.forEach(address => this.nonces.delete(address));
   }
 
-  async generateJwt(user: User): Promise<{ accessToken: string; expiresIn: number }> {
+  async generateJwt(user: { id: string; email: string; username: string | null }): Promise<{ accessToken: string; expiresIn: number }> {
     const payload = {
       sub: user.id,
       email: user.email,

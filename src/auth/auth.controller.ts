@@ -1,12 +1,12 @@
-import { Controller, Post, Body, UnauthorizedException, ConflictException, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Get, Body, UnauthorizedException, ConflictException, UseGuards, Request } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
-import { ApiBody, ApiTags } from '@nestjs/swagger';
-import { CreateUserDto } from 'src/users/dto/create-user.dto';
-import { NonceRequest } from './dto/request/nonce.dto';
-import { VerifyRequest } from './dto/request/verify.dto';
+import { ApiBody, ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { CreateUserDto, CreateUserData } from 'src/users/dto/create-user.dto';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { AuthenticatedRequest } from './types/auth.types';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -43,14 +43,20 @@ export class AuthController {
     description: 'User login credentials'
   })
   async login(@Body() body: LoginDto) {
-    const user = await this.usersService.findByEmail(body.email);
-    const isPasswordValid = user && await bcrypt.compare(body.password, user.password);
+    const user = await this.usersService.findWithPasswordByEmail(body.email);
+
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const isPasswordValid = await bcrypt.compare(body.password, user.password);
 
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    return this.authService.generateJwt(user);
+    const { password, ...safeUser } = user;
+    return this.authService.generateJwt(safeUser);
   }
 
   @Post('register')
@@ -61,7 +67,21 @@ export class AuthController {
       throw new ConflictException('Email already in use');
     }
 
-    const newUser = await this.usersService.create(body);
+    const userCreateData: CreateUserData = {
+      email: body.email,
+      password: body.password,
+      username: body.username,
+    };
+    
+    const newUser = await this.usersService.create(userCreateData);
     return this.authService.generateJwt(newUser);
+  }
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get current authenticated user profile' })
+  async getMe(@Request() req: AuthenticatedRequest) {
+    return this.usersService.findById(req.user.userId);
   }
 }
