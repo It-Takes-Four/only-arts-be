@@ -70,7 +70,7 @@ export class ArtistsController {
 
     const artist = await this.artistService.create({
       ...createArtistDto,
-      userId: req.user.userId, 
+      userId: req.user.userId,
     });
 
     return {
@@ -78,7 +78,6 @@ export class ArtistsController {
       artist,
     };
   }
-
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update artist information' })

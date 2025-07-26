@@ -1,6 +1,6 @@
 -- CreateTable
 CREATE TABLE "User" (
-    "id" TEXT NOT NULL,
+    "id" UUID NOT NULL,
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
     "username" TEXT NOT NULL,
@@ -11,46 +11,49 @@ CREATE TABLE "User" (
 
 -- CreateTable
 CREATE TABLE "Artist" (
-    "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
+    "id" UUID NOT NULL,
+    "userId" UUID NOT NULL,
+    "artistName" TEXT NOT NULL,
+    "isNsfw" BOOLEAN NOT NULL DEFAULT false,
+    "bio" TEXT,
 
     CONSTRAINT "Artist_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "Follower" (
-    "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
-    "artistId" TEXT NOT NULL,
+    "id" UUID NOT NULL,
+    "userId" UUID NOT NULL,
+    "artistId" UUID NOT NULL,
 
     CONSTRAINT "Follower_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "Art" (
-    "id" TEXT NOT NULL,
+    "id" UUID NOT NULL,
     "imageUrl" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "datePosted" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "artistId" TEXT NOT NULL,
+    "artistId" UUID NOT NULL,
 
     CONSTRAINT "Art_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "Comment" (
-    "id" TEXT NOT NULL,
+    "id" UUID NOT NULL,
     "content" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "userId" TEXT NOT NULL,
-    "artId" TEXT NOT NULL,
+    "userId" UUID NOT NULL,
+    "artId" UUID NOT NULL,
 
     CONSTRAINT "Comment_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "ArtTag" (
-    "id" TEXT NOT NULL,
+    "id" UUID NOT NULL,
     "tagName" TEXT NOT NULL,
 
     CONSTRAINT "ArtTag_pkey" PRIMARY KEY ("id")
@@ -58,27 +61,27 @@ CREATE TABLE "ArtTag" (
 
 -- CreateTable
 CREATE TABLE "ArtCollection" (
-    "id" TEXT NOT NULL,
+    "id" UUID NOT NULL,
     "collectionName" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "artistId" TEXT NOT NULL,
+    "artistId" UUID NOT NULL,
 
     CONSTRAINT "ArtCollection_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "ArtToCollection" (
-    "id" TEXT NOT NULL,
-    "artId" TEXT NOT NULL,
-    "collectionId" TEXT NOT NULL,
+    "id" UUID NOT NULL,
+    "artId" UUID NOT NULL,
+    "collectionId" UUID NOT NULL,
 
     CONSTRAINT "ArtToCollection_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "Feed" (
-    "id" TEXT NOT NULL,
-    "artistId" TEXT NOT NULL,
+    "id" UUID NOT NULL,
+    "artistId" UUID NOT NULL,
     "title" TEXT NOT NULL,
     "content" TEXT NOT NULL,
     "datePosted" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -88,9 +91,9 @@ CREATE TABLE "Feed" (
 
 -- CreateTable
 CREATE TABLE "Notification" (
-    "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
-    "artistId" TEXT,
+    "id" UUID NOT NULL,
+    "userId" UUID NOT NULL,
+    "artistId" UUID,
     "content" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -99,8 +102,8 @@ CREATE TABLE "Notification" (
 
 -- CreateTable
 CREATE TABLE "ArtToArtTag" (
-    "artId" TEXT NOT NULL,
-    "tagId" TEXT NOT NULL,
+    "artId" UUID NOT NULL,
+    "tagId" UUID NOT NULL,
 
     CONSTRAINT "ArtToArtTag_pkey" PRIMARY KEY ("artId","tagId")
 );

@@ -14,7 +14,7 @@ datasource db {
 }
 
 model User {
-  id             String         @id @default(uuid())
+  id             String         @id @default(uuid()) @db.Uuid
   email          String         @unique
   password       String
   username       String
@@ -26,8 +26,8 @@ model User {
 }
 
 model Artist {
-  id            String          @id @default(uuid())
-  userId        String          @unique
+  id            String          @id @default(uuid()) @db.Uuid
+  userId        String          @unique @db.Uuid
   artistName    String          
   isNsfw        Boolean         @default(false) 
   bio           String?         
@@ -40,9 +40,9 @@ model Artist {
 }
 
 model Follower {
-  id       String @id @default(uuid())
-  userId   String
-  artistId String
+  id       String @id @default(uuid()) @db.Uuid
+  userId   String @db.Uuid
+  artistId String @db.Uuid
   artist   Artist @relation(fields: [artistId], references: [id])
   user     User   @relation(fields: [userId], references: [id])
 
@@ -50,11 +50,11 @@ model Follower {
 }
 
 model Art {
-  id          String          @id @default(uuid())
+  id          String          @id @default(uuid()) @db.Uuid
   imageUrl    String
   description String
   datePosted  DateTime        @default(now())
-  artistId    String
+  artistId    String          @db.Uuid
   collections ArtToCollection[]
   tags        ArtToArtTag[]
   artist      Artist          @relation(fields: [artistId], references: [id])
@@ -62,41 +62,41 @@ model Art {
 }
 
 model Comment {
-  id        String   @id @default(uuid())
+  id        String   @id @default(uuid()) @db.Uuid
   content   String
   createdAt DateTime @default(now())
-  userId    String
-  artId     String
+  userId    String   @db.Uuid
+  artId     String   @db.Uuid
   art       Art      @relation(fields: [artId], references: [id])
   user      User     @relation(fields: [userId], references: [id])
 }
 
 model ArtTag {
-  id      String        @id @default(uuid())
+  id      String        @id @default(uuid()) @db.Uuid
   tagName String        @unique
   arts    ArtToArtTag[]
 }
 
 model ArtCollection {
-  id             String             @id @default(uuid())
+  id             String             @id @default(uuid()) @db.Uuid
   collectionName String
   createdAt      DateTime           @default(now())
-  artistId       String
+  artistId       String             @db.Uuid  
   artist         Artist             @relation(fields: [artistId], references: [id])
   arts           ArtToCollection[]
 }
 
 model ArtToCollection {
-  id           String   @id @default(uuid())
-  artId        String
-  collectionId String
+  id           String   @id @default(uuid()) @db.Uuid
+  artId        String   @db.Uuid
+  collectionId String   @db.Uuid
   art          Art      @relation(fields: [artId], references: [id])
   collection   ArtCollection @relation(fields: [collectionId], references: [id])
 }
 
 model Feed {
-  id         String   @id @default(uuid())
-  artistId   String
+  id         String   @id @default(uuid()) @db.Uuid
+  artistId   String   @db.Uuid
   title      String
   content    String
   datePosted DateTime @default(now())
@@ -104,9 +104,9 @@ model Feed {
 }
 
 model Notification {
-  id        String   @id @default(uuid())
-  userId    String
-  artistId  String?
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  artistId  String?  @db.Uuid
   content   String
   createdAt DateTime @default(now())
   artist    Artist?  @relation(fields: [artistId], references: [id])
@@ -114,8 +114,8 @@ model Notification {
 }
 
 model ArtToArtTag {
-  artId String
-  tagId String
+  artId String @db.Uuid
+  tagId String @db.Uuid
   art   Art    @relation(fields: [artId], references: [id])
   tag   ArtTag @relation(fields: [tagId], references: [id])
 
