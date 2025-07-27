@@ -1,16 +1,31 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateArtCollectionDto } from './dto/create-art-collection.dto';
-import { UpdateArtCollectionDto } from './dto/update-art-collection.dto';
+import { CreateArtCollectionDto } from './dto/request/create-art-collection.dto';
+import { UpdateArtCollectionDto } from './dto/request/update-art-collection.dto';
+import { ArtNftService } from 'src/art-nft/art-nft.service';
+import { v4 as uuidv4 } from 'uuid';
+import { CreateArtCollectionResponse } from './dto/response/create-art-collection.dto';
 
 @Injectable()
 export class ArtCollectionsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService, private readonly artNftService: ArtNftService) {}
 
-  create(dto: CreateArtCollectionDto) {
-    return this.prisma.artCollection.create({
-      data: dto,
+  async create(dto: CreateArtCollectionDto) {
+    const collectionId = uuidv4();
+
+    const createArtResult = await this.artNftService.createCollection(dto.artistId, collectionId);
+    const tokenId = BigInt(createArtResult.tokenId);
+
+    const result = this.prisma.artCollection.create({
+      data: {
+        id: collectionId,
+        collectionName: dto.collectionName,
+        artistId: dto.artistId,
+      },
     });
+
+
+    return new CreateArtCollectionResponse(dto.artistId, collectionId, tokenId.toString())
   }
 
   async findAll() {

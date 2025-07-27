@@ -10,8 +10,8 @@ import {
   Request,
 } from '@nestjs/common';
 import { ArtCollectionsService } from './art-collections.service';
-import { CreateArtCollectionDto } from './dto/create-art-collection.dto';
-import { UpdateArtCollectionDto } from './dto/update-art-collection.dto';
+import { CreateArtCollectionDto } from './dto/request/create-art-collection.dto';
+import { UpdateArtCollectionDto } from './dto/request/update-art-collection.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import {
   ApiBearerAuth,
