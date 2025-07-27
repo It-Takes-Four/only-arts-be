@@ -55,7 +55,7 @@ export class ArtsService {
     const createArtResult = await this.artNftService.createArt(dto.artistId, artId);
     const tokenId = BigInt(createArtResult.tokenId);
 
-    const result = this.prisma.art.create({
+    const result = await this.prisma.art.create({
       data: {
         id: artId,
         tokenId: tokenId,

@@ -21,6 +21,7 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 import { AuthenticatedRequest } from 'src/auth/types/auth.types';
+import { CreateWithArtsRequest } from './dto/request/create-with-arts.dto';
 
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth('JWT-auth')
@@ -37,6 +38,16 @@ export class ArtCollectionsController {
   })
   create(@Body() createArtCollectionDto: CreateArtCollectionDto) {
     return this.artCollectionsService.create(createArtCollectionDto);
+  }
+
+  @Post('/create-with-arts')
+  @ApiOperation({ summary: 'Create a new art collection with arts' })
+  @ApiBody({
+    type: CreateWithArtsRequest,
+    description: 'Payload for creating an art collection',
+  })
+  createWithArts(@Body() createWithArtsRequest: CreateWithArtsRequest) {
+    return this.artCollectionsService.createWithArts(createWithArtsRequest);
   }
 
   @Get()
