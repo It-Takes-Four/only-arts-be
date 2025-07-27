@@ -8,7 +8,7 @@ import { CreateArtCollectionResponse } from './dto/response/create-art-collectio
 
 @Injectable()
 export class ArtCollectionsService {
-  constructor(private readonly prisma: PrismaService, private readonly artNftService: ArtNftService) {}
+  constructor(private readonly prisma: PrismaService, private readonly artNftService: ArtNftService) { }
 
   async create(dto: CreateArtCollectionDto) {
     const collectionId = uuidv4();
@@ -16,7 +16,7 @@ export class ArtCollectionsService {
     const createArtResult = await this.artNftService.createCollection(dto.artistId, collectionId);
     const tokenId = BigInt(createArtResult.tokenId);
 
-    const result = this.prisma.artCollection.create({
+    const result = await this.prisma.artCollection.create({
       data: {
         id: collectionId,
         collectionName: dto.collectionName,
@@ -24,6 +24,9 @@ export class ArtCollectionsService {
       },
     });
 
+    if (!result) {
+      throw new Error('Failed to create art collection in database.');
+    }
 
     return new CreateArtCollectionResponse(dto.artistId, collectionId, tokenId.toString())
   }
