@@ -91,13 +91,15 @@ export class ArtistsService {
     return artist;
   }
 
-  async create(createArtistDto: CreateArtistDto) {
+  async create(createArtistDto: CreateArtistDto, userId: string) {
     return this.prisma.artist.create({
       data: {
-        userId: createArtistDto.userId,
         artistName: createArtistDto.artistName,
         bio: createArtistDto.bio,
         isNsfw: createArtistDto.isNsfw,
+        user: {
+          connect: { id: userId },
+        },
       },
     });
   }

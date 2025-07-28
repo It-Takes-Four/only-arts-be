@@ -63,15 +63,14 @@ export class ArtistsController {
     @Request() req: AuthenticatedRequest,
     @Body() createArtistDto: CreateArtistDto,
   ) {
-    const user = await this.usersService.findById(req.user.userId);
+    const userId = req.user.userId;
+
+    const user = await this.usersService.findById(userId);
     if (this.usersService.isArtist(user)) {
       throw new ConflictException('User is already registered as an artist');
     }
 
-    const artist = await this.artistService.create({
-      ...createArtistDto,
-      userId: req.user.userId,
-    });
+    const artist = await this.artistService.create(createArtistDto, userId);
 
     return {
       message: 'Successfully registered as an artist',
