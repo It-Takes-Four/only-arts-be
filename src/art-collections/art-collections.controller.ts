@@ -69,6 +69,8 @@ export class ArtCollectionsController {
     description: 'Payload for verifying and completing collection purchase',
   })
   completePurchase(@Body() completePurchaseDtoRequest: CompletePurchaseDtoRequest) {
+    console.log(completePurchaseDtoRequest);
+    
     return this.artCollectionsService.completePurchase(completePurchaseDtoRequest);
   }
 
@@ -98,7 +100,6 @@ export class ArtCollectionsController {
     type: UpdateArtCollectionDtoRequest,
     description: 'Payload for updating an art collection',
   })
-
   update(
     @Param('id') id: string,
     @Body() updateArtCollectionDto: UpdateArtCollectionDtoRequest,

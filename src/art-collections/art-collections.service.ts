@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateArtCollectionDtoRequest } from './dto/request/create-art-collection.dto';
 import { UpdateArtCollectionDtoRequest } from './dto/request/update-art-collection.dto';
@@ -19,7 +19,6 @@ export class ArtCollectionsService {
 
   async create(dto: CreateArtCollectionDtoRequest) {
     const collectionId = uuidv4();
-
     const createArtResult = await this.artNftService.createCollection(dto.artistId, collectionId);
     const tokenId = BigInt(createArtResult.tokenId);
 
@@ -96,20 +95,26 @@ export class ArtCollectionsService {
       throw new BadRequestException('Buyer already has access to collection');
     }
 
-    return this.collectionAccessService.prepareCollectionPurchase(dto)
+    return await this.collectionAccessService.prepareCollectionPurchase(dto)
   }
 
   async completePurchase(dto: CompletePurchaseDtoRequest) {
+    const logger = new Logger(ArtCollectionsService.name);
+
     // Create a new purchase record
-    await this.purchasesService.createNewPurchase({
+    const createPurchaseResult = await this.purchasesService.createNewPurchase({
       collectionId: dto.collectionId,
       price: dto.price,
       txHash: dto.txHash,
       userId: dto.buyerId
     })
 
+    logger.log("createPurchaseResult:", createPurchaseResult);
+    
     // Verify the purchase record from the contract
-    const result = this.collectionAccessService.verifyPurchase(dto.txHash);
+    const result = await this.collectionAccessService.verifyPurchase(dto.txHash);
+
+    logger.log("ArtCollectionsService verifyPurchase result:", result);
 
     if (!result) {
       return new InternalServerErrorException('Could not verify transaction')
@@ -209,6 +214,8 @@ export class ArtCollectionsService {
       collection.arts.map((item) => item.art),
     );
   }
+
+  
 
   update(id: string, dto: UpdateArtCollectionDtoRequest) {
     return this.prisma.artCollection.update({

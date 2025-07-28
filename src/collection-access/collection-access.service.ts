@@ -18,7 +18,7 @@ export class CollectionAccessService implements OnModuleInit {
   constructor(
     private web3Provider: Web3ProviderService,
     private configService: ConfigService,
-  ) {}
+  ) { }
 
   async onModuleInit() {
     await this.initializeContract();
@@ -67,44 +67,86 @@ export class CollectionAccessService implements OnModuleInit {
       this.contract.symbol(),
     ]);
 
-        return {
-            name,
-            symbol,
-            contractAddress: this.contractAddress,
-        };
-    }
+    return {
+      name,
+      symbol,
+      contractAddress: this.contractAddress,
+    };
+  }
 
-    async hasAccessToCollection(buyerId: string, collectionId: string): Promise<boolean>{
-        const hasAccess = await this.contract.hasAccessToCollection(buyerId, collectionId)
+  async hasAccessToCollection(buyerId: string, collectionId: string): Promise<boolean> {
+    this.logger.log("buyerId:", buyerId)
+    this.logger.log("collectionId:", collectionId)
+    const hasAccess = await this.contract.hasAccessToCollection(buyerId, collectionId)
 
-        this.logger.log("Has Access:", hasAccess)
+    this.logger.log("Has Access:", hasAccess)
 
-        return hasAccess
-    }
+    return hasAccess
+  }
 
-    // Prepare transaction data for frontend
-    async prepareCollectionPurchase(dto: PrepareCollectionPurchaseDtoRequest) {
-        return {
-            contractAddress: this.contractAddress,
-            functionName: 'buyAccessToCollection',
-            parameters: {
-                collectionId: dto.collectionId,
-                buyerId: dto.buyerId,
-                price: ethers.parseEther(dto.price).toString(),
-                artistWalletAddress: dto.artistWalletAddress
-            },
-            value: ethers.parseEther(dto.price).toString(),
-            abi: collectionAccessABI
-        };
-    }
+  // Prepare transaction data for frontend
+  async prepareCollectionPurchase(dto: PrepareCollectionPurchaseDtoRequest) {
+    return {
+      contractAddress: this.contractAddress,
+      functionName: 'buyAccessToCollection',
+      parameters: {
+        collectionId: dto.collectionId,
+        buyerId: dto.buyerId,
+        price: ethers.parseEther(dto.price).toString(),
+        artistWalletAddress: dto.artistWalletAddress
+      },
+      value: ethers.parseEther(dto.price).toString(),
+      abi: collectionAccessABI
+    };
+  }
 
-    // Verify transaction after frontend executes it
-    async verifyPurchase(txHash): Promise<boolean> {
-      const receipt = await this.web3Provider.getProvider().getTransactionReceipt(txHash);
-        
+  // Verify transaction after frontend executes it
+  async verifyPurchase(txHash: string): Promise<boolean> {
+    this.logger.log("txHash:", txHash);
+
+    const provider = this.web3Provider.getProvider();
+    const network = await provider.getNetwork();
+    this.logger.log(`Backend connected to: ${network.name} (chainId: ${network.chainId})`);
+
+    // Also log your RPC URL (without sensitive info)
+    this.logger.log(`RPC URL configured: ${this.configService.get('web3.rpcUrl')}`);
+
+    try {
+      // First, verify the transaction exists
+      const tx = await this.web3Provider.getProvider().getTransaction(txHash);
+
+      if (!tx) {
+        throw new BadRequestException('Transaction not found');
+      }
+
+      this.logger.log("Transaction found:", {
+        hash: tx.hash,
+        blockNumber: tx.blockNumber,
+        blockHash: tx.blockHash
+      });
+
+      // If transaction is not mined yet, wait for it
+      if (!tx.blockNumber) {
+        this.logger.log("Transaction pending, waiting for confirmation...");
+        const receipt = await this.web3Provider.getProvider().waitForTransaction(txHash, 1);
+
         if (receipt && receipt.status === 1) {
-            return true
+          return true;
         }
-        throw new BadRequestException('Transaction failed');
+      } else {
+        // Transaction is mined, get receipt
+        const receipt = await this.web3Provider.getProvider().getTransactionReceipt(txHash);
+
+        if (receipt && receipt.status === 1) {
+          return true;
+        }
+      }
+
+      throw new BadRequestException('Transaction failed');
+
+    } catch (error) {
+      this.logger.error('Error verifying transaction:', error);
+      throw new BadRequestException(`Transaction verification failed: ${error.message}`);
     }
+  }
 }
