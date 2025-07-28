@@ -1,18 +1,18 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateArtCollectionDto } from './dto/request/create-art-collection.dto';
-import { UpdateArtCollectionDto } from './dto/request/update-art-collection.dto';
+import { CreateArtCollectionDtoRequest } from './dto/request/create-art-collection.dto';
+import { UpdateArtCollectionDtoRequest } from './dto/request/update-art-collection.dto';
 import { ArtNftService } from 'src/art-nft/art-nft.service';
 import { v4 as uuidv4 } from 'uuid';
-import { CreateArtCollectionResponse } from './dto/response/create-art-collection.dto';
+import { CreateArtCollectionDtoResponse } from './dto/response/create-art-collection.dto';
 import { ArtsService } from 'src/arts/arts.service';
-import { CreateWithArtsRequest } from './dto/request/create-with-arts.dto';
+import { CreateWithArtsDtoRequest } from './dto/request/create-with-arts.dto';
 
 @Injectable()
 export class ArtCollectionsService {
   constructor(private readonly prisma: PrismaService, private readonly artNftService: ArtNftService, private readonly artsService: ArtsService) { }
 
-  async create(dto: CreateArtCollectionDto) {
+  async create(dto: CreateArtCollectionDtoRequest) {
     const collectionId = uuidv4();
 
     const createArtResult = await this.artNftService.createCollection(dto.artistId, collectionId);
@@ -30,10 +30,10 @@ export class ArtCollectionsService {
       throw new Error('Failed to create art collection in database.');
     }
 
-    return new CreateArtCollectionResponse(dto.artistId, collectionId, tokenId.toString())
+    return new CreateArtCollectionDtoResponse(dto.artistId, collectionId, tokenId.toString())
   }
 
-  async createWithArts(dto: CreateWithArtsRequest) {
+  async createWithArts(dto: CreateWithArtsDtoRequest) {
     const collectionId = uuidv4();
     const artIds:string[] = [];
 
@@ -66,7 +66,7 @@ export class ArtCollectionsService {
       throw new Error('Failed to create art collection in database.');
     }
 
-    return new CreateArtCollectionResponse(dto.artistId, collectionId, tokenId.toString())
+    return new CreateArtCollectionDtoResponse(dto.artistId, collectionId, tokenId.toString())
   }
 
   async findAll() {
@@ -158,7 +158,7 @@ export class ArtCollectionsService {
     );
   }
 
-  update(id: string, dto: UpdateArtCollectionDto) {
+  update(id: string, dto: UpdateArtCollectionDtoRequest) {
     return this.prisma.artCollection.update({
       where: { id },
       data: dto,

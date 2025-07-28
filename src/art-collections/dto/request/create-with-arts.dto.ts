@@ -1,9 +1,9 @@
 import { IsArray, IsNotEmpty, IsOptional, IsString, IsUUID, ValidateNested } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { CreateArtRequest } from 'src/arts/dto/request/create-art.dto';
+import { CreateArtDtoRequest } from 'src/arts/dto/request/create-art.dto';
 import { Type } from 'class-transformer';
 
-export class CreateWithArtsRequest {
+export class CreateWithArtsDtoRequest {
   @ApiProperty({
     description: 'Name of the art collection',
     example: 'Modern Art Showcase',
@@ -30,10 +30,10 @@ export class CreateWithArtsRequest {
 
   @ApiProperty({
     description: 'Art pieces included in the collection',
-    type: [CreateArtRequest],
+    type: [CreateArtDtoRequest],
   })
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => CreateArtRequest)
-  arts: CreateArtRequest[];
+  @Type(() => CreateArtDtoRequest)
+  arts: CreateArtDtoRequest[];
 }

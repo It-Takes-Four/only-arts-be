@@ -4,8 +4,9 @@ import { ConfigService } from '@nestjs/config';
 import { ethers } from 'ethers';
 import { Web3ProviderService } from '../shared/services/web3-provider.service';
 import { TokenInfo } from './interfaces/art-nft.interface';
-import { CreateArtResponse } from './dto/response/create-art.dto';
-import { CreateCollectionResponse } from './dto/response/create-collection.dto';
+import { CreateArtDtoResponse } from './dto/response/create-art.dto';
+import { CreateCollectionDtoResponse } from './dto/response/create-collection.dto';
+import { CreateArtResponse } from 'src/arts/dto/response/create-art.dto';
 
 
 const tokenAbi = artNftABI;
@@ -67,7 +68,7 @@ export class ArtNftService implements OnModuleInit {
     };
   }
 
-  public async createArt(artistId: string, artId: string): Promise<CreateArtResponse> {
+  public async createArt(artistId: string, artId: string): Promise<CreateArtDtoResponse> {
     if (!this.contract) {
       throw new BadRequestException('Contract not initialized');
     }
@@ -104,7 +105,7 @@ export class ArtNftService implements OnModuleInit {
         throw new BadRequestException('Failed to retrieve token ID from art creation');
       }
 
-      return new CreateArtResponse(artistId, artId, tokenId);
+      return new CreateArtDtoResponse(artistId, artId, tokenId);
     } catch (error) {
       this.logger.error('Error creating art:', error);
       throw new BadRequestException(`Failed to create art: ${error.message}`);
@@ -112,7 +113,7 @@ export class ArtNftService implements OnModuleInit {
   }
 
   // returns the art token id
-  public async createCollection(artistId: string, collectionId: string): Promise<CreateCollectionResponse> {
+  public async createCollection(artistId: string, collectionId: string): Promise<CreateCollectionDtoResponse> {
     if (!this.contract) {
       throw new BadRequestException('Contract not initialized');
     }
@@ -149,7 +150,7 @@ export class ArtNftService implements OnModuleInit {
         throw new BadRequestException('Failed to retrieve token ID from collection creation');
       }
 
-      return new CreateCollectionResponse(artistId, collectionId, tokenId);
+      return new CreateCollectionDtoResponse(artistId, collectionId, tokenId);
     } catch (error) {
       this.logger.error('Error creating collection:', error);
       throw new BadRequestException(`Failed to create collection: ${error.message}`);

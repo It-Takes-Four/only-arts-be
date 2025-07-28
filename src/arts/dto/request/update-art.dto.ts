@@ -7,7 +7,7 @@ import {
 } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
-export class UpdateArtDto {
+export class UpdateArtDtoRequest {
   @ApiPropertyOptional({ description: 'Updated image URL', example: 'https://example.com/new-image.jpg' })
   @IsOptional()
   @IsUrl()
