@@ -5,9 +5,10 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { ArtNftService } from 'src/art-nft/art-nft.service';
 import { ArtsService } from 'src/arts/arts.service';
 import { CollectionAccessService } from 'src/collection-access/collection-access.service';
+import { PurchasesService } from 'src/purchases/purchases.service';
 
 @Module({
   controllers: [ArtCollectionsController],
-  providers: [ArtCollectionsService, PrismaService, ArtNftService, ArtsService, CollectionAccessService],
+  providers: [ArtCollectionsService, PrismaService, ArtNftService, ArtsService, CollectionAccessService, PurchasesService],
 })
 export class ArtCollectionsModule {}

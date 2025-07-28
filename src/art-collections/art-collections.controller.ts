@@ -22,7 +22,8 @@ import {
 } from '@nestjs/swagger';
 import { AuthenticatedRequest } from 'src/auth/types/auth.types';
 import { CreateWithArtsDtoRequest } from './dto/request/create-with-arts.dto';
-import { PrepareCollectionPurchaseRequest } from 'src/collection-access/dto/request/prepare-collection-purchase.dto';
+import { PrepareCollectionPurchaseDtoRequest } from './dto/request/prepare-collection-purchase.dto';
+import { CompletePurchaseDtoRequest } from './dto/request/complete-purchase.dto';
 
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth('JWT-auth')
@@ -54,11 +55,21 @@ export class ArtCollectionsController {
   @Post('/prepare-collection-purchase')
   @ApiOperation({ summary: 'Returns necessary data for collection purchase transaction' })
   @ApiBody({
-    type: PrepareCollectionPurchaseRequest,
+    type: PrepareCollectionPurchaseDtoRequest,
     description: 'Payload for returning necessary data for collection purchase',
   })
-  prepareCollectionPurchase(@Body() prepareCollectionPurchaseRequest: PrepareCollectionPurchaseRequest) {
-    return this.artCollectionsService.prepareCollectionPurchase(prepareCollectionPurchaseRequest);
+  prepareCollectionPurchase(@Body() prepareCollectionPurchaseDtoRequest: PrepareCollectionPurchaseDtoRequest) {
+    return this.artCollectionsService.prepareCollectionPurchase(prepareCollectionPurchaseDtoRequest);
+  }
+
+  @Post('/complete-collection-purchase')
+  @ApiOperation({ summary: 'Verify and complete collection purchase transaction' })
+  @ApiBody({
+    type: CompletePurchaseDtoRequest,
+    description: 'Payload for verifying and completing collection purchase',
+  })
+  completePurchase(@Body() completePurchaseDtoRequest: CompletePurchaseDtoRequest) {
+    return this.artCollectionsService.completePurchase(completePurchaseDtoRequest);
   }
 
   @Get()

@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateArtCollectionDtoRequest } from './dto/request/create-art-collection.dto';
 import { UpdateArtCollectionDtoRequest } from './dto/request/update-art-collection.dto';
@@ -8,11 +8,14 @@ import { CreateArtCollectionDtoResponse } from './dto/response/create-art-collec
 import { ArtsService } from 'src/arts/arts.service';
 import { CreateWithArtsDtoRequest } from './dto/request/create-with-arts.dto';
 import { CollectionAccessService } from 'src/collection-access/collection-access.service';
-import { PrepareCollectionPurchaseRequest } from 'src/collection-access/dto/request/prepare-collection-purchase.dto';
+import { PurchasesService } from 'src/purchases/purchases.service';
+import { PrepareCollectionPurchaseDtoRequest } from './dto/request/prepare-collection-purchase.dto';
+import { CompletePurchaseDtoRequest } from './dto/request/complete-purchase.dto';
+import { CompletePurchaseDtoResponse } from './dto/response/complete-purchase.dto';
 
 @Injectable()
 export class ArtCollectionsService {
-  constructor(private readonly prisma: PrismaService, private readonly artNftService: ArtNftService, private readonly artsService: ArtsService, private readonly collectionAccessService: CollectionAccessService) { }
+  constructor(private readonly prisma: PrismaService, private readonly artNftService: ArtNftService, private readonly artsService: ArtsService, private readonly collectionAccessService: CollectionAccessService, private readonly purchasesService: PurchasesService) { }
 
   async create(dto: CreateArtCollectionDtoRequest) {
     const collectionId = uuidv4();
@@ -78,7 +81,7 @@ export class ArtCollectionsService {
     return new CreateArtCollectionDtoResponse(dto.artistId, collectionId, tokenId.toString())
   }
 
-  async prepareCollectionPurchase(dto: PrepareCollectionPurchaseRequest) {
+  async prepareCollectionPurchase(dto: PrepareCollectionPurchaseDtoRequest) {
     // Check if collection exists
     const collection = await this.findOne(dto.collectionId);
 
@@ -94,6 +97,28 @@ export class ArtCollectionsService {
     }
 
     return this.collectionAccessService.prepareCollectionPurchase(dto)
+  }
+
+  async completePurchase(dto: CompletePurchaseDtoRequest) {
+    // Create a new purchase record
+    await this.purchasesService.createNewPurchase({
+      collectionId: dto.collectionId,
+      price: dto.price,
+      txHash: dto.txHash,
+      userId: dto.buyerId
+    })
+
+    // Verify the purchase record from the contract
+    const result = this.collectionAccessService.verifyPurchase(dto.txHash);
+
+    if (!result) {
+      return new InternalServerErrorException('Could not verify transaction')
+    }
+
+    // Update purchase record status to COMPLETED
+    await this.purchasesService.completePurchase(dto.txHash)
+
+    return new CompletePurchaseDtoResponse(dto.collectionId, dto.buyerId, dto.price, dto.txHash)
   }
 
   async findAll() {
