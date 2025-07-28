@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateArtCollectionDto } from './dto/request/create-art-collection.dto';
 import { UpdateArtCollectionDto } from './dto/request/update-art-collection.dto';
@@ -7,10 +7,12 @@ import { v4 as uuidv4 } from 'uuid';
 import { CreateArtCollectionResponse } from './dto/response/create-art-collection.dto';
 import { ArtsService } from 'src/arts/arts.service';
 import { CreateWithArtsRequest } from './dto/request/create-with-arts.dto';
+import { CollectionAccessService } from 'src/collection-access/collection-access.service';
+import { PrepareCollectionPurchaseRequest } from 'src/collection-access/dto/request/prepare-collection-purchase.dto';
 
 @Injectable()
 export class ArtCollectionsService {
-  constructor(private readonly prisma: PrismaService, private readonly artNftService: ArtNftService, private readonly artsService: ArtsService) { }
+  constructor(private readonly prisma: PrismaService, private readonly artNftService: ArtNftService, private readonly artsService: ArtsService, private readonly collectionAccessService: CollectionAccessService) { }
 
   async create(dto: CreateArtCollectionDto) {
     const collectionId = uuidv4();
@@ -35,15 +37,21 @@ export class ArtCollectionsService {
 
   async createWithArts(dto: CreateWithArtsRequest) {
     const collectionId = uuidv4();
-    const artIds:string[] = [];
+    const artIds: string[] = [];
 
     const arts = dto.arts
 
     for (let index = 0; index < arts.length; index++) {
       const element = arts[index];
-      
+
       const result = await this.artsService.createWithTags(element);
-      artIds.push(result.artId)
+      artIds.push(result.artId);
+
+      // Update the art to mark it as part of a collection
+      await this.prisma.art.update({
+        where: { id: result.artId },
+        data: { isInACollection: true },
+      });
     }
 
     const createCollectionResult = await this.artNftService.createCollection(dto.artistId, collectionId);
@@ -54,6 +62,7 @@ export class ArtCollectionsService {
         id: collectionId,
         collectionName: dto.collectionName,
         artistId: dto.artistId,
+        price: dto.price,
         arts: {
           create: artIds.map((artId) => ({
             art: { connect: { id: artId } },
@@ -67,6 +76,24 @@ export class ArtCollectionsService {
     }
 
     return new CreateArtCollectionResponse(dto.artistId, collectionId, tokenId.toString())
+  }
+
+  async prepareCollectionPurchase(dto: PrepareCollectionPurchaseRequest) {
+    // Check if collection exists
+    const collection = await this.findOne(dto.collectionId);
+
+    if (!collection) {
+      throw new BadRequestException('Collection does not exist');
+    }
+
+    // Verify that user does not have access yet
+    const hasAccess = await this.collectionAccessService.hasAccessToCollection(dto.buyerId, dto.collectionId)
+
+    if (hasAccess) {
+      throw new BadRequestException('Buyer already has access to collection');
+    }
+
+    return this.collectionAccessService.prepareCollectionPurchase(dto)
   }
 
   async findAll() {

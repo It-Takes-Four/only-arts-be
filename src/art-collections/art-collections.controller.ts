@@ -22,6 +22,7 @@ import {
 } from '@nestjs/swagger';
 import { AuthenticatedRequest } from 'src/auth/types/auth.types';
 import { CreateWithArtsRequest } from './dto/request/create-with-arts.dto';
+import { PrepareCollectionPurchaseRequest } from 'src/collection-access/dto/request/prepare-collection-purchase.dto';
 
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth('JWT-auth')
@@ -48,6 +49,16 @@ export class ArtCollectionsController {
   })
   createWithArts(@Body() createWithArtsRequest: CreateWithArtsRequest) {
     return this.artCollectionsService.createWithArts(createWithArtsRequest);
+  }
+
+  @Post('/prepare-collection-purchase')
+  @ApiOperation({ summary: 'Returns necessary data for collection purchase transaction' })
+  @ApiBody({
+    type: PrepareCollectionPurchaseRequest,
+    description: 'Payload for returning necessary data for collection purchase',
+  })
+  prepareCollectionPurchase(@Body() prepareCollectionPurchaseRequest: PrepareCollectionPurchaseRequest) {
+    return this.artCollectionsService.prepareCollectionPurchase(prepareCollectionPurchaseRequest);
   }
 
   @Get()
