@@ -9,6 +9,7 @@ CREATE TABLE "users" (
     "username" TEXT NOT NULL,
     "profilePicture" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "users_pkey" PRIMARY KEY ("id")
 );
@@ -26,6 +27,7 @@ CREATE TABLE "artists" (
     "totalCollections" INTEGER NOT NULL DEFAULT 0,
     "isVerified" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "artists_pkey" PRIMARY KEY ("id")
 );
@@ -37,6 +39,7 @@ CREATE TABLE "notifications" (
     "userId" UUID NOT NULL,
     "artistId" UUID,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "notifications_pkey" PRIMARY KEY ("id")
 );
@@ -47,6 +50,7 @@ CREATE TABLE "followers" (
     "userId" UUID NOT NULL,
     "artistId" UUID NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "followers_pkey" PRIMARY KEY ("id")
 );
@@ -58,6 +62,7 @@ CREATE TABLE "arts" (
     "title" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "datePosted" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
     "artistId" UUID NOT NULL,
     "tokenId" BIGINT NOT NULL,
     "likesCount" INTEGER NOT NULL DEFAULT 0,
@@ -72,6 +77,7 @@ CREATE TABLE "art_likes" (
     "userId" UUID NOT NULL,
     "artId" UUID NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "art_likes_pkey" PRIMARY KEY ("id")
 );
@@ -81,6 +87,7 @@ CREATE TABLE "comments" (
     "id" UUID NOT NULL,
     "content" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
     "userId" UUID NOT NULL,
     "artId" UUID NOT NULL,
 
@@ -93,6 +100,7 @@ CREATE TABLE "art_tags" (
     "tagName" TEXT NOT NULL,
     "usageCount" INTEGER NOT NULL DEFAULT 0,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "art_tags_pkey" PRIMARY KEY ("id")
 );
@@ -106,6 +114,7 @@ CREATE TABLE "art_collections" (
     "price" DECIMAL(18,8),
     "tokenId" BIGINT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
     "artistId" UUID NOT NULL,
 
     CONSTRAINT "art_collections_pkey" PRIMARY KEY ("id")
@@ -117,6 +126,7 @@ CREATE TABLE "art_to_collections" (
     "artId" UUID NOT NULL,
     "collectionId" UUID NOT NULL,
     "addedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "art_to_collections_pkey" PRIMARY KEY ("id")
 );
@@ -130,6 +140,7 @@ CREATE TABLE "purchases" (
     "txHash" TEXT,
     "status" "PurchaseStatus" NOT NULL DEFAULT 'PENDING',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
     "completedAt" TIMESTAMP(3),
 
     CONSTRAINT "purchases_pkey" PRIMARY KEY ("id")
@@ -143,6 +154,7 @@ CREATE TABLE "feeds" (
     "content" TEXT NOT NULL,
     "imageUrl" TEXT,
     "datePosted" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "feeds_pkey" PRIMARY KEY ("id")
 );

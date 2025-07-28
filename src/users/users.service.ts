@@ -17,9 +17,7 @@ export class UsersService {
       include: this.userInclude(),
     });
 
-    return users.map(({ password, ...user }) =>
-      this.convertBigIntToString(user),
-    );
+    return users.map(({ password, ...user }) => user);
   }
 
   async findById(id: string) {
@@ -33,14 +31,15 @@ export class UsersService {
     }
 
     const { password, ...safeUser } = user;
-    return this.convertBigIntToString(safeUser);
+    return safeUser;
   }
 
   async findWithPasswordByEmail(email: string) {
     const user = await this.prisma.user.findUnique({
       where: { email },
     });
-    return user ? this.convertBigIntToString(user) : null;
+
+    return user ?? null;
   }
 
   async findByEmailNullable(email: string) {
@@ -54,7 +53,7 @@ export class UsersService {
       },
     });
 
-    return user ? this.convertBigIntToString(user) : null;
+    return user ?? null;
   }
 
   async create(dto: CreateUserData) {
@@ -69,7 +68,7 @@ export class UsersService {
     });
 
     const { password, ...safeUser } = user;
-    return this.convertBigIntToString(safeUser);
+    return safeUser;
   }
 
   async update(id: string, dto: UpdateUserDto) {
@@ -83,7 +82,7 @@ export class UsersService {
     });
 
     const { password, ...safeUser } = user;
-    return this.convertBigIntToString(safeUser);
+    return safeUser;
   }
 
   async delete(id: string) {
@@ -94,7 +93,7 @@ export class UsersService {
       });
 
       const { password, ...safeUser } = deleted;
-      return this.convertBigIntToString(safeUser);
+      return safeUser;
     } catch (error) {
       if (error.code === 'P2003') {
         throw new InternalServerErrorException(
@@ -134,23 +133,5 @@ export class UsersService {
       followers: { include: { artist: true } },
       notifications: { include: { artist: true } },
     };
-  }
-
-  private convertBigIntToString(obj: any): any {
-    if (Array.isArray(obj)) {
-      return obj.map((item) => this.convertBigIntToString(item));
-    } else if (obj && typeof obj === 'object') {
-      return Object.fromEntries(
-        Object.entries(obj).map(([key, value]) => {
-          if (value instanceof Date) {
-            return [key, value.toISOString()];
-          }
-          return [key, this.convertBigIntToString(value)];
-        }),
-      );
-    } else if (typeof obj === 'bigint') {
-      return obj.toString();
-    }
-    return obj;
   }
 }

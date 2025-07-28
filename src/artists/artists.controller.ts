@@ -5,7 +5,6 @@ import {
   Delete,
   Patch,
   Body,
-  Param,
   UsePipes,
   ValidationPipe,
   UseGuards,
@@ -15,7 +14,6 @@ import {
 import {
   ApiTags,
   ApiOperation,
-  ApiParam,
   ApiBody,
   ApiBearerAuth,
 } from '@nestjs/swagger';
@@ -43,18 +41,10 @@ export class ArtistsController {
     return this.artistService.findAll();
   }
 
-  @Get(':id')
-  @ApiOperation({ summary: 'Get artist by ID' })
-  @ApiParam({ name: 'id', description: 'Artist ID (UUID)' })
-  getArtistById(@Param('id') id: string) {
-    return this.artistService.findById(id);
-  }
-
-  @Get('user/:userId')
-  @ApiOperation({ summary: 'Get artist by associated user ID' })
-  @ApiParam({ name: 'userId', description: 'User ID (UUID)' })
-  getArtistByUserId(@Param('userId') userId: string) {
-    return this.artistService.findByUserId(userId);
+  @Get('me')
+  @ApiOperation({ summary: 'Get current logged-in user as artist' })
+  async getMyArtistProfile(@Request() req: AuthenticatedRequest) {
+    return this.artistService.findByUserId(req.user.userId);
   }
 
   @Post('register-as-artist')
@@ -78,18 +68,19 @@ export class ArtistsController {
     };
   }
 
-  @Patch(':id')
-  @ApiOperation({ summary: 'Update artist information' })
-  @ApiParam({ name: 'id', description: 'Artist ID (UUID)' })
+  @Patch('me')
+  @ApiOperation({ summary: 'Update current artist profile' })
   @ApiBody({ type: UpdateArtistDto })
-  updateArtist(@Param('id') id: string, @Body() body: UpdateArtistDto) {
-    return this.artistService.update(id, body);
+  updateMyArtistProfile(
+    @Request() req: AuthenticatedRequest,
+    @Body() body: UpdateArtistDto,
+  ) {
+    return this.artistService.updateByUserId(req.user.userId, body);
   }
 
-  @Delete(':id')
-  @ApiOperation({ summary: 'Delete an artist by ID' })
-  @ApiParam({ name: 'id', description: 'Artist ID (UUID)' })
-  deleteArtist(@Param('id') id: string) {
-    return this.artistService.delete(id);
+  @Delete('me')
+  @ApiOperation({ summary: 'Delete current artist account' })
+  deleteMyArtistProfile(@Request() req: AuthenticatedRequest) {
+    return this.artistService.deleteByUserId(req.user.userId);
   }
 }

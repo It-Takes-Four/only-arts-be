@@ -17,21 +17,9 @@ export class ArtistsService {
         notifications: true,
         arts: {
           include: {
-            collections: {
-              include: {
-                collection: true,
-              },
-            },
-            tags: {
-              include: {
-                tag: true,
-              },
-            },
-            comments: {
-              include: {
-                user: true,
-              },
-            },
+            collections: { include: { collection: true } },
+            tags: { include: { tag: true } },
+            comments: { include: { user: true } },
           },
         },
       },
@@ -46,21 +34,9 @@ export class ArtistsService {
         collections: true,
         arts: {
           include: {
-            collections: {
-              include: {
-                collection: true,
-              },
-            },
-            tags: {
-              include: {
-                tag: true,
-              },
-            },
-            comments: {
-              include: {
-                user: true,
-              },
-            },
+            collections: { include: { collection: true } },
+            tags: { include: { tag: true } },
+            comments: { include: { user: true } },
           },
         },
         feed: true,
@@ -79,7 +55,13 @@ export class ArtistsService {
       include: {
         user: true,
         collections: true,
-        arts: true,
+        arts: {
+          include: {
+            collections: { include: { collection: true } },
+            tags: { include: { tag: true } },
+            comments: { include: { user: true } },
+          },
+        },
         feed: true,
         followers: true,
         notifications: true,
@@ -97,10 +79,23 @@ export class ArtistsService {
         artistName: createArtistDto.artistName,
         bio: createArtistDto.bio,
         isNsfw: createArtistDto.isNsfw,
-        user: {
-          connect: { id: userId },
-        },
+        user: { connect: { id: userId } },
       },
+    });
+  }
+
+  async updateByUserId(userId: string, dto: UpdateArtistDto) {
+    const artist = await this.findByUserId(userId);
+    return this.prisma.artist.update({
+      where: { id: artist.id },
+      data: dto,
+    });
+  }
+
+  async deleteByUserId(userId: string) {
+    const artist = await this.findByUserId(userId);
+    return this.prisma.artist.delete({
+      where: { id: artist.id },
     });
   }
 

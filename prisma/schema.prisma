@@ -39,6 +39,7 @@ model Artist {
   totalCollections Int             @default(0)
   isVerified       Boolean         @default(false)
   createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
   collections      ArtCollection[]
   user             User            @relation("UserArtist", fields: [userId], references: [id], onDelete: Cascade)
   arts             Art[]
@@ -58,6 +59,7 @@ model Notification {
   userId    String   @db.Uuid
   artistId  String?  @db.Uuid
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   user      User     @relation(fields: [userId], references: [id])
   artist    Artist?   @relation(fields: [artistId], references: [id])
 
@@ -71,6 +73,7 @@ model Follower {
   userId    String   @db.Uuid
   artistId  String   @db.Uuid
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   artist    Artist   @relation("ArtistFollower", fields: [artistId], references: [id], onDelete: Cascade)
   user      User     @relation("UserFollower", fields: [userId], references: [id], onDelete: Cascade)
 
@@ -86,6 +89,7 @@ model Art {
   title           String
   description     String
   datePosted      DateTime          @default(now())
+  updatedAt      DateTime           @updatedAt
   artistId        String            @db.Uuid
   tokenId         BigInt            @unique
   likesCount      Int               @default(0)
@@ -108,6 +112,7 @@ model ArtLike {
   userId    String   @db.Uuid
   artId     String   @db.Uuid
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   art       Art      @relation(fields: [artId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -120,6 +125,7 @@ model Comment {
   id        String   @id @default(uuid()) @db.Uuid
   content   String
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   userId    String   @db.Uuid
   artId     String   @db.Uuid
   art       Art      @relation(fields: [artId], references: [id], onDelete: Cascade)
@@ -136,6 +142,7 @@ model ArtTag {
   tagName    String        @unique
   usageCount Int           @default(0)
   createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
   arts       ArtToArtTag[]
 
   @@index([tagName])
@@ -150,6 +157,7 @@ model ArtCollection {
   price          Decimal?          @db.Decimal(18, 8)
   tokenId        BigInt?           @unique
   createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
   artistId       String            @db.Uuid
   artist         Artist            @relation(fields: [artistId], references: [id], onDelete: Cascade)
   arts           ArtToCollection[]
@@ -165,6 +173,7 @@ model ArtToCollection {
   artId        String        @db.Uuid
   collectionId String        @db.Uuid
   addedAt      DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
   art          Art           @relation(fields: [artId], references: [id], onDelete: Cascade)
   collection   ArtCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
 
@@ -181,6 +190,7 @@ model Purchase {
   txHash       String?        @unique
   status       PurchaseStatus @default(PENDING)
   createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
   completedAt  DateTime?
   collection   ArtCollection  @relation(fields: [collectionId], references: [id])
   user         User           @relation(fields: [userId], references: [id])
@@ -199,6 +209,7 @@ model Feed {
   content    String
   imageUrl   String?
   datePosted DateTime @default(now())
+  updatedAt  DateTime @updatedAt
   artist     Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
 
   @@index([artistId])
