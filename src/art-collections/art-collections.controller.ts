@@ -30,7 +30,7 @@ import { CompletePurchaseDtoRequest } from './dto/request/complete-purchase.dto'
 @ApiTags('Art Collections')
 @Controller('art-collections')
 export class ArtCollectionsController {
-  constructor(private readonly artCollectionsService: ArtCollectionsService) {}
+  constructor(private readonly artCollectionsService: ArtCollectionsService) { }
 
   @Post()
   @ApiOperation({ summary: 'Create a new art collection' })
@@ -70,7 +70,7 @@ export class ArtCollectionsController {
   })
   completePurchase(@Body() completePurchaseDtoRequest: CompletePurchaseDtoRequest) {
     console.log(completePurchaseDtoRequest);
-    
+
     return this.artCollectionsService.completePurchase(completePurchaseDtoRequest);
   }
 
@@ -85,6 +85,12 @@ export class ArtCollectionsController {
   @ApiParam({ name: 'id', type: String, description: 'Art collection ID' })
   findOne(@Param('id') id: string) {
     return this.artCollectionsService.findArtsInCollection(id);
+  }
+
+  @Get('my/collections')
+  @ApiOperation({ summary: 'Get all collections of current user' })
+  findAllCollectionsByArtistId(@Request() req: AuthenticatedRequest) {
+    return this.artCollectionsService.findAllCollectionsByArtistId(req.user.userId);
   }
 
   @Get('my/arts')

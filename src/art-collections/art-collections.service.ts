@@ -190,10 +190,37 @@ export class ArtCollectionsService {
     return collection.arts.map((item) => item.art);
   }
 
-  async findAllArtsFromUserCollections(userId: string) {
+  async findAllCollectionsByArtistId(userId: string) {
+    console.log("userId:", userId);
+
     const collections = await this.prisma.artCollection.findMany({
       where: {
-        artist: { userId },
+        artist: { userId: userId },
+      },
+      include: {
+        arts: {
+          include: {
+            art: {
+              include: {
+                tags: { include: { tag: true } },
+                comments: { include: { user: true } },
+                artist: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return collections
+  }
+
+  async findAllArtsFromUserCollections(userId: string) {
+    console.log("userId:", userId);
+
+    const collections = await this.prisma.artCollection.findMany({
+      where: {
+        artist: { userId: userId },
       },
       include: {
         arts: {
@@ -215,7 +242,7 @@ export class ArtCollectionsService {
     );
   }
 
-  
+
 
   update(id: string, dto: UpdateArtCollectionDtoRequest) {
     return this.prisma.artCollection.update({
