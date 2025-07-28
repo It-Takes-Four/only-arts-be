@@ -9,6 +9,7 @@ import {
   UsePipes,
   ValidationPipe,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -21,6 +22,7 @@ import { FeedsService } from './feeds.service';
 import { CreateFeedDto } from './dto/create-feed.dto';
 import { UpdateFeedDto } from './dto/update-feed.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth('JWT-auth')
@@ -31,9 +33,9 @@ export class FeedsController {
   constructor(private readonly feedsService: FeedsService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Get all feed posts' })
-  getAll() {
-    return this.feedsService.findAll();
+  @ApiOperation({ summary: 'Get paginated feed posts' })
+  getAll(@Query() pagination: PaginationQueryDto) {
+    return this.feedsService.findAll(pagination);
   }
 
   @Get(':id')
@@ -44,12 +46,14 @@ export class FeedsController {
   }
 
   @Get('artist/:artistId')
-  @ApiOperation({ summary: 'Get all feeds by artist ID' })
-  @ApiParam({ name: 'artistId', description: 'UUID of the artist' })
-  getByArtist(@Param('artistId') artistId: string) {
-    return this.feedsService.findByArtist(artistId);
+  @ApiOperation({ summary: 'Get paginated feeds by artist ID' })
+  getByArtist(
+    @Param('artistId') artistId: string,
+    @Query() pagination: PaginationQueryDto,
+  ) {
+    return this.feedsService.findByArtist(artistId, pagination);
   }
-
+  
   @Post()
   @ApiOperation({ summary: 'Create a new feed post' })
   @ApiBody({ type: CreateFeedDto })

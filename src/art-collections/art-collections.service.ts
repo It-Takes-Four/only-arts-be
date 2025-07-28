@@ -1,10 +1,10 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateArtCollectionDto } from './dto/request/create-art-collection.dto';
-import { UpdateArtCollectionDto } from './dto/request/update-art-collection.dto';
+import { CreateArtCollectionDtoRequest } from './dto/request/create-art-collection.dto';
+import { UpdateArtCollectionDtoRequest } from './dto/request/update-art-collection.dto';
 import { ArtNftService } from 'src/art-nft/art-nft.service';
 import { v4 as uuidv4 } from 'uuid';
-import { CreateArtCollectionResponse } from './dto/response/create-art-collection.dto';
+import { CreateArtCollectionDtoResponse } from './dto/response/create-art-collection.dto';
 import { ArtsService } from 'src/arts/arts.service';
 import { CreateWithArtsRequest } from './dto/request/create-with-arts.dto';
 import { CollectionAccessService } from 'src/collection-access/collection-access.service';
@@ -14,7 +14,7 @@ import { PrepareCollectionPurchaseRequest } from 'src/collection-access/dto/requ
 export class ArtCollectionsService {
   constructor(private readonly prisma: PrismaService, private readonly artNftService: ArtNftService, private readonly artsService: ArtsService, private readonly collectionAccessService: CollectionAccessService) { }
 
-  async create(dto: CreateArtCollectionDto) {
+  async create(dto: CreateArtCollectionDtoRequest) {
     const collectionId = uuidv4();
 
     const createArtResult = await this.artNftService.createCollection(dto.artistId, collectionId);
@@ -32,10 +32,10 @@ export class ArtCollectionsService {
       throw new Error('Failed to create art collection in database.');
     }
 
-    return new CreateArtCollectionResponse(dto.artistId, collectionId, tokenId.toString())
+    return new CreateArtCollectionDtoResponse(dto.artistId, collectionId, tokenId.toString())
   }
 
-  async createWithArts(dto: CreateWithArtsRequest) {
+  async createWithArts(dto: CreateWithArtsDtoRequest) {
     const collectionId = uuidv4();
     const artIds: string[] = [];
 
@@ -76,6 +76,24 @@ export class ArtCollectionsService {
     }
 
     return new CreateArtCollectionResponse(dto.artistId, collectionId, tokenId.toString())
+  }
+
+  async prepareCollectionPurchase(dto: PrepareCollectionPurchaseRequest) {
+    // Check if collection exists
+    const collection = await this.findOne(dto.collectionId);
+
+    if (!collection) {
+      throw new BadRequestException('Collection does not exist');
+    }
+
+    // Verify that user does not have access yet
+    const hasAccess = await this.collectionAccessService.hasAccessToCollection(dto.buyerId, dto.collectionId)
+
+    if (hasAccess) {
+      throw new BadRequestException('Buyer already has access to collection');
+    }
+
+    return this.collectionAccessService.prepareCollectionPurchase(dto)
   }
 
   async prepareCollectionPurchase(dto: PrepareCollectionPurchaseRequest) {
@@ -185,7 +203,7 @@ export class ArtCollectionsService {
     );
   }
 
-  update(id: string, dto: UpdateArtCollectionDto) {
+  update(id: string, dto: UpdateArtCollectionDtoRequest) {
     return this.prisma.artCollection.update({
       where: { id },
       data: dto,

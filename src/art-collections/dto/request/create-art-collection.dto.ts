@@ -1,7 +1,7 @@
 import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class CreateArtCollectionDto {
+export class CreateArtCollectionDtoRequest {
   @ApiProperty({
     description: 'Name of the art collection',
     example: 'Modern Art Showcase',

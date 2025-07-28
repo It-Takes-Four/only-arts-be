@@ -10,8 +10,8 @@ import {
   Request,
 } from '@nestjs/common';
 import { ArtCollectionsService } from './art-collections.service';
-import { CreateArtCollectionDto } from './dto/request/create-art-collection.dto';
-import { UpdateArtCollectionDto } from './dto/request/update-art-collection.dto';
+import { CreateArtCollectionDtoRequest } from './dto/request/create-art-collection.dto';
+import { UpdateArtCollectionDtoRequest } from './dto/request/update-art-collection.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import {
   ApiBearerAuth,
@@ -34,20 +34,20 @@ export class ArtCollectionsController {
   @Post()
   @ApiOperation({ summary: 'Create a new art collection' })
   @ApiBody({
-    type: CreateArtCollectionDto,
+    type: CreateArtCollectionDtoRequest,
     description: 'Payload for creating an art collection',
   })
-  create(@Body() createArtCollectionDto: CreateArtCollectionDto) {
+  create(@Body() createArtCollectionDto: CreateArtCollectionDtoRequest) {
     return this.artCollectionsService.create(createArtCollectionDto);
   }
 
   @Post('/create-with-arts')
   @ApiOperation({ summary: 'Create a new art collection with arts' })
   @ApiBody({
-    type: CreateWithArtsRequest,
+    type: CreateWithArtsDtoRequest,
     description: 'Payload for creating an art collection',
   })
-  createWithArts(@Body() createWithArtsRequest: CreateWithArtsRequest) {
+  createWithArts(@Body() createWithArtsRequest: CreateWithArtsDtoRequest) {
     return this.artCollectionsService.createWithArts(createWithArtsRequest);
   }
 
@@ -84,13 +84,13 @@ export class ArtCollectionsController {
   @ApiOperation({ summary: 'Update an art collection by ID' })
   @ApiParam({ name: 'id', type: String, description: 'Art collection ID' })
   @ApiBody({
-    type: UpdateArtCollectionDto,
+    type: UpdateArtCollectionDtoRequest,
     description: 'Payload for updating an art collection',
   })
 
   update(
     @Param('id') id: string,
-    @Body() updateArtCollectionDto: UpdateArtCollectionDto,
+    @Body() updateArtCollectionDto: UpdateArtCollectionDtoRequest,
   ) {
     return this.artCollectionsService.update(id, updateArtCollectionDto);
   }

@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString } from 'class-validator';
 
-export class NonceRequest {
+export class NonceDtoRequest {
   @IsString()
   @ApiProperty({
     description: 'Wallet address of the user',

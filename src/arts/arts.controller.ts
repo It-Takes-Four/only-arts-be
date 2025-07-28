@@ -19,8 +19,8 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { ArtsService } from './arts.service';
-import { CreateArtRequest } from './dto/request/create-art.dto';
-import { UpdateArtDto } from './dto/request/update-art.dto';
+import { CreateArtDtoRequest } from './dto/request/create-art.dto';
+import { UpdateArtDtoRequest } from './dto/request/update-art.dto';
 
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth('JWT-auth')
@@ -52,16 +52,16 @@ export class ArtController {
 
   @Post()
   @ApiOperation({ summary: 'Create new artwork (with optional tags)' })
-  @ApiBody({ type: CreateArtRequest })
-  createArt(@Body() body: CreateArtRequest) {
+  @ApiBody({ type: CreateArtDtoRequest })
+  createArt(@Body() body: CreateArtDtoRequest) {
     return this.artService.createWithTags(body);
   }
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update artwork by ID' })
   @ApiParam({ name: 'id', description: 'UUID of the artwork to update' })
-  @ApiBody({ type: UpdateArtDto })
-  updateArt(@Param('id') id: string, @Body() body: UpdateArtDto) {
+  @ApiBody({ type: UpdateArtDtoRequest })
+  updateArt(@Param('id') id: string, @Body() body: UpdateArtDtoRequest) {
     return this.artService.updateWithTags(id, body);
   }
 

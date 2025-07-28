@@ -8,7 +8,7 @@ import {
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-export class CreateArtRequest {
+export class CreateArtDtoRequest {
   @ApiProperty({ description: 'Title of the artwork', example: 'Sungazer.' })
   @IsString()
   @IsNotEmpty()

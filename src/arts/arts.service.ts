@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateArtRequest } from './dto/request/create-art.dto';
+import { CreateArtDtoRequest } from './dto/request/create-art.dto';
 import { CreateArtResponse } from './dto/response/create-art.dto';
-import { UpdateArtDto } from './dto/request/update-art.dto';
+import { UpdateArtDtoRequest } from './dto/request/update-art.dto';
 import { ArtNftService } from 'src/art-nft/art-nft.service';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -48,7 +48,7 @@ export class ArtsService {
     });
   }
 
-  async createWithTags(dto: CreateArtRequest) {
+  async createWithTags(dto: CreateArtDtoRequest) {
     const artId = uuidv4();
     const tagIds = dto.tagIds?.length ? dto.tagIds : [];
 
@@ -79,7 +79,7 @@ export class ArtsService {
   }
 
 
-  async updateWithTags(id: string, dto: UpdateArtDto) {
+  async updateWithTags(id: string, dto: UpdateArtDtoRequest) {
     const { tagIds, ...updateData } = dto;
 
     if (tagIds) {

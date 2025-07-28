@@ -1,4 +1,4 @@
-export class CreateArtResponse {
+export class CreateArtDtoResponse {
   constructor(
     public artistId: string,
     public artId: string,

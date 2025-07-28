@@ -11,18 +11,32 @@ export class FeedsService {
     return this.prisma.feed.create({ data: dto });
   }
 
-  async findAll() {
-    return this.prisma.feed.findMany({
-      include: {
-        artist: {
-          select: {
-            id: true,
-            user: { select: { username: true, profilePicture: true } },
+  async findAll(pagination: { page?: number; limit?: number }) {
+    const { page = 1, limit = 10 } = pagination;
+
+    const [feeds, total] = await Promise.all([
+      this.prisma.feed.findMany({
+        skip: (page - 1) * limit,
+        take: limit,
+        include: {
+          artist: {
+            select: {
+              id: true,
+              user: { select: { username: true, profilePicture: true } },
+            },
           },
         },
-      },
-      orderBy: { datePosted: 'desc' },
-    });
+        orderBy: { datePosted: 'desc' },
+      }),
+      this.prisma.feed.count(),
+    ]);
+
+    return {
+      data: feeds,
+      total,
+      page,
+      limit,
+    };
   }
 
   async findOne(id: string) {
@@ -42,7 +56,7 @@ export class FeedsService {
   }
 
   async update(id: string, dto: UpdateFeedDto) {
-    await this.findOne(id); // Ensure it exists
+    await this.findOne(id); 
     return this.prisma.feed.update({
       where: { id },
       data: dto,
@@ -54,10 +68,27 @@ export class FeedsService {
     return this.prisma.feed.delete({ where: { id } });
   }
 
-  async findByArtist(artistId: string) {
-    return this.prisma.feed.findMany({
-      where: { artistId },
-      orderBy: { datePosted: 'desc' },
-    });
+  async findByArtist(
+    artistId: string,
+    pagination: { page?: number; limit?: number },
+  ) {
+    const { page = 1, limit = 10 } = pagination;
+
+    const [feeds, total] = await Promise.all([
+      this.prisma.feed.findMany({
+        where: { artistId },
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { datePosted: 'desc' },
+      }),
+      this.prisma.feed.count({ where: { artistId } }),
+    ]);
+
+    return {
+      data: feeds,
+      total,
+      page,
+      limit,
+    };
   }
 }
