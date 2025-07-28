@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsUUID } from 'class-validator';
+import { IsNumber, IsString, IsUUID } from 'class-validator';
 
-export class PrepareCollectionPurchaseDtoRequest {
+export class CompletePurchaseDtoRequest {
     @ApiProperty({ description: 'UUID of the collection', example: '867968ab-0d80-4d36-bef0-6ce7264fa53a' })
     @IsUUID()
     collectionId: string;
@@ -11,13 +11,10 @@ export class PrepareCollectionPurchaseDtoRequest {
     buyerId: string;
 
     @ApiProperty({ description: 'price of the collection in ETH', example: '0.0001' })
-    @IsString()
-    price: string;
+    @IsNumber()
+    price: number;
 
-    @ApiProperty({
-        description: 'wallet address of the artist who owns the collection',
-        example: '0xD257B998A205acCE3947eac6C9d57b36024158d1',
-    })
+    @ApiProperty({ description: 'transaction hash', example: '0xb5b0afc239317a42d5171d526b2f98fb3d77152fd0f36889766ce57dcd6fae3f' })
     @IsString()
-    artistWalletAddress: string;
+    txHash: string;
 }

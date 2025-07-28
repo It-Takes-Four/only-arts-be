@@ -1,14 +1,13 @@
 import {
     IsString,
-    IsUrl,
     IsNotEmpty,
-    IsOptional,
-    IsArray,
     IsUUID,
+    IsNumber,
 } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
+import { PurchaseStatus } from '@prisma/client';
 
-export class CreateNewPurchaseRequest {
+export class CreateNewPurchaseDtoRequest {
     @ApiProperty({ description: 'UUID of the buyer', example: 'ceb4dcc1-863d-4ed3-8223-0cfa8b28639a' })
     @IsUUID()
     userId: string;
@@ -17,12 +16,15 @@ export class CreateNewPurchaseRequest {
     @IsUUID()
     collectionId: string;
 
-    
-    price: string;
+    @ApiProperty({
+        description: 'Price of the art collection in ETH',
+        example: '0.00001',
+    })
+    @IsNumber()
+    @IsNotEmpty()
+    price: number;
 
-    @ApiPropertyOptional({ description: 'Optional list of tag UUIDs', example: ['4e365859-e8d4-4cf7-8091-9acbb7c1dc56'] })
-    @IsOptional()
-    @IsArray()
-    @IsUUID('all', { each: true })
-    tagIds?: string[];
+    @ApiProperty({ description: 'Transaction hash', example: '0xb5b0afc239317a42d5171d526b2f98fb3d77152fd0f36889766ce57dcd6fae3f' })
+    @IsString()
+    txHash: string;
 }
