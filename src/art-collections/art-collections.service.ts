@@ -6,7 +6,7 @@ import { ArtNftService } from 'src/art-nft/art-nft.service';
 import { v4 as uuidv4 } from 'uuid';
 import { CreateArtCollectionDtoResponse } from './dto/response/create-art-collection.dto';
 import { ArtsService } from 'src/arts/arts.service';
-import { CreateWithArtsRequest } from './dto/request/create-with-arts.dto';
+import { CreateWithArtsDtoRequest } from './dto/request/create-with-arts.dto';
 import { CollectionAccessService } from 'src/collection-access/collection-access.service';
 import { PrepareCollectionPurchaseRequest } from 'src/collection-access/dto/request/prepare-collection-purchase.dto';
 
@@ -75,25 +75,7 @@ export class ArtCollectionsService {
       throw new Error('Failed to create art collection in database.');
     }
 
-    return new CreateArtCollectionResponse(dto.artistId, collectionId, tokenId.toString())
-  }
-
-  async prepareCollectionPurchase(dto: PrepareCollectionPurchaseRequest) {
-    // Check if collection exists
-    const collection = await this.findOne(dto.collectionId);
-
-    if (!collection) {
-      throw new BadRequestException('Collection does not exist');
-    }
-
-    // Verify that user does not have access yet
-    const hasAccess = await this.collectionAccessService.hasAccessToCollection(dto.buyerId, dto.collectionId)
-
-    if (hasAccess) {
-      throw new BadRequestException('Buyer already has access to collection');
-    }
-
-    return this.collectionAccessService.prepareCollectionPurchase(dto)
+    return new CreateArtCollectionDtoResponse(dto.artistId, collectionId, tokenId.toString())
   }
 
   async prepareCollectionPurchase(dto: PrepareCollectionPurchaseRequest) {

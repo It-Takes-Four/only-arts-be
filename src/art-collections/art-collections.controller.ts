@@ -21,7 +21,7 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 import { AuthenticatedRequest } from 'src/auth/types/auth.types';
-import { CreateWithArtsRequest } from './dto/request/create-with-arts.dto';
+import { CreateWithArtsDtoRequest } from './dto/request/create-with-arts.dto';
 import { PrepareCollectionPurchaseRequest } from 'src/collection-access/dto/request/prepare-collection-purchase.dto';
 
 @UseGuards(JwtAuthGuard)
