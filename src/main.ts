@@ -37,7 +37,10 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, document); 
+  SwaggerModule.setup('docs', app, document);
+
+  console.log(`API documentation available at: http://localhost:3000/docs`);
+  console.log(`API is running on: http://localhost:3000/api/v1`);
 
   await app.listen(3000);
 }
