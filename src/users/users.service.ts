@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserData } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -10,52 +14,18 @@ export class UsersService {
 
   async findAll() {
     const users = await this.prisma.user.findMany({
-      include: {
-        artist: {
-          include: {
-            collections: true,
-            arts: {
-              include: {
-                tags: { include: { tag: true } },
-                comments: { include: { user: true } },
-              },
-            },
-            feed: true,
-            followers: { include: { user: true } },
-            notifications: true,
-          },
-        },
-        comments: { include: { art: true } },
-        followers: { include: { artist: true } },
-        notifications: { include: { artist: true } },
-      },
+      include: this.userInclude(),
     });
 
-    return users.map(({ password, ...user }) => user);
+    return users.map(({ password, ...user }) =>
+      this.convertBigIntToString(user),
+    );
   }
 
   async findById(id: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },
-      include: {
-        artist: {
-          include: {
-            collections: true,
-            arts: {
-              include: {
-                tags: { include: { tag: true } },
-                comments: { include: { user: true } },
-              },
-            },
-            feed: true,
-            followers: { include: { user: true } },
-            notifications: true,
-          },
-        },
-        comments: { include: { art: true } },
-        followers: { include: { artist: true } },
-        notifications: { include: { artist: true } },
-      },
+      include: this.userInclude(),
     });
 
     if (!user) {
@@ -63,31 +33,14 @@ export class UsersService {
     }
 
     const { password, ...safeUser } = user;
-    return safeUser;
-  }
-
-  async findByEmail(email: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { email },
-      select: {
-        id: true,
-        email: true,
-        username: true,
-        profilePicture: true,
-      },
-    });
-
-    if (!user) {
-      throw new NotFoundException(`User with email ${email} not found`);
-    }
-
-    return user;
+    return this.convertBigIntToString(safeUser);
   }
 
   async findWithPasswordByEmail(email: string) {
-    return this.prisma.user.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: { email },
     });
+    return user ? this.convertBigIntToString(user) : null;
   }
 
   async findByEmailNullable(email: string) {
@@ -101,7 +54,7 @@ export class UsersService {
       },
     });
 
-    return user || null;
+    return user ? this.convertBigIntToString(user) : null;
   }
 
   async create(dto: CreateUserData) {
@@ -116,7 +69,7 @@ export class UsersService {
     });
 
     const { password, ...safeUser } = user;
-    return safeUser;
+    return this.convertBigIntToString(safeUser);
   }
 
   async update(id: string, dto: UpdateUserDto) {
@@ -130,12 +83,26 @@ export class UsersService {
     });
 
     const { password, ...safeUser } = user;
-    return safeUser;
+    return this.convertBigIntToString(safeUser);
   }
 
   async delete(id: string) {
     await this.findById(id);
-    return this.prisma.user.delete({ where: { id } });
+    try {
+      const deleted = await this.prisma.user.delete({
+        where: { id },
+      });
+
+      const { password, ...safeUser } = deleted;
+      return this.convertBigIntToString(safeUser);
+    } catch (error) {
+      if (error.code === 'P2003') {
+        throw new InternalServerErrorException(
+          'User cannot be deleted due to related records. Consider soft-deleting instead.',
+        );
+      }
+      throw error;
+    }
   }
 
   isArtist(user: { artist?: unknown }) {
@@ -145,5 +112,45 @@ export class UsersService {
   private async hashPassword(password: string) {
     const salt = await bcrypt.genSalt();
     return bcrypt.hash(password, salt);
+  }
+
+  private userInclude() {
+    return {
+      artist: {
+        include: {
+          collections: true,
+          arts: {
+            include: {
+              tags: { include: { tag: true } },
+              comments: { include: { user: true } },
+            },
+          },
+          feed: true,
+          followers: { include: { user: true } },
+          notifications: true,
+        },
+      },
+      comments: { include: { art: true } },
+      followers: { include: { artist: true } },
+      notifications: { include: { artist: true } },
+    };
+  }
+
+  private convertBigIntToString(obj: any): any {
+    if (Array.isArray(obj)) {
+      return obj.map((item) => this.convertBigIntToString(item));
+    } else if (obj && typeof obj === 'object') {
+      return Object.fromEntries(
+        Object.entries(obj).map(([key, value]) => {
+          if (value instanceof Date) {
+            return [key, value.toISOString()];
+          }
+          return [key, this.convertBigIntToString(value)];
+        }),
+      );
+    } else if (typeof obj === 'bigint') {
+      return obj.toString();
+    }
+    return obj;
   }
 }
