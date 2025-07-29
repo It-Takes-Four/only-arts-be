@@ -20,8 +20,6 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { FileUploadService } from '../services/file-upload.service';
-import { extname } from 'path';
-import * as mime from 'mime-types';
 import { Response } from 'express';
 
 @UseGuards(JwtAuthGuard)

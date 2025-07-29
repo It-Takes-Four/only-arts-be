@@ -14,10 +14,6 @@ export class CreateArtDtoRequest {
   @IsNotEmpty()
   title: string;
 
-  @ApiProperty({ description: 'File id of the artwork image', example: 'https://example.com/image.jpg' })
-  @IsUrl()
-  imageFileId: string;
-
   @ApiProperty({ description: 'Description of the artwork', example: 'A surreal sunset over an alien landscape.' })
   @IsString()
   @IsNotEmpty()

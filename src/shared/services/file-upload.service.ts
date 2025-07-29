@@ -7,7 +7,7 @@ import * as sharp from 'sharp';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { FileType } from '@prisma/client';
 
-interface UploadedFile {
+export interface UploadedFile {
   originalname: string;
   mimetype: string;
   size: number;
@@ -67,6 +67,7 @@ export class FileUploadService {
   }
 
   async saveFile(file: UploadedFile | undefined, type: FileType): Promise<{
+    fileId: string;
     filename: string;
     originalName: string;
     size: number;
@@ -85,7 +86,7 @@ export class FileUploadService {
     // Write file buffer to destination
     fs.writeFileSync(uploadPath, validFile.buffer);
 
-    await this.prisma.file.create({
+    const result = await this.prisma.file.create({
       data: {
         fileName: filename,
         originalName: validFile.originalname,
@@ -95,8 +96,11 @@ export class FileUploadService {
       }
     })
 
+    const fileId = result.id;
+
     return {
-      filename,
+      fileId: fileId,
+      filename: filename,
       originalName: validFile.originalname,
       size: validFile.size,
       mimetype: validFile.mimetype,

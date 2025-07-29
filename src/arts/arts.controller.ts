@@ -9,6 +9,8 @@ import {
   UsePipes,
   ValidationPipe,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -16,11 +18,13 @@ import {
   ApiOperation,
   ApiParam,
   ApiBody,
+  ApiConsumes,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { ArtsService } from './arts.service';
 import { CreateArtDtoRequest } from './dto/request/create-art.dto';
 import { UpdateArtDtoRequest } from './dto/request/update-art.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth('JWT-auth')
@@ -28,7 +32,7 @@ import { UpdateArtDtoRequest } from './dto/request/update-art.dto';
 @Controller('art')
 @UsePipes(new ValidationPipe({ whitelist: true }))
 export class ArtController {
-  constructor(private readonly artService: ArtsService) {}
+  constructor(private readonly artService: ArtsService) { }
 
   @Get()
   @ApiOperation({ summary: 'Get all artworks' })
@@ -52,9 +56,38 @@ export class ArtController {
 
   @Post()
   @ApiOperation({ summary: 'Create new artwork (with optional tags)' })
-  @ApiBody({ type: CreateArtDtoRequest })
-  createArt(@Body() body: CreateArtDtoRequest) {
-    return this.artService.createWithTags(body);
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Create artwork with image and metadata',
+    schema: {
+      type: 'object',
+      properties: {
+        title: { type: 'string', example: 'Sungazer' },
+        description: { type: 'string', example: 'A surreal sunset over an alien landscape.' },
+        artistId: { type: 'string', format: 'uuid', example: 'a0d93a2c-8852-4b6a-9a2a-3c9fc9f8a67c' },
+        tagIds: {
+          type: 'array',
+          items: { type: 'string', format: 'uuid' },
+          example: ['4e365859-e8d4-4cf7-8091-9acbb7c1dc56'],
+        },
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+      required: ['title', 'description', 'artistId', 'file'],
+    },
+  })
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: 10 * 1024 * 1024 },
+    }),
+  )
+  createArt(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() body: CreateArtDtoRequest
+  ) {
+    return this.artService.createWithTags(body, file);
   }
 
   @Patch(':id')

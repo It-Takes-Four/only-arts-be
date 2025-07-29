@@ -37,48 +37,48 @@ export class ArtCollectionsService {
     return new CreateArtCollectionDtoResponse(dto.artistId, collectionId, tokenId.toString())
   }
 
-  async createWithArts(dto: CreateWithArtsDtoRequest) {
-    const collectionId = uuidv4();
-    const artIds: string[] = [];
+  // async createWithArts(dto: CreateWithArtsDtoRequest) {
+  //   const collectionId = uuidv4();
+  //   const artIds: string[] = [];
 
-    const arts = dto.arts
+  //   const arts = dto.arts
 
-    for (let index = 0; index < arts.length; index++) {
-      const element = arts[index];
+  //   for (let index = 0; index < arts.length; index++) {
+  //     const element = arts[index];
 
-      const result = await this.artsService.createWithTags(element);
-      artIds.push(result.artId);
+  //     const result = await this.artsService.createWithTags(element);
+  //     artIds.push(result.artId);
 
-      // Update the art to mark it as part of a collection
-      await this.prisma.art.update({
-        where: { id: result.artId },
-        data: { isInACollection: true },
-      });
-    }
+  //     // Update the art to mark it as part of a collection
+  //     await this.prisma.art.update({
+  //       where: { id: result.artId },
+  //       data: { isInACollection: true },
+  //     });
+  //   }
 
-    const createCollectionResult = await this.artNftService.createCollection(dto.artistId, collectionId);
-    const tokenId = BigInt(createCollectionResult.tokenId);
+  //   const createCollectionResult = await this.artNftService.createCollection(dto.artistId, collectionId);
+  //   const tokenId = BigInt(createCollectionResult.tokenId);
 
-    const result = await this.prisma.artCollection.create({
-      data: {
-        id: collectionId,
-        collectionName: dto.collectionName,
-        artistId: dto.artistId,
-        price: dto.price,
-        arts: {
-          create: artIds.map((artId) => ({
-            art: { connect: { id: artId } },
-          })),
-        },
-      },
-    });
+  //   const result = await this.prisma.artCollection.create({
+  //     data: {
+  //       id: collectionId,
+  //       collectionName: dto.collectionName,
+  //       artistId: dto.artistId,
+  //       price: dto.price,
+  //       arts: {
+  //         create: artIds.map((artId) => ({
+  //           art: { connect: { id: artId } },
+  //         })),
+  //       },
+  //     },
+  //   });
 
-    if (!result) {
-      throw new Error('Failed to create art collection in database.');
-    }
+  //   if (!result) {
+  //     throw new Error('Failed to create art collection in database.');
+  //   }
 
-    return new CreateArtCollectionDtoResponse(dto.artistId, collectionId, tokenId.toString())
-  }
+  //   return new CreateArtCollectionDtoResponse(dto.artistId, collectionId, tokenId.toString())
+  // }
 
   async prepareCollectionPurchase(dto: PrepareCollectionPurchaseDtoRequest) {
     // Check if collection exists

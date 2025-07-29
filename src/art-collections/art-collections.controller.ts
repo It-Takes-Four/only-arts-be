@@ -42,15 +42,15 @@ export class ArtCollectionsController {
     return this.artCollectionsService.create(createArtCollectionDto);
   }
 
-  @Post('/create-with-arts')
-  @ApiOperation({ summary: 'Create a new art collection with arts' })
-  @ApiBody({
-    type: CreateWithArtsDtoRequest,
-    description: 'Payload for creating an art collection',
-  })
-  createWithArts(@Body() createWithArtsRequest: CreateWithArtsDtoRequest) {
-    return this.artCollectionsService.createWithArts(createWithArtsRequest);
-  }
+  // @Post('/create-with-arts')
+  // @ApiOperation({ summary: 'Create a new art collection with arts' })
+  // @ApiBody({
+  //   type: CreateWithArtsDtoRequest,
+  //   description: 'Payload for creating an art collection',
+  // })
+  // createWithArts(@Body() createWithArtsRequest: CreateWithArtsDtoRequest) {
+  //   return this.artCollectionsService.createWithArts(createWithArtsRequest);
+  // }
 
   @Post('/prepare-collection-purchase')
   @ApiOperation({ summary: 'Returns necessary data for collection purchase transaction' })
