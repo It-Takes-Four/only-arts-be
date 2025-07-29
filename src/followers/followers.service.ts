@@ -31,13 +31,13 @@ export class FollowersService {
     return this.prisma.follower.findMany({
       include: {
         user: {
-          select: { id: true, username: true, profilePicture: true },
+          select: { id: true, username: true, profilePictureFileId: true },
         },
         artist: {
           select: {
             id: true,
             user: {
-              select: { username: true, profilePicture: true },
+              select: { username: true, profilePictureFileId: true },
             },
           },
         },

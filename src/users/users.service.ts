@@ -49,7 +49,7 @@ export class UsersService {
         id: true,
         email: true,
         username: true,
-        profilePicture: true,
+        profilePictureFileId: true,
       },
     });
 
@@ -63,7 +63,7 @@ export class UsersService {
         email: dto.email,
         password: hashedPassword,
         username: dto.username,
-        profilePicture: dto.profilePicture,
+        profilePictureFileId: dto.profilePicture,
       },
     });
 

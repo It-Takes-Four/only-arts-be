@@ -61,7 +61,7 @@ export class ArtsService {
         tokenId: tokenId,
         title: dto.title, 
         description: dto.description,
-        imageUrl: dto.imageUrl,
+        imageFileId: dto.imageFileId,
         artistId: dto.artistId,
         tags: {
           create: tagIds.map((tagId) => ({

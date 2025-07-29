@@ -8,19 +8,20 @@ datasource db {
 }
 
 model User {
-  id             String     @id @default(uuid()) @db.Uuid
-  email          String     @unique
-  password       String
-  username       String     @unique
-  profilePicture String?
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
-  artLikes       ArtLike[]
-  artist         Artist?    @relation("UserArtist")
-  comments       Comment[]
-  followers      Follower[] @relation("UserFollower")
-  purchases      Purchase[]
-  notifications  Notification[]
+  id                   String         @id @default(uuid()) @db.Uuid
+  email                String         @unique
+  password             String
+  username             String         @unique
+  profilePictureFileId String?        @unique @db.Uuid
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+  artLikes             ArtLike[]
+  artist               Artist?        @relation("UserArtist")
+  comments             Comment[]
+  followers            Follower[]     @relation("UserFollower")
+  notifications        Notification[]
+  purchases            Purchase[]
+  profilePictureFile   File?          @relation("UserProfilePicture", fields: [profilePictureFileId], references: [id])
 
   @@index([email])
   @@index([username])
@@ -45,7 +46,7 @@ model Artist {
   arts             Art[]
   feed             Feed[]
   followers        Follower[]      @relation("ArtistFollower")
-  notifications   Notification[]
+  notifications    Notification[]
 
   @@index([artistName])
   @@index([walletAddress])
@@ -60,8 +61,8 @@ model Notification {
   artistId  String?  @db.Uuid
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  artist    Artist?  @relation(fields: [artistId], references: [id])
   user      User     @relation(fields: [userId], references: [id])
-  artist    Artist?   @relation(fields: [artistId], references: [id])
 
   @@index([userId])
   @@index([artistId])
@@ -85,11 +86,11 @@ model Follower {
 
 model Art {
   id              String            @id @default(uuid()) @db.Uuid
-  imageUrl        String
+  imageFileId     String            @unique @db.Uuid
   title           String
   description     String
   datePosted      DateTime          @default(now())
-  updatedAt      DateTime           @updatedAt
+  updatedAt       DateTime          @updatedAt
   artistId        String            @db.Uuid
   tokenId         BigInt            @unique
   likesCount      Int               @default(0)
@@ -98,12 +99,14 @@ model Art {
   tags            ArtToArtTag[]
   collections     ArtToCollection[]
   artist          Artist            @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  imageFile       File              @relation("ArtImageFile", fields: [imageFileId], references: [id])
   comments        Comment[]
 
   @@index([artistId])
   @@index([tokenId])
   @@index([datePosted])
   @@index([isInACollection])
+  @@index([imageFileId])
   @@map("arts")
 }
 
@@ -150,21 +153,23 @@ model ArtTag {
 }
 
 model ArtCollection {
-  id             String            @id @default(uuid()) @db.Uuid
-  collectionName String
-  description    String?
-  coverImageUrl  String?
-  price          Decimal?          @db.Decimal(18, 8)
-  tokenId        BigInt?           @unique
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
-  artistId       String            @db.Uuid
-  artist         Artist            @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  arts           ArtToCollection[]
-  purchases      Purchase[]
+  id               String            @id @default(uuid()) @db.Uuid
+  collectionName   String
+  description      String?
+  coverImageFileId String?           @unique @db.Uuid
+  price            Decimal?          @db.Decimal(18, 8)
+  tokenId          BigInt?           @unique
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  artistId         String            @db.Uuid
+  artist           Artist            @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  coverImageFile   File?             @relation("CollectionCoverImage", fields: [coverImageFileId], references: [id])
+  arts             ArtToCollection[]
+  purchases        Purchase[]
 
   @@index([artistId])
   @@index([tokenId])
+  @@index([coverImageFileId])
   @@map("art_collections")
 }
 
@@ -225,6 +230,20 @@ model ArtToArtTag {
 
   @@id([artId, tagId])
   @@map("art_to_art_tags")
+}
+
+model File {
+  id              String         @id @default(uuid()) @db.Uuid
+  fileName        String
+  originalName    String
+  mimetype        String
+  size            Int
+  createdAt       DateTime       @default(now())
+  collectionCover ArtCollection? @relation("CollectionCoverImage")
+  artImage        Art?           @relation("ArtImageFile")
+  userProfile     User?          @relation("UserProfilePicture")
+
+  @@map("files")
 }
 
 enum PurchaseStatus {
