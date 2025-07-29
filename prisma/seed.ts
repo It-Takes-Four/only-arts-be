@@ -128,9 +128,9 @@ async function main() {
   const templateUserId = uuidv4();
   const templateArtistId = uuidv4();
   const templatePassword = await bcrypt.hash('securePass1', 10);
-  const templateEmail = 'template@onlyarts.com';
-  const templateUsername = 'TemplateUser';
-  const templateArtistName = 'TemplateArtist';
+  const templateEmail = 'user@example.com';
+  const templateUsername = 'creativeUser';
+  const templateArtistName = 'Artistic Visionary';
 
   await prisma.user.create({
     data: {
