@@ -4,6 +4,8 @@ import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as sharp from 'sharp';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { FileType } from '@prisma/client';
 
 interface UploadedFile {
   originalname: string;
@@ -14,6 +16,8 @@ interface UploadedFile {
 
 @Injectable()
 export class FileUploadService {
+  constructor(private readonly prisma: PrismaService) { }
+
   private readonly allowedMimeTypes = [
     'image/jpeg',
     'image/jpg',
@@ -44,7 +48,7 @@ export class FileUploadService {
     return `${uniqueSuffix}${fileExtension}`;
   }
 
-  getFileUrl(type: 'arts' | 'collections' | 'profiles', filename: string): string {
+  getFileUrl(type: FileType, filename: string): string {
     return `/uploads/${type}/${filename}`;
   }
 
@@ -62,13 +66,13 @@ export class FileUploadService {
     });
   }
 
-  saveFile(file: UploadedFile | undefined, type: 'arts' | 'collections' | 'profiles'): {
+  async saveFile(file: UploadedFile | undefined, type: FileType): Promise<{
     filename: string;
     originalName: string;
     size: number;
     mimetype: string;
     url: string;
-  } {
+  }> {
     this.validateFile(file);
     this.ensureUploadDirectories();
 
@@ -81,6 +85,16 @@ export class FileUploadService {
     // Write file buffer to destination
     fs.writeFileSync(uploadPath, validFile.buffer);
 
+    await this.prisma.file.create({
+      data: {
+        fileName: filename,
+        originalName: validFile.originalname,
+        mimetype: validFile.mimetype,
+        size: validFile.size,
+        type: type
+      }
+    })
+
     return {
       filename,
       originalName: validFile.originalname,
@@ -90,7 +104,37 @@ export class FileUploadService {
     };
   }
 
-  retrieveFile(type: 'arts' | 'collections' | 'profiles', fileName: string) {
+  async retrieveFileById(fileId: string) {
+    const fileData = await this.prisma.file.findFirst({
+      where: {
+        id: fileId
+      }
+    })
+
+    if (!fileData) {
+      return new BadRequestException('File id does not exist')
+    }
+
+    const file = this.retrieveFile(fileData?.type, fileData?.fileName);
+    return file
+  }
+
+  async retrieveFileBlurredById(fileId: string) {
+    const fileData = await this.prisma.file.findFirst({
+      where: {
+        id: fileId
+      }
+    })
+
+    if (!fileData) {
+      return new BadRequestException('File id does not exist')
+    }
+
+    const file = this.retrieveFileBlurredCached(fileData?.type, fileData?.fileName);
+    return file
+  }
+
+  retrieveFile(type: FileType, fileName: string) {
     const completeFileName = path.join(`./storage/uploads/${type}`, fileName)
 
     // Validate file exists in storage
@@ -102,7 +146,7 @@ export class FileUploadService {
     return fs.readFileSync(completeFileName);
   }
 
-  async retrieveFileBlurredCached(type: 'arts' | 'collections' | 'profiles', fileName: string): Promise<Buffer> {
+  async retrieveFileBlurredCached(type: FileType, fileName: string): Promise<Buffer> {
     const originalPath = path.join(`./storage/uploads/${type}`, fileName);
     const blurredPath = path.join(`./storage/uploads/${type}/blurred`, `blurred_${fileName}`);
 
@@ -127,7 +171,7 @@ export class FileUploadService {
         fs.mkdirSync(blurredDir, { recursive: true });
       }
 
-      
+
       // Cache the blurred version
       fs.writeFileSync(blurredPath, blurredBuffer);
 

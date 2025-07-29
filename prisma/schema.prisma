@@ -238,6 +238,7 @@ model File {
   originalName    String
   mimetype        String
   size            Int
+  type            FileType
   createdAt       DateTime       @default(now())
   collectionCover ArtCollection? @relation("CollectionCoverImage")
   artImage        Art?           @relation("ArtImageFile")
@@ -251,4 +252,10 @@ enum PurchaseStatus {
   COMPLETED
   FAILED
   CANCELLED
+}
+
+enum FileType {
+  arts
+  collections
+  profiles
 }
