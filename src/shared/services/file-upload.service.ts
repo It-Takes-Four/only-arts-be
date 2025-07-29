@@ -1,8 +1,9 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { extname } from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as sharp from 'sharp';
 
 interface UploadedFile {
   originalname: string;
@@ -87,5 +88,62 @@ export class FileUploadService {
       mimetype: validFile.mimetype,
       url: this.getFileUrl(type, filename),
     };
+  }
+
+  retrieveFile(type: 'arts' | 'collections' | 'profiles', fileName: string) {
+    const completeFileName = path.join(`./storage/uploads/${type}`, fileName)
+
+    // Validate file exists in storage
+    if (!fs.existsSync(completeFileName)) {
+      throw new NotFoundException('File not found');
+    }
+
+    // Returns file buffer
+    return fs.readFileSync(completeFileName);
+  }
+
+  async retrieveFileBlurredCached(type: 'arts' | 'collections' | 'profiles', fileName: string): Promise<Buffer> {
+    const originalPath = path.join(`./storage/uploads/${type}`, fileName);
+    const blurredPath = path.join(`./storage/uploads/${type}/blurred`, `blurred_${fileName}`);
+
+    // Check if blurred version already exists
+    if (fs.existsSync(blurredPath)) {
+      return fs.readFileSync(blurredPath);
+    }
+
+    // Check if original file exists
+    if (!fs.existsSync(originalPath)) {
+      throw new NotFoundException('File not found');
+    }
+
+    try {
+      // Create blurred version
+      const blurredBuffer = await this.createBlurredVersion(originalPath);
+
+      // Ensure blurred directory exists
+      const blurredDir = path.dirname(blurredPath);
+      if (!fs.existsSync(blurredDir)) {
+        // Create blurred directory
+        fs.mkdirSync(blurredDir, { recursive: true });
+      }
+
+      
+      // Cache the blurred version
+      fs.writeFileSync(blurredPath, blurredBuffer);
+
+      return blurredBuffer;
+    } catch (error) {
+      console.error('Error creating blurred image:', error);
+      throw new BadRequestException('Failed to process image');
+    }
+  }
+
+  private async createBlurredVersion(filePath: string): Promise<Buffer> {
+    return await sharp(filePath)
+      .resize(25, 25, { fit: 'cover' })
+      .blur(8)
+      .resize(200, 200, { kernel: 'nearest' })
+      .jpeg({ quality: 10 })
+      .toBuffer();
   }
 }
