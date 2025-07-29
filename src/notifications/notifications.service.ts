@@ -25,7 +25,7 @@ export class NotificationsService {
           select: {
             id: true,
             username: true,
-            profilePicture: true,
+            profilePictureFileId: true,
           },
         },
         artist: {
@@ -33,7 +33,7 @@ export class NotificationsService {
             id: true,
             artistName: true,
             user: {
-              select: { username: true, profilePicture: true },
+              select: { username: true, profilePictureFileId: true },
             },
           },
         },

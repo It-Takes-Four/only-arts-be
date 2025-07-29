@@ -23,27 +23,21 @@ export class FeedsService {
           select: {
             id: true,
             artistName: true,
-            user: { select: { profilePicture: true } },
+            user: { select: { profilePictureFileId: true } },
           }
         }
       }
     });
 
     for (const art of arts) {
-      const profilePicture = art.artist.user.profilePicture
-        ? this.fileUploadService.retrieveFile('profiles', art.artist.user.profilePicture)
-        : null;
-
-      const artImage = this.fileUploadService.retrieveFile('arts', art.imageUrl);
-
       const feedItem = new FindAllDtoResponse(
         null,
         new ArtFeed(
           art.artistId,
           art.artist.artistName,
-          profilePicture,
+          art.artist.user.profilePictureFileId,
           art.description,
-          artImage,
+          art.imageFileId,
           art.title,
           art.datePosted
         ),
@@ -62,30 +56,22 @@ export class FeedsService {
           select: {
             id: true,
             artistName: true,
-            user: { select: { profilePicture: true } },
+            user: { select: { profilePictureFileId: true } },
           },
         },
       },
     });
 
     for (const collection of collections) {
-      const profilePicture = collection.artist.user.profilePicture
-        ? this.fileUploadService.retrieveFile('profiles', collection.artist.user.profilePicture)
-        : null;
-
-      const collectionCoverImage = collection.coverImageUrl
-        ? this.fileUploadService.retrieveFile('collections', collection.coverImageUrl)
-        : null;
-
       const feedItem = new FindAllDtoResponse(
         null,
         null,
         new ArtCollectionFeed(
           collection.artistId,
           collection.artist.artistName,
-          profilePicture,
+          collection.artist.user.profilePictureFileId,
           collection.description,
-          collectionCoverImage,
+          collection.coverImageFileId,
           collection.collectionName,
           collection.createdAt
         ),
@@ -102,22 +88,18 @@ export class FeedsService {
           select: {
             id: true,
             artistName: true,
-            user: { select: { profilePicture: true } },
+            user: { select: { profilePictureFileId: true } },
           }
         }
       }
     })
 
     for (const post of feeds) {
-      const profilePicture = post.artist.user.profilePicture
-        ? this.fileUploadService.retrieveFile('profiles', post.artist.user.profilePicture)
-        : null;
-
       const feedItem = new FindAllDtoResponse(
         new Post(
           post.artistId,
           post.artist.artistName,
-          profilePicture,
+          post.artist.user.profilePictureFileId,
           post.content,
           post.datePosted
         ),
