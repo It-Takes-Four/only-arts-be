@@ -112,11 +112,11 @@ export class FileUploadService {
     })
 
     if (!fileData) {
-      return new BadRequestException('File id does not exist')
+      throw new BadRequestException('File id does not exist')
     }
 
-    const file = this.retrieveFile(fileData?.type, fileData?.fileName);
-    return file
+    const fileBuffer = this.retrieveFile(fileData?.type, fileData?.fileName);
+    return { fileBuffer: fileBuffer, mimeType: fileData.mimetype }
   }
 
   async retrieveFileBlurredById(fileId: string) {
@@ -127,11 +127,11 @@ export class FileUploadService {
     })
 
     if (!fileData) {
-      return new BadRequestException('File id does not exist')
+      throw new BadRequestException('File id does not exist')
     }
 
-    const file = this.retrieveFileBlurredCached(fileData?.type, fileData?.fileName);
-    return file
+    const fileBuffer = this.retrieveFileBlurredCached(fileData?.type, fileData?.fileName);
+    return fileBuffer
   }
 
   retrieveFile(type: FileType, fileName: string) {

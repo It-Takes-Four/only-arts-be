@@ -31,26 +31,20 @@ import { Response } from 'express';
 export class UploadController {
   constructor(private readonly fileUploadService: FileUploadService) { }
 
-  @Get(':type/:filename')
-  serveFile(
-    @Param('type') type: 'arts' | 'collections' | 'profiles',
-    @Param('filename') filename: string,
+  @Get(':type/:fileid')
+  async serveFile(
+    @Param('fileid') fileid: string,
     @Res() res: Response,
   ) {
-    // Validate type
-    const validTypes = ['arts', 'collections', 'profiles'];
-    if (!validTypes.includes(type)) {
-      throw new NotFoundException('Invalid file category');
-    }
-
     let fileBuffer: Buffer;
+    let mimeType: string;
     try {
-      fileBuffer = this.fileUploadService.retrieveFile(type, filename);
+      const result = await this.fileUploadService.retrieveFileById(fileid);
+      fileBuffer = result.fileBuffer;
+      mimeType = result.mimeType;
     } catch (err) {
       throw new NotFoundException('File not found');
     }
-
-    const mimeType = mime.lookup(extname(filename)) || 'application/octet-stream';
 
     // Set proper headers
     res.set({
@@ -63,20 +57,14 @@ export class UploadController {
     res.send(fileBuffer);
   }
 
-  @Get(':type/:filename/blurred')
+  @Get(':type/:fileid/blurred')
   async serveBlurredFile(
-    @Param('type') type: 'arts' | 'collections' | 'profiles',
-    @Param('filename') filename: string,
+    @Param('fileid') fileid: string,
     @Res() res: Response,
   ) {
-    const validTypes = ['arts', 'collections', 'profiles'];
-    if (!validTypes.includes(type)) {
-      throw new NotFoundException('Invalid file category');
-    }
-
     let fileBuffer: Buffer;
     try {
-      fileBuffer = await this.fileUploadService.retrieveFileBlurredCached(type, filename);
+      fileBuffer = await this.fileUploadService.retrieveFileBlurredById(fileid);
     } catch (err) {
       throw new NotFoundException('File not found');
     }
