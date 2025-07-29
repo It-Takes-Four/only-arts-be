@@ -12,27 +12,12 @@ export class ArtTagsService {
   }
 
   async findAll() {
-    return this.prisma.artTag.findMany({
-      include: {
-        arts: {
-          include: {
-            art: true,
-          },
-        },
-      },
-    });
+    return this.prisma.artTag.findMany();
   }
 
   async findOne(id: string) {
     const tag = await this.prisma.artTag.findUnique({
-      where: { id },
-      include: {
-        arts: {
-          include: {
-            art: true,
-          },
-        },
-      },
+      where: { id }
     });
 
     if (!tag) throw new NotFoundException(`Tag with ID ${id} not found`);
