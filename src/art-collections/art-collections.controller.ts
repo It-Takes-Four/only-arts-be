@@ -8,6 +8,8 @@ import {
   Delete,
   UseGuards,
   Request,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ArtCollectionsService } from './art-collections.service';
 import { CreateArtCollectionDtoRequest } from './dto/request/create-art-collection.dto';
@@ -19,11 +21,13 @@ import {
   ApiTags,
   ApiOperation,
   ApiParam,
+  ApiConsumes,
 } from '@nestjs/swagger';
 import { AuthenticatedRequest } from 'src/auth/types/auth.types';
 import { CreateWithArtsDtoRequest } from './dto/request/create-with-arts.dto';
 import { PrepareCollectionPurchaseDtoRequest } from './dto/request/prepare-collection-purchase.dto';
 import { CompletePurchaseDtoRequest } from './dto/request/complete-purchase.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth('JWT-auth')
@@ -33,13 +37,37 @@ export class ArtCollectionsController {
   constructor(private readonly artCollectionsService: ArtCollectionsService) { }
 
   @Post()
-  @ApiOperation({ summary: 'Create a new art collection' })
+  @ApiOperation({ summary: 'Create a new art collection (with optional cover image)' })
+  @ApiConsumes('multipart/form-data')
   @ApiBody({
-    type: CreateArtCollectionDtoRequest,
-    description: 'Payload for creating an art collection',
+    description: 'Collection metadata and optional cover image',
+    schema: {
+      type: 'object',
+      properties: {
+        collectionName: { type: 'string', example: 'Modern Art Showcase' },
+        artistId: {
+          type: 'string',
+          format: 'uuid',
+          example: "ae7e1797-a7bc-4b18-8fa4-851f90990ad0",
+        },
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+      required: ['collectionName', 'artistId'],
+    },
   })
-  create(@Body() createArtCollectionDto: CreateArtCollectionDtoRequest) {
-    return this.artCollectionsService.create(createArtCollectionDto);
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+    }),
+  )
+  async create(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() body: CreateArtCollectionDtoRequest,
+  ) {
+    return this.artCollectionsService.create(body, file);
   }
 
   // @Post('/create-with-arts')

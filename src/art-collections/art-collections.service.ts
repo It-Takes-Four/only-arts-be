@@ -12,27 +12,30 @@ import { PurchasesService } from 'src/purchases/purchases.service';
 import { PrepareCollectionPurchaseDtoRequest } from './dto/request/prepare-collection-purchase.dto';
 import { CompletePurchaseDtoRequest } from './dto/request/complete-purchase.dto';
 import { CompletePurchaseDtoResponse } from './dto/response/complete-purchase.dto';
+import { FileUploadService, UploadedFile } from 'src/shared/services/file-upload.service';
+import { FileType } from '@prisma/client';
 
 @Injectable()
 export class ArtCollectionsService {
-  constructor(private readonly prisma: PrismaService, private readonly artNftService: ArtNftService, private readonly collectionAccessService: CollectionAccessService, private readonly purchasesService: PurchasesService) { }
+  constructor(private readonly prisma: PrismaService, private readonly artNftService: ArtNftService, private readonly collectionAccessService: CollectionAccessService, private readonly purchasesService: PurchasesService, private readonly fileUploadService: FileUploadService) { }
 
-  async create(dto: CreateArtCollectionDtoRequest) {
+  async create(dto: CreateArtCollectionDtoRequest, imageCover: Express.Multer.File | undefined) {
     const collectionId = uuidv4();
-    const createArtResult = await this.artNftService.createCollection(dto.artistId, collectionId);
-    const tokenId = BigInt(createArtResult.tokenId);
+    const createCollectionResult = await this.artNftService.createCollection(dto.artistId, collectionId);
+    const tokenId = BigInt(createCollectionResult.tokenId);
 
-    const result = await this.prisma.artCollection.create({
+    const validFile = imageCover as UploadedFile;
+    const saveFileResult = await this.fileUploadService.saveFile(validFile, FileType.collections);
+    const coverImageFileId = saveFileResult.fileId
+
+    await this.prisma.artCollection.create({
       data: {
         id: collectionId,
         collectionName: dto.collectionName,
         artistId: dto.artistId,
+        coverImageFileId: coverImageFileId
       },
     });
-
-    if (!result) {
-      throw new Error('Failed to create art collection in database.');
-    }
 
     return new CreateArtCollectionDtoResponse(dto.artistId, collectionId, tokenId.toString())
   }
