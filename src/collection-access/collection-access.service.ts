@@ -51,10 +51,6 @@ export class CollectionAccessService implements OnModuleInit {
 
       // Cache token info
       this.tokenInfo = await this.fetchTokenInfo();
-      this.logger.log(
-        `Contract initialized: ${this.tokenInfo.name} (${this.tokenInfo.symbol})`,
-      );
-      this.logger.log(`Contract address: ${this.contractAddress}`);
     } catch (error) {
       this.logger.error('Failed to initialize contract', error);
       throw error;
@@ -75,12 +71,7 @@ export class CollectionAccessService implements OnModuleInit {
   }
 
   async hasAccessToCollection(buyerId: string, collectionId: string): Promise<boolean> {
-    this.logger.log("buyerId:", buyerId)
-    this.logger.log("collectionId:", collectionId)
     const hasAccess = await this.contract.hasAccessToCollection(buyerId, collectionId)
-
-    this.logger.log("Has Access:", hasAccess)
-
     return hasAccess
   }
 
@@ -100,34 +91,18 @@ export class CollectionAccessService implements OnModuleInit {
     };
   }
 
-  // Verify transaction after frontend executes it
+  // Verify transaction after client executes it
   async verifyPurchase(txHash: string): Promise<boolean> {
-    this.logger.log("txHash:", txHash);
-
-    const provider = this.web3Provider.getProvider();
-    const network = await provider.getNetwork();
-    this.logger.log(`Backend connected to: ${network.name} (chainId: ${network.chainId})`);
-
-    // Also log your RPC URL (without sensitive info)
-    this.logger.log(`RPC URL configured: ${this.configService.get('web3.rpcUrl')}`);
-
     try {
-      // First, verify the transaction exists
+      // Verify the transaction exists
       const tx = await this.web3Provider.getProvider().getTransaction(txHash);
 
       if (!tx) {
         throw new BadRequestException('Transaction not found');
       }
 
-      this.logger.log("Transaction found:", {
-        hash: tx.hash,
-        blockNumber: tx.blockNumber,
-        blockHash: tx.blockHash
-      });
-
       // If transaction is not mined yet, wait for it
       if (!tx.blockNumber) {
-        this.logger.log("Transaction pending, waiting for confirmation...");
         const receipt = await this.web3Provider.getProvider().waitForTransaction(txHash, 1);
 
         if (receipt && receipt.status === 1) {
