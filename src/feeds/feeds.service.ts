@@ -2,37 +2,143 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateFeedDto } from './dto/create-feed.dto';
 import { UpdateFeedDto } from './dto/update-feed.dto';
+import { ArtCollectionFeed, ArtFeed, FindAllDtoResponse, Post } from './dto/response/find-all-dto';
+import { FileUploadService } from 'src/shared/services/file-upload.service';
 
 @Injectable()
 export class FeedsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService, private readonly fileUploadService: FileUploadService) { }
 
   async create(dto: CreateFeedDto) {
     return this.prisma.feed.create({ data: dto });
   }
 
   async findAll(pagination: { page?: number; limit?: number }) {
+    const response: FindAllDtoResponse[] = []
     const { page = 1, limit = 10 } = pagination;
 
-    const [feeds, total] = await Promise.all([
-      this.prisma.feed.findMany({
-        skip: (page - 1) * limit,
-        take: limit,
-        include: {
-          artist: {
-            select: {
-              id: true,
-              user: { select: { username: true, profilePicture: true } },
-            },
+    const arts = await this.prisma.art.findMany({
+      include: {
+        artist: {
+          select: {
+            id: true,
+            artistName: true,
+            user: { select: { profilePicture: true } },
+          }
+        }
+      }
+    });
+
+    for (const art of arts) {
+      const profilePicture = art.artist.user.profilePicture
+        ? this.fileUploadService.retrieveFile('profiles', art.artist.user.profilePicture)
+        : null;
+
+      const artImage = this.fileUploadService.retrieveFile('arts', art.imageUrl);
+
+      const feedItem = new FindAllDtoResponse(
+        null,
+        new ArtFeed(
+          art.artistId,
+          art.artist.artistName,
+          profilePicture,
+          art.description,
+          artImage,
+          art.title,
+          art.datePosted
+        ),
+        null,
+        art.datePosted,
+        'art'
+      );
+
+      response.push(feedItem);
+    }
+
+    // Get all collections
+    const collections = await this.prisma.artCollection.findMany({
+      include: {
+        artist: {
+          select: {
+            id: true,
+            artistName: true,
+            user: { select: { profilePicture: true } },
           },
         },
-        orderBy: { datePosted: 'desc' },
-      }),
-      this.prisma.feed.count(),
-    ]);
+      },
+    });
+
+    for (const collection of collections) {
+      const profilePicture = collection.artist.user.profilePicture
+        ? this.fileUploadService.retrieveFile('profiles', collection.artist.user.profilePicture)
+        : null;
+
+      const collectionCoverImage = collection.coverImageUrl
+        ? this.fileUploadService.retrieveFile('collections', collection.coverImageUrl)
+        : null;
+
+      const feedItem = new FindAllDtoResponse(
+        null,
+        null,
+        new ArtCollectionFeed(
+          collection.artistId,
+          collection.artist.artistName,
+          profilePicture,
+          collection.description,
+          collectionCoverImage,
+          collection.collectionName,
+          collection.createdAt
+        ),
+        collection.createdAt,
+        'collection'
+      );
+
+      response.push(feedItem);
+    }
+
+    const feeds = await this.prisma.feed.findMany({
+      include: {
+        artist: {
+          select: {
+            id: true,
+            artistName: true,
+            user: { select: { profilePicture: true } },
+          }
+        }
+      }
+    })
+
+    for (const post of feeds) {
+      const profilePicture = post.artist.user.profilePicture
+        ? this.fileUploadService.retrieveFile('profiles', post.artist.user.profilePicture)
+        : null;
+
+      const feedItem = new FindAllDtoResponse(
+        new Post(
+          post.artistId,
+          post.artist.artistName,
+          profilePicture,
+          post.content,
+          post.datePosted
+        ),
+        null,
+        null,
+        post.datePosted,
+        'post'
+      );
+
+      response.push(feedItem);
+    }
+
+    // Sort combined feed by datePosted (descending)
+    response.sort((a, b) => +new Date(b.createdDate) - +new Date(a.createdDate));
+
+    // Pagination manually
+    const total = response.length;
+    const paginated = response.slice((page - 1) * limit, page * limit);
 
     return {
-      data: feeds,
+      data: paginated,
       total,
       page,
       limit,
@@ -40,55 +146,55 @@ export class FeedsService {
   }
 
   async findOne(id: string) {
-    const feed = await this.prisma.feed.findUnique({
-      where: { id },
-      include: {
-        artist: {
-          select: {
-            id: true,
-            user: { select: { username: true } },
-          },
+  const feed = await this.prisma.feed.findUnique({
+    where: { id },
+    include: {
+      artist: {
+        select: {
+          id: true,
+          user: { select: { username: true } },
         },
       },
-    });
-    if (!feed) throw new NotFoundException(`Feed with ID ${id} not found`);
-    return feed;
-  }
+    },
+  });
+  if (!feed) throw new NotFoundException(`Feed with ID ${id} not found`);
+  return feed;
+}
 
   async update(id: string, dto: UpdateFeedDto) {
-    await this.findOne(id); 
-    return this.prisma.feed.update({
-      where: { id },
-      data: dto,
-    });
-  }
+  await this.findOne(id);
+  return this.prisma.feed.update({
+    where: { id },
+    data: dto,
+  });
+}
 
   async remove(id: string) {
-    await this.findOne(id);
-    return this.prisma.feed.delete({ where: { id } });
-  }
+  await this.findOne(id);
+  return this.prisma.feed.delete({ where: { id } });
+}
 
   async findByArtist(
-    artistId: string,
-    pagination: { page?: number; limit?: number },
-  ) {
-    const { page = 1, limit = 10 } = pagination;
+  artistId: string,
+  pagination: { page?: number; limit?: number },
+) {
+  const { page = 1, limit = 10 } = pagination;
 
-    const [feeds, total] = await Promise.all([
-      this.prisma.feed.findMany({
-        where: { artistId },
-        skip: (page - 1) * limit,
-        take: limit,
-        orderBy: { datePosted: 'desc' },
-      }),
-      this.prisma.feed.count({ where: { artistId } }),
-    ]);
+  const [feeds, total] = await Promise.all([
+    this.prisma.feed.findMany({
+      where: { artistId },
+      skip: (page - 1) * limit,
+      take: limit,
+      orderBy: { datePosted: 'desc' },
+    }),
+    this.prisma.feed.count({ where: { artistId } }),
+  ]);
 
-    return {
-      data: feeds,
-      total,
-      page,
-      limit,
-    };
-  }
+  return {
+    data: feeds,
+    total,
+    page,
+    limit,
+  };
+}
 }
