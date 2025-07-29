@@ -12,27 +12,12 @@ export class ArtTagsService {
   }
 
   async findAll() {
-    return this.prisma.artTag.findMany({
-      include: {
-        arts: {
-          include: {
-            art: true,
-          },
-        },
-      },
-    });
+    return this.prisma.artTag.findMany();
   }
 
   async findOne(id: string) {
     const tag = await this.prisma.artTag.findUnique({
-      where: { id },
-      include: {
-        arts: {
-          include: {
-            art: true,
-          },
-        },
-      },
+      where: { id }
     });
 
     if (!tag) throw new NotFoundException(`Tag with ID ${id} not found`);
@@ -69,6 +54,35 @@ export class ArtTagsService {
           tagId,
         },
       },
+    });
+  }
+
+  async findPopularTags(limit: number = 10, search?: string) {
+    // Build the where clause for search filtering
+    const whereClause = search
+      ? {
+          tagName: {
+            contains: search,
+            mode: 'insensitive' as const,
+          },
+        }
+      : {};
+
+    return this.prisma.artTag.findMany({
+      where: whereClause,
+      include: {
+        _count: {
+          select: {
+            arts: true,
+          },
+        },
+      },
+      orderBy: {
+        arts: {
+          _count: 'desc',
+        },
+      },
+      take: limit,
     });
   }
 }
