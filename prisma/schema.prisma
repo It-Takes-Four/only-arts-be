@@ -159,6 +159,7 @@ model ArtCollection {
   coverImageFileId String?           @unique @db.Uuid
   price            Decimal?          @db.Decimal(18, 8)
   tokenId          BigInt?           @unique
+  isPublished      Boolean           @default(false)
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   artistId         String            @db.Uuid

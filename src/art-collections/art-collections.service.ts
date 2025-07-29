@@ -15,7 +15,7 @@ import { CompletePurchaseDtoResponse } from './dto/response/complete-purchase.dt
 
 @Injectable()
 export class ArtCollectionsService {
-  constructor(private readonly prisma: PrismaService, private readonly artNftService: ArtNftService, private readonly artsService: ArtsService, private readonly collectionAccessService: CollectionAccessService, private readonly purchasesService: PurchasesService) { }
+  constructor(private readonly prisma: PrismaService, private readonly artNftService: ArtNftService, private readonly collectionAccessService: CollectionAccessService, private readonly purchasesService: PurchasesService) { }
 
   async create(dto: CreateArtCollectionDtoRequest) {
     const collectionId = uuidv4();
@@ -37,49 +37,6 @@ export class ArtCollectionsService {
     return new CreateArtCollectionDtoResponse(dto.artistId, collectionId, tokenId.toString())
   }
 
-  // async createWithArts(dto: CreateWithArtsDtoRequest) {
-  //   const collectionId = uuidv4();
-  //   const artIds: string[] = [];
-
-  //   const arts = dto.arts
-
-  //   for (let index = 0; index < arts.length; index++) {
-  //     const element = arts[index];
-
-  //     const result = await this.artsService.createWithTags(element);
-  //     artIds.push(result.artId);
-
-  //     // Update the art to mark it as part of a collection
-  //     await this.prisma.art.update({
-  //       where: { id: result.artId },
-  //       data: { isInACollection: true },
-  //     });
-  //   }
-
-  //   const createCollectionResult = await this.artNftService.createCollection(dto.artistId, collectionId);
-  //   const tokenId = BigInt(createCollectionResult.tokenId);
-
-  //   const result = await this.prisma.artCollection.create({
-  //     data: {
-  //       id: collectionId,
-  //       collectionName: dto.collectionName,
-  //       artistId: dto.artistId,
-  //       price: dto.price,
-  //       arts: {
-  //         create: artIds.map((artId) => ({
-  //           art: { connect: { id: artId } },
-  //         })),
-  //       },
-  //     },
-  //   });
-
-  //   if (!result) {
-  //     throw new Error('Failed to create art collection in database.');
-  //   }
-
-  //   return new CreateArtCollectionDtoResponse(dto.artistId, collectionId, tokenId.toString())
-  // }
-
   async prepareCollectionPurchase(dto: PrepareCollectionPurchaseDtoRequest) {
     // Check if collection exists
     const collection = await this.findOne(dto.collectionId);
@@ -100,7 +57,7 @@ export class ArtCollectionsService {
 
   async completePurchase(dto: CompletePurchaseDtoRequest) {
     // Create a new purchase record
-    const createPurchaseResult = await this.purchasesService.createNewPurchase({
+    await this.purchasesService.createNewPurchase({
       collectionId: dto.collectionId,
       price: dto.price,
       txHash: dto.txHash,
@@ -230,9 +187,7 @@ export class ArtCollectionsService {
     return collections.flatMap((collection) =>
       collection.arts.map((item) => item.art),
     );
-  }
-
-
+  };
 
   update(id: string, dto: UpdateArtCollectionDtoRequest) {
     return this.prisma.artCollection.update({

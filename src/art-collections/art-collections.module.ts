@@ -9,6 +9,6 @@ import { PurchasesService } from 'src/purchases/purchases.service';
 
 @Module({
   controllers: [ArtCollectionsController],
-  providers: [ArtCollectionsService, PrismaService, ArtNftService, ArtsService, CollectionAccessService, PurchasesService],
+  providers: [ArtCollectionsService, PrismaService, ArtNftService, CollectionAccessService, PurchasesService],
 })
 export class ArtCollectionsModule {}
