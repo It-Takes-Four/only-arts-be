@@ -69,8 +69,6 @@ export class ArtCollectionsController {
     description: 'Payload for verifying and completing collection purchase',
   })
   completePurchase(@Body() completePurchaseDtoRequest: CompletePurchaseDtoRequest) {
-    console.log(completePurchaseDtoRequest);
-
     return this.artCollectionsService.completePurchase(completePurchaseDtoRequest);
   }
 

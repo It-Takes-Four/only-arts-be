@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateArtCollectionDtoRequest } from './dto/request/create-art-collection.dto';
 import { UpdateArtCollectionDtoRequest } from './dto/request/update-art-collection.dto';
@@ -99,8 +99,6 @@ export class ArtCollectionsService {
   }
 
   async completePurchase(dto: CompletePurchaseDtoRequest) {
-    const logger = new Logger(ArtCollectionsService.name);
-
     // Create a new purchase record
     const createPurchaseResult = await this.purchasesService.createNewPurchase({
       collectionId: dto.collectionId,
@@ -109,12 +107,8 @@ export class ArtCollectionsService {
       userId: dto.buyerId
     })
 
-    logger.log("createPurchaseResult:", createPurchaseResult);
-    
     // Verify the purchase record from the contract
     const result = await this.collectionAccessService.verifyPurchase(dto.txHash);
-
-    logger.log("ArtCollectionsService verifyPurchase result:", result);
 
     if (!result) {
       return new InternalServerErrorException('Could not verify transaction')
@@ -191,8 +185,6 @@ export class ArtCollectionsService {
   }
 
   async findAllCollectionsByArtistId(userId: string) {
-    console.log("userId:", userId);
-
     const collections = await this.prisma.artCollection.findMany({
       where: {
         artist: { userId: userId },
@@ -216,8 +208,6 @@ export class ArtCollectionsService {
   }
 
   async findAllArtsFromUserCollections(userId: string) {
-    console.log("userId:", userId);
-
     const collections = await this.prisma.artCollection.findMany({
       where: {
         artist: { userId: userId },

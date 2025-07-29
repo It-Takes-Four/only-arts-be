@@ -6,7 +6,6 @@ import { Web3ProviderService } from '../shared/services/web3-provider.service';
 import { TokenInfo } from './interfaces/art-nft.interface';
 import { CreateArtDtoResponse } from './dto/response/create-art.dto';
 import { CreateCollectionDtoResponse } from './dto/response/create-collection.dto';
-import { CreateArtResponse } from 'src/arts/dto/response/create-art.dto';
 
 
 const tokenAbi = artNftABI;
@@ -46,9 +45,6 @@ export class ArtNftService implements OnModuleInit {
 
       // Cache token info
       this.tokenInfo = await this.fetchTokenInfo();
-      this.logger.log(`Contract initialized: ${this.tokenInfo.name} (${this.tokenInfo.symbol})`);
-      this.logger.log(`Contract address: ${this.contractAddress}`);
-
     } catch (error) {
       this.logger.error('Failed to initialize contract', error);
       throw error;
@@ -75,10 +71,8 @@ export class ArtNftService implements OnModuleInit {
 
     try {
       const tx = await this.contract.createArt(artistId, artId);
-      this.logger.log('Transaction sent:', tx.hash);
       
       const receipt = await tx.wait();
-      this.logger.log('Transaction confirmed in block:', receipt.blockNumber);
 
       if (!receipt || receipt.status !== 1) {
         throw new BadRequestException('Transaction failed');
@@ -90,13 +84,10 @@ export class ArtNftService implements OnModuleInit {
         try {
           const parsedLog = this.contract.interface.parseLog(log);
           if (parsedLog && parsedLog.name === 'ArtCreated') {
-            const artistAddress = parsedLog.args[0];
             tokenId = parsedLog.args[2];
-            this.logger.log(`Art created - Artist: ${artistAddress}, Token ID: ${tokenId}`);
             break;
           }
         } catch (parseError) {
-          this.logger.log("Failed to parse log")
           continue;
         }
       }
@@ -120,10 +111,8 @@ export class ArtNftService implements OnModuleInit {
 
     try {
       const tx = await this.contract.createCollection(artistId, collectionId);
-      this.logger.log('Transaction sent:', tx.hash);
       
       const receipt = await tx.wait();
-      this.logger.log('Transaction confirmed in block:', receipt.blockNumber);
 
       if (!receipt || receipt.status !== 1) {
         throw new BadRequestException('Transaction failed');
@@ -137,7 +126,6 @@ export class ArtNftService implements OnModuleInit {
           if (parsedLog && parsedLog.name === 'CollectionCreated') {
             const artistAddress = parsedLog.args[0];
             tokenId = parsedLog.args[2];
-            this.logger.log(`Collection created - Artist: ${artistAddress}, Token ID: ${tokenId}`);
             break;
           }
         } catch (parseError) {
