@@ -8,19 +8,20 @@ datasource db {
 }
 
 model User {
-  id             String     @id @default(uuid()) @db.Uuid
-  email          String     @unique
-  password       String
-  username       String     @unique
-  profilePicture String?
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
-  artLikes       ArtLike[]
-  artist         Artist?    @relation("UserArtist")
-  comments       Comment[]
-  followers      Follower[] @relation("UserFollower")
-  purchases      Purchase[]
-  notifications  Notification[]
+  id                   String     @id @default(uuid()) @db.Uuid
+  email                String     @unique
+  password             String
+  username             String     @unique
+  profilePictureFileId String?    @db.Uuid @unique
+  profilePictureFile   File?      @relation("UserProfilePicture", fields: [profilePictureFileId], references: [id])
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+  artLikes             ArtLike[]
+  artist               Artist?    @relation("UserArtist")
+  comments             Comment[]
+  followers            Follower[] @relation("UserFollower")
+  purchases            Purchase[]
+  notifications        Notification[]
 
   @@index([email])
   @@index([username])
@@ -85,11 +86,12 @@ model Follower {
 
 model Art {
   id              String            @id @default(uuid()) @db.Uuid
-  imageUrl        String
+  imageFileId     String            @db.Uuid @unique
+  imageFile       File              @relation("ArtImageFile", fields: [imageFileId], references: [id])
   title           String
   description     String
   datePosted      DateTime          @default(now())
-  updatedAt      DateTime           @updatedAt
+  updatedAt       DateTime          @updatedAt
   artistId        String            @db.Uuid
   tokenId         BigInt            @unique
   likesCount      Int               @default(0)
@@ -104,6 +106,7 @@ model Art {
   @@index([tokenId])
   @@index([datePosted])
   @@index([isInACollection])
+  @@index([imageFileId])
   @@map("arts")
 }
 
@@ -150,21 +153,23 @@ model ArtTag {
 }
 
 model ArtCollection {
-  id             String            @id @default(uuid()) @db.Uuid
-  collectionName String
-  description    String?
-  coverImageUrl  String?
-  price          Decimal?          @db.Decimal(18, 8)
-  tokenId        BigInt?           @unique
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
-  artistId       String            @db.Uuid
-  artist         Artist            @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  arts           ArtToCollection[]
-  purchases      Purchase[]
+  id                 String            @id @default(uuid()) @db.Uuid
+  collectionName     String
+  description        String?
+  coverImageFileId   String?           @db.Uuid @unique
+  coverImageFile     File?             @relation("CollectionCoverImage", fields: [coverImageFileId], references: [id])
+  price              Decimal?          @db.Decimal(18, 8)
+  tokenId            BigInt?           @unique
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  artistId           String            @db.Uuid
+  artist             Artist            @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  arts               ArtToCollection[]
+  purchases          Purchase[]
 
   @@index([artistId])
   @@index([tokenId])
+  @@index([coverImageFileId])
   @@map("art_collections")
 }
 
@@ -225,6 +230,22 @@ model ArtToArtTag {
 
   @@id([artId, tagId])
   @@map("art_to_art_tags")
+}
+
+model File {
+  id            String   @id @default(uuid()) @db.Uuid
+  fileName      String
+  originalName  String
+  mimetype      String
+  size          Int
+  createdAt     DateTime @default(now())
+  
+  // Relations
+  userProfile   User?         @relation("UserProfilePicture")
+  artImage      Art?          @relation("ArtImageFile")
+  collectionCover ArtCollection? @relation("CollectionCoverImage")
+
+  @@map("files")
 }
 
 enum PurchaseStatus {
