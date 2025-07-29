@@ -56,4 +56,33 @@ export class ArtTagsService {
       },
     });
   }
+
+  async findPopularTags(limit: number = 10, search?: string) {
+    // Build the where clause for search filtering
+    const whereClause = search
+      ? {
+          tagName: {
+            contains: search,
+            mode: 'insensitive' as const,
+          },
+        }
+      : {};
+
+    return this.prisma.artTag.findMany({
+      where: whereClause,
+      include: {
+        _count: {
+          select: {
+            arts: true,
+          },
+        },
+      },
+      orderBy: {
+        arts: {
+          _count: 'desc',
+        },
+      },
+      take: limit,
+    });
+  }
 }

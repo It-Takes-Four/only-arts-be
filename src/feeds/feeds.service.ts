@@ -11,11 +11,29 @@ export class FeedsService {
     return this.prisma.feed.create({ data: dto });
   }
 
-  async findAll(pagination: { page?: number; limit?: number }) {
-    const { page = 1, limit = 10 } = pagination;
+  async findAll(pagination: { page?: number; limit?: number; tagId?: string }) {
+    const { page = 1, limit = 10, tagId } = pagination;
+
+    // Build the where clause for tag filtering
+    const whereClause = tagId
+      ? {
+          artist: {
+            arts: {
+              some: {
+                tags: {
+                  some: {
+                    tagId: tagId,
+                  },
+                },
+              },
+            },
+          },
+        }
+      : {};
 
     const [feeds, total] = await Promise.all([
       this.prisma.feed.findMany({
+        where: whereClause,
         skip: (page - 1) * limit,
         take: limit,
         include: {
@@ -28,7 +46,7 @@ export class FeedsService {
         },
         orderBy: { datePosted: 'desc' },
       }),
-      this.prisma.feed.count(),
+      this.prisma.feed.count({ where: whereClause }),
     ]);
 
     return {

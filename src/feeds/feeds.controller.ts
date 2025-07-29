@@ -16,12 +16,14 @@ import {
   ApiOperation,
   ApiParam,
   ApiBody,
+  ApiQuery,
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { FeedsService } from './feeds.service';
 import { CreateFeedDto } from './dto/create-feed.dto';
 import { UpdateFeedDto } from './dto/update-feed.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { FeedsQueryDto } from './dto/feeds-query.dto';
 import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 
 @UseGuards(JwtAuthGuard)
@@ -34,8 +36,26 @@ export class FeedsController {
 
   @Get()
   @ApiOperation({ summary: 'Get paginated feed posts' })
-  getAll(@Query() pagination: PaginationQueryDto) {
-    return this.feedsService.findAll(pagination);
+  @ApiQuery({ 
+    name: 'page', 
+    required: false, 
+    description: 'Page number (default: 1)', 
+    example: 1 
+  })
+  @ApiQuery({ 
+    name: 'limit', 
+    required: false, 
+    description: 'Number of items per page (default: 10)', 
+    example: 10 
+  })
+  @ApiQuery({ 
+    name: 'tagId', 
+    required: false, 
+    description: 'Filter feeds by a specific tag ID', 
+    example: 'e3b0c442-98fc-1c14-9afb-4c1d4c6d2111' 
+  })
+  getAll(@Query() query: FeedsQueryDto) {
+    return this.feedsService.findAll(query);
   }
 
   @Get(':id')

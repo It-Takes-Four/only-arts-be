@@ -6,18 +6,20 @@ import {
   Delete,
   Param,
   Body,
+  Query,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
 import { ArtTagsService } from './art-tags.service';
 import { CreateArtTagDto } from './dto/create-art-tag.dto';
 import { UpdateArtTagDto } from './dto/update-art-tag.dto';
+import { PopularTagsQueryDto } from './dto/popular-tags-query.dto';
 import {
   ApiTags,
   ApiBody,
   ApiParam,
+  ApiQuery,
   ApiOperation,
-  ApiBearerAuth,
 } from '@nestjs/swagger';
 
 @ApiTags('Art Tags')
@@ -30,6 +32,27 @@ export class ArtTagsController {
   @ApiOperation({ summary: 'Get all art tags' })
   findAll() {
     return this.artTagService.findAll();
+  }
+
+  @Get('popular')
+  @ApiOperation({ 
+    summary: 'Get popular art tags ordered by usage count',
+    description: 'Returns the most popular tags based on how many times they are used in art pieces. Supports search filtering by tag name.'
+  })
+  @ApiQuery({ 
+    name: 'limit', 
+    required: false, 
+    description: 'Maximum number of tags to return (1-100)', 
+    example: 10 
+  })
+  @ApiQuery({ 
+    name: 'search', 
+    required: false, 
+    description: 'Search for tags by name (case-insensitive partial match)', 
+    example: 'abstract' 
+  })
+  findPopular(@Query() query: PopularTagsQueryDto) {
+    return this.artTagService.findPopularTags(query.limit, query.search);
   }
 
   @Get(':id')
