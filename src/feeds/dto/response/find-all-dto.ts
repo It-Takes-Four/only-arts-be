@@ -3,6 +3,7 @@ export class Post {
        public artistId: string,
        public artistName: string,
        public artistProfileFileId: string|null,
+       public title: string,
        public content: string,
        public createdDate: Date
     ) {}
@@ -16,7 +17,8 @@ export class ArtFeed {
         public artDescription: string,
         public imageFileId: string,
         public artTitle: string,
-        public createdDate: Date
+        public createdDate: Date,
+        public tags: { id: string; tagName: string }[]
     ) {}
 }
 

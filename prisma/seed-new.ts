@@ -110,7 +110,7 @@ async function main() {
     'Fantasy', 'Sci-Fi', 'Portrait', 'Landscape', 'Character Design', 'Illustration',
     'Mixed Media', 'Collage', 'Generative Art', 'Pixel Art', 'Glitch Art', '3D Modeling',
     'Animation', 'Virtual Reality', 'Augmented Reality', 'NFT Art', 'Minimalism', 'Pop Art',
-    'Cyberpunk', 'Steampunk', 'Nature', 'Urban',
+    'Cyberpunk', 'Steampunk', 'Nature', 'Urban', 'NSFW', 'Mature', 'Artistic Nude',
     'Gothic', 'Anime', 'Manga', 'Realistic', 'Cartoon', 'Watercolor', 'Oil Painting',
     'Sketch', 'Pencil Art',
   ];
@@ -176,18 +176,16 @@ async function main() {
     email: templateEmail
   });
 
-  // Create multiple artists
+  // Create multiple artists (both NSFW and non-NSFW)
   const numberOfArtists = 12;
-  const artistNames = [
-    'PixelMaster', 'DigitalDreamer', 'ArtisticSoul', 'CreativeVision', 
-    'AbstractMind', 'ColorfulWorld', 'FantasyRealm', 'ModernArtist',
-    'VisualStory', 'ArtisticJourney', 'CreativeCanvas', 'DigitalWizard'
-  ];
+  const nsfwArtists = ['NightshadeArt', 'AbstractCanvas', 'AbstractVisions', 'AbstractArtistry'];
+  const regularArtists = ['PixelMaster', 'DigitalDreamer', 'ArtisticSoul', 'CreativeVision', 'AbstractMind', 'ColorfulWorld', 'FantasyRealm', 'ModernArtist'];
 
   for (let i = 0; i < numberOfArtists; i++) {
     const userId = uuidv4();
     const artistId = uuidv4();
-    const artistName = artistNames[i];
+    const isNsfw = i < 4; // First 4 artists are NSFW
+    const artistName = isNsfw ? nsfwArtists[i] : regularArtists[i - 4];
     const email = faker.internet.email().toLowerCase();
     const username = `user_${artistName.toLowerCase()}`;
     const plainPassword = 'password123';
@@ -207,14 +205,16 @@ async function main() {
         id: artistId,
         userId,
         artistName,
-        bio: faker.lorem.paragraph(),
-        isNsfw: false, // All artists are safe
+        bio: isNsfw 
+          ? `Adult content creator specializing in mature artistic expressions. 18+ only.` 
+          : faker.lorem.paragraph(),
+        isNsfw,
         walletAddress: `0x${faker.string.hexadecimal({ length: 40, prefix: '' })}`,
         isVerified: faker.datatype.boolean({ probability: 0.3 }),
       },
     });
 
-    userList.push({ userId, artistId, username, artistName, isNsfw: false, email });
+    userList.push({ userId, artistId, username, artistName, isNsfw, email });
   }
 
   console.log(`✅ Created ${userList.length} users and artists`);
@@ -242,9 +242,8 @@ async function main() {
     
     // Decide the content mix for this user (posts, arts, collections)
     const contentTypes: ('post' | 'art' | 'collection')[] = [];
-    const postRatio = 0.3; // 30% posts
-    const artRatio = 0.4;  // 40% arts  
-    const collectionRatio = 0.3; // 30% collections - increased for more collections in feed
+    const postRatio = 0.4; // 40% posts
+    const artRatio = 0.5;  // 50% arts  
     
     for (let i = 0; i < totalContentCount; i++) {
       const rand = Math.random();
@@ -273,30 +272,51 @@ async function main() {
         let title: string;
         let content: string;
         
-        // Generate content based on post type
-        const regularTitles: Record<string, string> = {
-          announcement: `New ${faker.helpers.arrayElement(['Collection', 'Series', 'Project'])} Announcement`,
-          behind_scenes: `Behind the Scenes: ${faker.helpers.arrayElement(['My Process', 'Studio Life', 'Creative Journey'])}`,
-          wip: `Work in Progress: ${faker.helpers.arrayElement(['New Piece', 'Digital Art', 'Experimental Work'])}`,
-          finished_piece: `Just Finished: ${faker.helpers.arrayElement(['Latest Creation', 'New Artwork', 'Digital Piece'])}`,
-          thoughts: `Thoughts on ${faker.helpers.arrayElement(['Digital Art', 'Creativity', 'Artistic Growth'])}`,
-          tutorial: `${faker.helpers.arrayElement(['Tips', 'Tutorial', 'Technique'])} for ${faker.helpers.arrayElement(['Digital Artists', 'Beginners', 'Creators'])}`,
-          inspiration: `Finding Inspiration in ${faker.helpers.arrayElement(['Nature', 'Technology', 'Everyday Life'])}`,
-          collaboration: `Exciting Collaboration with ${faker.person.firstName()}`
-        };
-        title = regularTitles[postType] || faker.lorem.words(faker.number.int({ min: 3, max: 8 }));
-        
-        const contentChoices = [
-          `Just dropped a new piece! Really excited about how this one turned out. The ${faker.helpers.arrayElement(['colors', 'composition', 'lighting'])} came together perfectly.`,
-          `Working late tonight on something special. ${faker.helpers.arrayElement(['Can\'t wait', 'So excited', 'Really pumped'])} to share it with you all soon!`,
-          `Thanks for all the amazing feedback on my recent work! Your support means everything to the creative process.`,
-          `Experimenting with ${faker.helpers.arrayElement(['new techniques', 'different styles', 'mixed media'])} lately. Growth never stops!`,
-          `Studio update: Been really focused on ${faker.helpers.arrayElement(['improving my craft', 'pushing boundaries', 'exploring new themes'])} this month.`,
-          `Collaboration announcement! Working with some incredible artists on a ${faker.helpers.arrayElement(['group exhibition', 'joint project', 'community initiative'])}.`,
-          `Process shot from today's session. Sometimes the journey is just as beautiful as the destination.`,
-          `Feeling inspired by ${faker.helpers.arrayElement(['nature', 'city life', 'technology', 'human connection'])} lately. It's amazing how art reflects life.`
-        ];
-        content = faker.helpers.arrayElement(contentChoices);
+        // Generate content based on post type and user type
+        if (user.isNsfw) {
+          const nsfwTitles: Record<string, string> = {
+            announcement: 'New Adult Collection Available',
+            behind_scenes: 'Behind the Scenes: Creating Intimate Art',
+            wip: 'Work in Progress - Mature Content',
+            finished_piece: 'Latest Piece Complete',
+            thoughts: 'Thoughts on Artistic Expression',
+            tutorial: 'Artistic Techniques Discussion',
+            inspiration: 'Finding Inspiration',
+            collaboration: 'Collaboration Announcement'
+          };
+          title = nsfwTitles[postType] || 'Artist Update';
+          content = faker.helpers.arrayElement([
+            'Working on some new pieces for my private collection. Exploring new themes and techniques.',
+            'Just finished a challenging piece that pushed my artistic boundaries. 18+ content ahead.',
+            'Thank you all for the amazing support! New artwork coming soon.',
+            'Experimenting with different lighting techniques in my latest series.',
+            'Behind the scenes look at my creative process. More to come!',
+          ]);
+        } else {
+          const regularTitles: Record<string, string> = {
+            announcement: `New ${faker.helpers.arrayElement(['Collection', 'Series', 'Project'])} Announcement`,
+            behind_scenes: `Behind the Scenes: ${faker.helpers.arrayElement(['My Process', 'Studio Life', 'Creative Journey'])}`,
+            wip: `Work in Progress: ${faker.helpers.arrayElement(['New Piece', 'Digital Art', 'Experimental Work'])}`,
+            finished_piece: `Just Finished: ${faker.helpers.arrayElement(['Latest Creation', 'New Artwork', 'Digital Piece'])}`,
+            thoughts: `Thoughts on ${faker.helpers.arrayElement(['Digital Art', 'Creativity', 'Artistic Growth'])}`,
+            tutorial: `${faker.helpers.arrayElement(['Tips', 'Tutorial', 'Technique'])} for ${faker.helpers.arrayElement(['Digital Artists', 'Beginners', 'Creators'])}`,
+            inspiration: `Finding Inspiration in ${faker.helpers.arrayElement(['Nature', 'Technology', 'Everyday Life'])}`,
+            collaboration: `Exciting Collaboration with ${faker.person.firstName()}`
+          };
+          title = regularTitles[postType] || faker.lorem.words(faker.number.int({ min: 3, max: 8 }));
+          
+          const contentChoices = [
+            `Just dropped a new piece! Really excited about how this one turned out. The ${faker.helpers.arrayElement(['colors', 'composition', 'lighting'])} came together perfectly.`,
+            `Working late tonight on something special. ${faker.helpers.arrayElement(['Can\'t wait', 'So excited', 'Really pumped'])} to share it with you all soon!`,
+            `Thanks for all the amazing feedback on my recent work! Your support means everything to the creative process.`,
+            `Experimenting with ${faker.helpers.arrayElement(['new techniques', 'different styles', 'mixed media'])} lately. Growth never stops!`,
+            `Studio update: Been really focused on ${faker.helpers.arrayElement(['improving my craft', 'pushing boundaries', 'exploring new themes'])} this month.`,
+            `Collaboration announcement! Working with some incredible artists on a ${faker.helpers.arrayElement(['group exhibition', 'joint project', 'community initiative'])}.`,
+            `Process shot from today's session. Sometimes the journey is just as beautiful as the destination.`,
+            `Feeling inspired by ${faker.helpers.arrayElement(['nature', 'city life', 'technology', 'human connection'])} lately. It's amazing how art reflects life.`
+          ];
+          content = faker.helpers.arrayElement(contentChoices);
+        }
         
         await prisma.feed.create({
           data: {
@@ -324,40 +344,50 @@ async function main() {
           `${user.artistName}_art_${Date.now()}_${dummyFileName}`
         );
         
-        // Generate safe artwork titles and descriptions
+        // More varied titles and descriptions
         let title: string;
         let description: string;
         
-        const artThemes = [
-          'Digital', 'Abstract', 'Surreal', 'Vibrant', 'Ethereal', 'Cosmic', 'Urban', 
-          'Natural', 'Futuristic', 'Vintage', 'Minimalist', 'Bold', 'Dreamy', 'Dark',
-          'Colorful', 'Mysterious', 'Peaceful', 'Dynamic', 'Serene', 'Radiant'
-        ];
-        const artSubjects = [
-          'Landscape', 'Portrait', 'Vision', 'World', 'Journey', 'Memory', 'Story',
-          'Dream', 'Reality', 'Reflection', 'Symphony', 'Adventure', 'Mystery', 'Wonder',
-          'Garden', 'City', 'Mountain', 'Ocean', 'Forest', 'Sky', 'River', 'Dawn'
-        ];
-        title = `${faker.helpers.arrayElement(artThemes)} ${faker.helpers.arrayElement(artSubjects)}`;
-        
-        const descriptions = [
-          'A captivating piece that explores the boundaries of imagination.',
-          'This artwork represents a journey through color and form.',
-          'An experimental piece blending traditional and digital techniques.',
-          'Inspired by the beauty of everyday moments.',
-          'A visual narrative that speaks to the soul.',
-          'Created during a period of artistic exploration.',
-          'This piece challenges conventional artistic norms.',
-          'A meditation on light, shadow, and emotion.',
-          'Combining elements of realism with abstract expression.',
-          'Part of an ongoing series exploring human connection.',
-          'A celebration of nature and technology in harmony.',
-          'Exploring the intersection of dreams and reality.',
-          'A study in color theory and emotional expression.',
-          'Inspired by the rhythm and flow of urban life.',
-          'A peaceful moment captured in digital brushstrokes.'
-        ];
-        description = faker.helpers.arrayElement(descriptions);
+        if (user.isNsfw) {
+          const nsfwTitles = [
+            'Midnight Passion', 'Abstract Dreams', 'Forbidden Art', 'Abstract Fantasy',
+            'Erotic Expression', 'Intimate Moments', 'Mature Beauty', 'Seductive Vision',
+            'Private Collection', 'After Dark', 'Tempting Art', 'Sultry Creation'
+          ];
+          title = `${faker.helpers.arrayElement(nsfwTitles)} #${i + 1}`;
+          description = faker.helpers.arrayElement([
+            'Adult artistic content. Viewer discretion advised.',
+            'Mature artistic expression exploring human ideas.',
+            'This piece contains adult themes and nudity.',
+            'An intimate exploration of form and desire.',
+            'Artistic nude study.',
+            'Abstract art piece for mature audiences.'
+          ]);
+        } else {
+          const artThemes = [
+            'Digital', 'Abstract', 'Surreal', 'Vibrant', 'Ethereal', 'Cosmic', 'Urban', 
+            'Natural', 'Futuristic', 'Vintage', 'Minimalist', 'Bold', 'Dreamy', 'Dark'
+          ];
+          const artSubjects = [
+            'Landscape', 'Portrait', 'Vision', 'World', 'Journey', 'Memory', 'Story',
+            'Dream', 'Reality', 'Reflection', 'Symphony', 'Adventure', 'Mystery', 'Wonder'
+          ];
+          title = `${faker.helpers.arrayElement(artThemes)} ${faker.helpers.arrayElement(artSubjects)}`;
+          
+          const descriptions = [
+            'A captivating piece that explores the boundaries of imagination.',
+            'This artwork represents a journey through color and form.',
+            'An experimental piece blending traditional and digital techniques.',
+            'Inspired by the beauty of everyday moments.',
+            'A visual narrative that speaks to the soul.',
+            'Created during a period of artistic exploration.',
+            'This piece challenges conventional artistic norms.',
+            'A meditation on light, shadow, and emotion.',
+            'Combining elements of realism with abstract expression.',
+            'Part of an ongoing series exploring human connection.'
+          ];
+          description = faker.helpers.arrayElement(descriptions);
+        }
         
         await prisma.art.create({
           data: {
@@ -375,8 +405,12 @@ async function main() {
 
         artworks.push(artId);
 
-        // Add tags to artwork (only safe tags)
-        const relevantTags = allTags.filter(tag => !['NSFW', 'Mature', 'Artistic Nude'].includes(tag));
+        // Add tags to artwork
+        const relevantTags = user.isNsfw 
+          ? allTags.filter(tag => ['NSFW', 'Mature', 'Artistic Nude'].includes(tag) || 
+                               ['Portrait', 'Digital Painting', 'Illustration', 'Realistic'].includes(tag))
+          : allTags.filter(tag => !['NSFW', 'Mature', 'Artistic Nude'].includes(tag));
+        
         const artTags = faker.helpers.arrayElements(relevantTags, faker.number.int({ min: 2, max: 5 }));
         
         for (const tagName of artTags) {
@@ -410,38 +444,47 @@ async function main() {
           `${user.artistName}_collection_${Date.now()}_cover_${dummyFileName}`
         );
         
-        // Generate safe collection names and descriptions
+        // More creative collection names and descriptions
         let collectionName: string;
         let description: string;
         
-        const themes = [
-          'Urban Landscapes', 'Digital Dreams', 'Abstract Emotions', 'Cosmic Journey',
-          'Nature Symphony', 'Future Visions', 'Color Studies', 'Light & Shadow',
-          'Minimal Expressions', 'Fantasy Realms', 'Portrait Series', 'Mixed Media Explorations',
-          'Vintage Inspired', 'Modern Classics', 'Experimental Art', 'Creative Process',
-          'Ocean Waves', 'Mountain Views', 'City Lights', 'Forest Paths', 'Sky Stories',
-          'Seasonal Colors', 'Garden Dreams', 'Artistic Journeys', 'Visual Poetry'
-        ];
-        collectionName = faker.helpers.arrayElement(themes);
-        
-        const descriptions = [
-          'A curated collection showcasing artistic evolution and creative expression.',
-          'This series explores the intersection of technology and traditional art.',
-          'A journey through color, form, and emotional landscapes.',
-          'Limited collection featuring the artist\'s most compelling works.',
-          'An exploration of contemporary themes through digital artistry.',
-          'Handpicked pieces that represent a unique artistic vision.',
-          'Collection inspired by nature, technology, and human experience.',
-          'Artistic interpretation of modern life and digital culture.',
-          'Experimental works pushing the boundaries of digital art.',
-          'A retrospective collection spanning different creative periods.',
-          'Celebrating the beauty of everyday moments through art.',
-          'A visual narrative exploring themes of growth and change.',
-          'Inspired by the natural world and urban environments.',
-          'A collection that bridges traditional and digital art forms.',
-          'Exploring the harmony between color, light, and shadow.'
-        ];
-        description = faker.helpers.arrayElement(descriptions);
+        if (user.isNsfw) {
+          const nsfwCollections = [
+            'Intimate Moments', 'After Dark Series', 'Private Gallery', 'Mature Expressions',
+            'Sensual Art Collection', 'Adult Themes', 'Forbidden Gallery', 'Passionate Works'
+          ];
+          collectionName = faker.helpers.arrayElement(nsfwCollections);
+          description = faker.helpers.arrayElement([
+            'A curated collection of mature artistic expressions. 18+ only.',
+            'Adult content featuring intimate and sensual themes.',
+            'This collection contains nudity and mature themes.',
+            'Artistic exploration of human intimacy and desire.',
+            'Private collection for mature audiences only.',
+            'Adult artistic content exploring sensual themes.'
+          ]);
+        } else {
+          const themes = [
+            'Urban Landscapes', 'Digital Dreams', 'Abstract Emotions', 'Cosmic Journey',
+            'Nature Symphony', 'Future Visions', 'Color Studies', 'Light & Shadow',
+            'Minimal Expressions', 'Fantasy Realms', 'Portrait Series', 'Mixed Media Explorations',
+            'Vintage Inspired', 'Modern Classics', 'Experimental Art', 'Creative Process'
+          ];
+          collectionName = faker.helpers.arrayElement(themes);
+          
+          const descriptions = [
+            'A curated collection showcasing artistic evolution and creative expression.',
+            'This series explores the intersection of technology and traditional art.',
+            'A journey through color, form, and emotional landscapes.',
+            'Limited collection featuring the artist\'s most compelling works.',
+            'An exploration of contemporary themes through digital artistry.',
+            'Handpicked pieces that represent a unique artistic vision.',
+            'Collection inspired by nature, technology, and human experience.',
+            'Artistic interpretation of modern life and digital culture.',
+            'Experimental works pushing the boundaries of digital art.',
+            'A retrospective collection spanning different creative periods.'
+          ];
+          description = faker.helpers.arrayElement(descriptions);
+        }
         
         await prisma.artCollection.create({
           data: {
@@ -474,12 +517,10 @@ async function main() {
     });
 
     if (artistArtworks.length > 0) {
-      // Add 1-8 artworks to each collection (or all available if less than 8)
-      const maxToAdd = Math.min(8, artistArtworks.length);
-      const minToAdd = Math.min(1, maxToAdd);
+      // Add 3-8 artworks to each collection
       const artworksToAdd = faker.helpers.arrayElements(
         artistArtworks, 
-        faker.number.int({ min: minToAdd, max: maxToAdd })
+        faker.number.int({ min: 3, max: Math.min(8, artistArtworks.length) })
       );
 
       for (const artwork of artworksToAdd) {
@@ -628,7 +669,7 @@ async function main() {
   console.log(`
   📊 Summary:
   👥 Users: ${userList.length}
-  🎨 Artists: ${userList.length} (All Safe Content)
+  🎨 Artists: ${userList.length} (${userList.filter(u => u.isNsfw).length} NSFW, ${userList.filter(u => !u.isNsfw).length} Regular)
   📚 Collections: ${collections.length}
   🖼️ Artworks: ${artworks.length}
   🏷️ Tags: ${allTags.length}

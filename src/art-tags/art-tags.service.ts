@@ -58,6 +58,9 @@ export class ArtTagsService {
   }
 
   async findPopularTags(limit: number = 10, search?: string) {
+    // Ensure limit is a number
+    const limitNum = Number(limit) || 10;
+    
     // Build the where clause for search filtering
     const whereClause = search
       ? {
@@ -82,7 +85,7 @@ export class ArtTagsService {
           _count: 'desc',
         },
       },
-      take: limit,
+      take: limitNum,
     });
   }
 }

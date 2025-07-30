@@ -25,11 +25,26 @@ export class FeedsService {
             artistName: true,
             user: { select: { profilePictureFileId: true } },
           }
+        },
+        tags: {
+          include: {
+            tag: {
+              select: {
+                id: true,
+                tagName: true,
+              }
+            }
+          }
         }
       }
     });
 
     for (const art of arts) {
+      const tags = art.tags.map(relation => ({
+        id: relation.tag.id,
+        tagName: relation.tag.tagName,
+      }));
+
       const feedItem = new FindAllDtoResponse(
         null,
         new ArtFeed(
@@ -39,7 +54,8 @@ export class FeedsService {
           art.description,
           art.imageFileId,
           art.title,
-          art.datePosted
+          art.datePosted,
+          tags
         ),
         null,
         art.datePosted,
@@ -100,6 +116,7 @@ export class FeedsService {
           post.artistId,
           post.artist.artistName,
           post.artist.user.profilePictureFileId,
+          post.title,
           post.content,
           post.datePosted
         ),
@@ -161,12 +178,16 @@ export class FeedsService {
   pagination: { page?: number; limit?: number },
 ) {
   const { page = 1, limit = 10 } = pagination;
+  
+  // Ensure page and limit are numbers
+  const pageNum = Number(page) || 1;
+  const limitNum = Number(limit) || 10;
 
   const [feeds, total] = await Promise.all([
     this.prisma.feed.findMany({
       where: { artistId },
-      skip: (page - 1) * limit,
-      take: limit,
+      skip: (pageNum - 1) * limitNum,
+      take: limitNum,
       orderBy: { datePosted: 'desc' },
     }),
     this.prisma.feed.count({ where: { artistId } }),
@@ -175,8 +196,8 @@ export class FeedsService {
   return {
     data: feeds,
     total,
-    page,
-    limit,
+    page: pageNum,
+    limit: limitNum,
   };
 }
 }

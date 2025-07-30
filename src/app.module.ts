@@ -8,6 +8,7 @@ import { ArtCollectionsModule } from './art-collections/art-collections.module';
 import { ArtTagsModule } from './art-tags/art-tags.module';
 import { FollowersModule } from './followers/followers.module';
 import { FeedsModule } from './feeds/feeds.module';
+import { ExploreModule } from './explore/explore.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { ArtToTagModule } from './art-to-tag/art-to-tag.module';
 import { PrismaModule } from './prisma/prisma.module';
@@ -28,6 +29,7 @@ import { PurchasesModule } from './purchases/purchases.module';
     ArtTagsModule,
     FollowersModule,
     FeedsModule,
+    ExploreModule,
     NotificationsModule,
     ArtToTagModule,
     PrismaModule,
