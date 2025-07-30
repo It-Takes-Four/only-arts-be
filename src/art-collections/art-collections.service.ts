@@ -13,7 +13,7 @@ import { PrepareCollectionPurchaseDtoRequest } from './dto/request/prepare-colle
 import { CompletePurchaseDtoRequest } from './dto/request/complete-purchase.dto';
 import { CompletePurchaseDtoResponse } from './dto/response/complete-purchase.dto';
 import { FileUploadService, UploadedFile } from 'src/shared/services/file-upload.service';
-import { FileType } from '@prisma/client';
+import { FileType, PurchaseStatus } from '@prisma/client';
 
 @Injectable()
 export class ArtCollectionsService {

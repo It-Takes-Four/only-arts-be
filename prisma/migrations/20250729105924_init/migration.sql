@@ -1,13 +1,16 @@
 -- CreateEnum
 CREATE TYPE "PurchaseStatus" AS ENUM ('PENDING', 'COMPLETED', 'FAILED', 'CANCELLED');
 
+-- CreateEnum
+CREATE TYPE "FileType" AS ENUM ('arts', 'collections', 'profiles');
+
 -- CreateTable
 CREATE TABLE "users" (
     "id" UUID NOT NULL,
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
     "username" TEXT NOT NULL,
-    "profilePicture" TEXT,
+    "profilePictureFileId" UUID,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -58,7 +61,7 @@ CREATE TABLE "followers" (
 -- CreateTable
 CREATE TABLE "arts" (
     "id" UUID NOT NULL,
-    "imageUrl" TEXT NOT NULL,
+    "imageFileId" UUID NOT NULL,
     "title" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "datePosted" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -110,7 +113,7 @@ CREATE TABLE "art_collections" (
     "id" UUID NOT NULL,
     "collectionName" TEXT NOT NULL,
     "description" TEXT,
-    "coverImageUrl" TEXT,
+    "coverImageFileId" UUID,
     "price" DECIMAL(18,8),
     "tokenId" BIGINT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -167,11 +170,27 @@ CREATE TABLE "art_to_art_tags" (
     CONSTRAINT "art_to_art_tags_pkey" PRIMARY KEY ("artId","tagId")
 );
 
+-- CreateTable
+CREATE TABLE "files" (
+    "id" UUID NOT NULL,
+    "fileName" TEXT NOT NULL,
+    "originalName" TEXT NOT NULL,
+    "mimetype" TEXT NOT NULL,
+    "size" INTEGER NOT NULL,
+    "type" "FileType" NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "files_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "users_username_key" ON "users"("username");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "users_profilePictureFileId_key" ON "users"("profilePictureFileId");
 
 -- CreateIndex
 CREATE INDEX "users_email_idx" ON "users"("email");
@@ -213,6 +232,9 @@ CREATE INDEX "followers_artistId_idx" ON "followers"("artistId");
 CREATE UNIQUE INDEX "followers_userId_artistId_key" ON "followers"("userId", "artistId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "arts_imageFileId_key" ON "arts"("imageFileId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "arts_tokenId_key" ON "arts"("tokenId");
 
 -- CreateIndex
@@ -226,6 +248,9 @@ CREATE INDEX "arts_datePosted_idx" ON "arts"("datePosted");
 
 -- CreateIndex
 CREATE INDEX "arts_isInACollection_idx" ON "arts"("isInACollection");
+
+-- CreateIndex
+CREATE INDEX "arts_imageFileId_idx" ON "arts"("imageFileId");
 
 -- CreateIndex
 CREATE INDEX "art_likes_artId_idx" ON "art_likes"("artId");
@@ -249,6 +274,9 @@ CREATE UNIQUE INDEX "art_tags_tagName_key" ON "art_tags"("tagName");
 CREATE INDEX "art_tags_tagName_idx" ON "art_tags"("tagName");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "art_collections_coverImageFileId_key" ON "art_collections"("coverImageFileId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "art_collections_tokenId_key" ON "art_collections"("tokenId");
 
 -- CreateIndex
@@ -256,6 +284,9 @@ CREATE INDEX "art_collections_artistId_idx" ON "art_collections"("artistId");
 
 -- CreateIndex
 CREATE INDEX "art_collections_tokenId_idx" ON "art_collections"("tokenId");
+
+-- CreateIndex
+CREATE INDEX "art_collections_coverImageFileId_idx" ON "art_collections"("coverImageFileId");
 
 -- CreateIndex
 CREATE INDEX "art_to_collections_collectionId_idx" ON "art_to_collections"("collectionId");
@@ -285,13 +316,16 @@ CREATE INDEX "feeds_artistId_idx" ON "feeds"("artistId");
 CREATE INDEX "feeds_datePosted_idx" ON "feeds"("datePosted");
 
 -- AddForeignKey
+ALTER TABLE "users" ADD CONSTRAINT "users_profilePictureFileId_fkey" FOREIGN KEY ("profilePictureFileId") REFERENCES "files"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "artists" ADD CONSTRAINT "artists_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "notifications" ADD CONSTRAINT "notifications_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "notifications" ADD CONSTRAINT "notifications_artistId_fkey" FOREIGN KEY ("artistId") REFERENCES "artists"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "notifications" ADD CONSTRAINT "notifications_artistId_fkey" FOREIGN KEY ("artistId") REFERENCES "artists"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "notifications" ADD CONSTRAINT "notifications_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "followers" ADD CONSTRAINT "followers_artistId_fkey" FOREIGN KEY ("artistId") REFERENCES "artists"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -301,6 +335,9 @@ ALTER TABLE "followers" ADD CONSTRAINT "followers_userId_fkey" FOREIGN KEY ("use
 
 -- AddForeignKey
 ALTER TABLE "arts" ADD CONSTRAINT "arts_artistId_fkey" FOREIGN KEY ("artistId") REFERENCES "artists"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "arts" ADD CONSTRAINT "arts_imageFileId_fkey" FOREIGN KEY ("imageFileId") REFERENCES "files"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "art_likes" ADD CONSTRAINT "art_likes_artId_fkey" FOREIGN KEY ("artId") REFERENCES "arts"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -316,6 +353,9 @@ ALTER TABLE "comments" ADD CONSTRAINT "comments_userId_fkey" FOREIGN KEY ("userI
 
 -- AddForeignKey
 ALTER TABLE "art_collections" ADD CONSTRAINT "art_collections_artistId_fkey" FOREIGN KEY ("artistId") REFERENCES "artists"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "art_collections" ADD CONSTRAINT "art_collections_coverImageFileId_fkey" FOREIGN KEY ("coverImageFileId") REFERENCES "files"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "art_to_collections" ADD CONSTRAINT "art_to_collections_artId_fkey" FOREIGN KEY ("artId") REFERENCES "arts"("id") ON DELETE CASCADE ON UPDATE CASCADE;
