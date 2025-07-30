@@ -4,13 +4,19 @@ import { CreateArtDtoRequest } from './dto/request/create-art.dto';
 import { CreateArtResponse } from './dto/response/create-art.dto';
 import { UpdateArtDtoRequest } from './dto/request/update-art.dto';
 import { ArtNftService } from 'src/art-nft/art-nft.service';
+import { ArtistsService } from 'src/artists/artists.service';
 import { v4 as uuidv4 } from 'uuid';
 import { FileUploadService, UploadedFile } from 'src/shared/services/file-upload.service';
 import { FileType } from '@prisma/client';
 
 @Injectable()
 export class ArtsService {
-  constructor(private readonly prisma: PrismaService, private readonly artNftService: ArtNftService, private readonly fileUploadService: FileUploadService) { }
+  constructor(
+    private readonly prisma: PrismaService, 
+    private readonly artNftService: ArtNftService, 
+    private readonly artistsService: ArtistsService,
+    private readonly fileUploadService: FileUploadService
+  ) { }
 
   async findAll() {
     return this.prisma.art.findMany({
@@ -50,7 +56,10 @@ export class ArtsService {
     });
   }
 
-  async createWithTags(dto: CreateArtDtoRequest, file: Express.Multer.File) {
+  async createWithTags(dto: CreateArtDtoRequest, file: Express.Multer.File, userId: string) {
+    // Get the artist record for the authenticated user
+    const artist = await this.artistsService.findByUserId(userId);
+    
     const validFile = file as UploadedFile;
     const artId = uuidv4();
     const tagIds = dto.tagIds?.length ? dto.tagIds : [];
@@ -58,7 +67,7 @@ export class ArtsService {
     const saveFileResult = await this.fileUploadService.saveFile(validFile, FileType.arts);
     const imageFileId = saveFileResult.fileId
 
-    const createArtResult = await this.artNftService.createArt(dto.artistId, artId);
+    const createArtResult = await this.artNftService.createArt(artist.id, artId);
     const tokenId = BigInt(createArtResult.tokenId);
 
     await this.prisma.art.create({
@@ -68,7 +77,7 @@ export class ArtsService {
         title: dto.title, 
         description: dto.description,
         imageFileId: imageFileId,
-        artistId: dto.artistId,
+        artistId: artist.id,
         tags: {
           create: tagIds.map((tagId) => ({
             tag: { connect: { id: tagId } },
@@ -81,7 +90,7 @@ export class ArtsService {
       },
     });
 
-    return new CreateArtResponse(dto.artistId, artId, tokenId.toString())
+    return new CreateArtResponse(artist.id, artId, tokenId.toString())
   }
 
 

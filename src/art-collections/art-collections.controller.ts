@@ -24,7 +24,6 @@ import {
   ApiConsumes,
 } from '@nestjs/swagger';
 import { AuthenticatedRequest } from 'src/auth/types/auth.types';
-import { CreateWithArtsDtoRequest } from './dto/request/create-with-arts.dto';
 import { PrepareCollectionPurchaseDtoRequest } from './dto/request/prepare-collection-purchase.dto';
 import { CompletePurchaseDtoRequest } from './dto/request/complete-purchase.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -45,17 +44,12 @@ export class ArtCollectionsController {
       type: 'object',
       properties: {
         collectionName: { type: 'string', example: 'Modern Art Showcase' },
-        artistId: {
-          type: 'string',
-          format: 'uuid',
-          example: "ae7e1797-a7bc-4b18-8fa4-851f90990ad0",
-        },
         file: {
           type: 'string',
           format: 'binary',
         },
       },
-      required: ['collectionName', 'artistId'],
+      required: ['collectionName'],
     },
   })
   @UseInterceptors(
@@ -66,8 +60,9 @@ export class ArtCollectionsController {
   async create(
     @UploadedFile() file: Express.Multer.File,
     @Body() body: CreateArtCollectionDtoRequest,
+    @Request() req: AuthenticatedRequest,
   ) {
-    return this.artCollectionsService.create(body, file);
+    return this.artCollectionsService.create(body, file, req.user.userId);
   }
 
   @Post('/prepare-collection-purchase')
