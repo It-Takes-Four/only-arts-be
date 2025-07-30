@@ -1,6 +1,5 @@
 import {
   IsString,
-  IsUrl,
   IsNotEmpty,
   IsOptional,
   IsArray,
@@ -18,10 +17,6 @@ export class CreateArtDtoRequest {
   @IsString()
   @IsNotEmpty()
   description: string;
-
-  @ApiProperty({ description: 'UUID of the associated artist', example: 'a0d93a2c-8852-4b6a-9a2a-3c9fc9f8a67c' })
-  @IsUUID()
-  artistId: string;
 
   @ApiPropertyOptional({ description: 'Optional list of tag UUIDs', example: ['4e365859-e8d4-4cf7-8091-9acbb7c1dc56'] })
   @IsOptional()

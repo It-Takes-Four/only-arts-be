@@ -17,19 +17,36 @@ import {
   ApiConsumes,
   ApiBody,
   ApiBearerAuth,
+  ApiParam,
+  ApiResponse,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { FileUploadService } from '../services/file-upload.service';
 import { Response } from 'express';
 
-@UseGuards(JwtAuthGuard)
-@ApiBearerAuth('JWT-auth')
 @ApiTags('File Upload')
 @Controller('upload')
 export class UploadController {
   constructor(private readonly fileUploadService: FileUploadService) { }
 
-  @Get(':type/:fileid')
+  @Get(':fileid')
+  @ApiOperation({ summary: 'Get file by ID' })
+  @ApiParam({ 
+    name: 'fileid', 
+    description: 'UUID of the file to retrieve',
+    example: 'e3b0c442-98fc-1c14-9afb-4c1d4c6d2111'
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'File retrieved successfully',
+    content: {
+      'image/jpeg': { schema: { type: 'string', format: 'binary' } },
+      'image/png': { schema: { type: 'string', format: 'binary' } },
+      'image/gif': { schema: { type: 'string', format: 'binary' } },
+      'image/webp': { schema: { type: 'string', format: 'binary' } }
+    }
+  })
+  @ApiResponse({ status: 404, description: 'File not found' })
   async serveFile(
     @Param('fileid') fileid: string,
     @Res() res: Response,
@@ -40,7 +57,7 @@ export class UploadController {
       const result = await this.fileUploadService.retrieveFileById(fileid);
       fileBuffer = result.fileBuffer;
       mimeType = result.mimeType;
-    } catch (err) {
+    } catch {
       throw new NotFoundException('File not found');
     }
 
@@ -55,7 +72,21 @@ export class UploadController {
     res.send(fileBuffer);
   }
 
-  @Get(':type/:fileid/blurred')
+  @Get(':fileid/blurred')
+  @ApiOperation({ summary: 'Get blurred version of file by ID' })
+  @ApiParam({ 
+    name: 'fileid', 
+    description: 'UUID of the file to retrieve blurred version',
+    example: 'e3b0c442-98fc-1c14-9afb-4c1d4c6d2111'
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Blurred file retrieved successfully',
+    content: {
+      'image/jpeg': { schema: { type: 'string', format: 'binary' } }
+    }
+  })
+  @ApiResponse({ status: 404, description: 'File not found' })
   async serveBlurredFile(
     @Param('fileid') fileid: string,
     @Res() res: Response,
@@ -63,7 +94,7 @@ export class UploadController {
     let fileBuffer: Buffer;
     try {
       fileBuffer = await this.fileUploadService.retrieveFileBlurredById(fileid);
-    } catch (err) {
+    } catch {
       throw new NotFoundException('File not found');
     }
 
@@ -76,6 +107,84 @@ export class UploadController {
     res.send(fileBuffer);
   }
 
+
+  @Get('art/:fileid')
+  @ApiOperation({ summary: 'Get artwork image by file ID' })
+  @ApiParam({ 
+    name: 'fileid', 
+    description: 'UUID of the artwork file to retrieve',
+    example: 'e3b0c442-98fc-1c14-9afb-4c1d4c6d2111'
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Artwork image retrieved successfully',
+    content: {
+      'image/jpeg': { schema: { type: 'string', format: 'binary' } },
+      'image/png': { schema: { type: 'string', format: 'binary' } },
+      'image/gif': { schema: { type: 'string', format: 'binary' } },
+      'image/webp': { schema: { type: 'string', format: 'binary' } }
+    }
+  })
+  @ApiResponse({ status: 404, description: 'Artwork file not found' })
+  async serveArtFile(
+    @Param('fileid') fileid: string,
+    @Res() res: Response,
+  ) {
+    return this.serveFile(fileid, res);
+  }
+
+  @Get('collection/:fileid')
+  @ApiOperation({ summary: 'Get collection cover image by file ID' })
+  @ApiParam({ 
+    name: 'fileid', 
+    description: 'UUID of the collection cover file to retrieve',
+    example: 'e3b0c442-98fc-1c14-9afb-4c1d4c6d2111'
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Collection cover image retrieved successfully',
+    content: {
+      'image/jpeg': { schema: { type: 'string', format: 'binary' } },
+      'image/png': { schema: { type: 'string', format: 'binary' } },
+      'image/gif': { schema: { type: 'string', format: 'binary' } },
+      'image/webp': { schema: { type: 'string', format: 'binary' } }
+    }
+  })
+  @ApiResponse({ status: 404, description: 'Collection cover file not found' })
+  async serveCollectionFile(
+    @Param('fileid') fileid: string,
+    @Res() res: Response,
+  ) {
+    return this.serveFile(fileid, res);
+  }
+
+  @Get('profile/:fileid')
+  @ApiOperation({ summary: 'Get profile picture by file ID' })
+  @ApiParam({ 
+    name: 'fileid', 
+    description: 'UUID of the profile picture file to retrieve',
+    example: 'e3b0c442-98fc-1c14-9afb-4c1d4c6d2111'
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Profile picture retrieved successfully',
+    content: {
+      'image/jpeg': { schema: { type: 'string', format: 'binary' } },
+      'image/png': { schema: { type: 'string', format: 'binary' } },
+      'image/gif': { schema: { type: 'string', format: 'binary' } },
+      'image/webp': { schema: { type: 'string', format: 'binary' } }
+    }
+  })
+  @ApiResponse({ status: 404, description: 'Profile picture file not found' })
+  async serveProfileFile(
+    @Param('fileid') fileid: string,
+    @Res() res: Response,
+  ) {
+    return this.serveFile(fileid, res);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
   @Post('art')
   @ApiOperation({ summary: 'Upload artwork image' })
   @ApiConsumes('multipart/form-data')
@@ -96,9 +205,9 @@ export class UploadController {
       limits: { fileSize: 10 * 1024 * 1024 },
     }),
   )
-  uploadArtImage(@UploadedFile() file: Express.Multer.File) {
+  async uploadArtImage(@UploadedFile() file: Express.Multer.File) {
     try {
-      const result = this.fileUploadService.saveFile(file as any, 'arts');
+      const result = await this.fileUploadService.saveFile(file, 'arts');
       return {
         message: 'Art image uploaded successfully',
         ...result,
@@ -129,9 +238,9 @@ export class UploadController {
       limits: { fileSize: 10 * 1024 * 1024 },
     }),
   )
-  uploadCollectionCover(@UploadedFile() file: Express.Multer.File) {
+  async uploadCollectionCover(@UploadedFile() file: Express.Multer.File) {
     try {
-      const result = this.fileUploadService.saveFile(file, 'collections');
+      const result = await this.fileUploadService.saveFile(file, 'collections');
       return {
         message: 'Collection cover uploaded successfully',
         ...result,
@@ -142,6 +251,8 @@ export class UploadController {
     }
   }
 
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
   @Post('profile')
   @ApiOperation({ summary: 'Upload profile picture' })
   @ApiConsumes('multipart/form-data')
@@ -162,9 +273,9 @@ export class UploadController {
       limits: { fileSize: 10 * 1024 * 1024 },
     }),
   )
-  uploadProfilePicture(@UploadedFile() file: Express.Multer.File) {
+  async uploadProfilePicture(@UploadedFile() file: Express.Multer.File) {
     try {
-      const result = this.fileUploadService.saveFile(file, 'profiles');
+      const result = await this.fileUploadService.saveFile(file, 'profiles');
       return {
         message: 'Profile picture uploaded successfully',
         ...result,

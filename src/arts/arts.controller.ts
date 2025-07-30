@@ -11,6 +11,7 @@ import {
   UseGuards,
   UseInterceptors,
   UploadedFile,
+  Request,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -21,6 +22,7 @@ import {
   ApiConsumes,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { AuthenticatedRequest } from 'src/auth/types/auth.types';
 import { ArtsService } from './arts.service';
 import { CreateArtDtoRequest } from './dto/request/create-art.dto';
 import { UpdateArtDtoRequest } from './dto/request/update-art.dto';
@@ -64,7 +66,6 @@ export class ArtController {
       properties: {
         title: { type: 'string', example: 'Sungazer' },
         description: { type: 'string', example: 'A surreal sunset over an alien landscape.' },
-        artistId: { type: 'string', format: 'uuid', example: 'a0d93a2c-8852-4b6a-9a2a-3c9fc9f8a67c' },
         tagIds: {
           type: 'array',
           items: { type: 'string', format: 'uuid' },
@@ -75,7 +76,7 @@ export class ArtController {
           format: 'binary',
         },
       },
-      required: ['title', 'description', 'artistId', 'file'],
+      required: ['title', 'description', 'file'],
     },
   })
   @UseInterceptors(
@@ -85,9 +86,10 @@ export class ArtController {
   )
   createArt(
     @UploadedFile() file: Express.Multer.File,
-    @Body() body: CreateArtDtoRequest
+    @Body() body: CreateArtDtoRequest,
+    @Request() req: AuthenticatedRequest,
   ) {
-    return this.artService.createWithTags(body, file);
+    return this.artService.createWithTags(body, file, req.user.userId);
   }
 
   @Patch(':id')
