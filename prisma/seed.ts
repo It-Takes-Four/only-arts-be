@@ -449,7 +449,7 @@ async function main() {
             collectionName,
             description,
             coverImageFileId,
-            price: isPaid ? faker.number.float({ min: 0.05, max: 12.0, fractionDigits: 2 }) : null,
+            price: isPaid ? faker.number.float({ min: 0.0005, max: 0.001, fractionDigits: 4 }) : null,
             tokenId: isPaid ? BigInt(faker.number.int({ min: 1000, max: 999999 })) : null,
             artistId: user.artistId,
             isPublished: faker.datatype.boolean({ probability: 0.8 }),

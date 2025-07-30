@@ -10,10 +10,6 @@ export class CompletePurchaseDtoRequest {
     @IsUUID()
     buyerId: string;
 
-    @ApiProperty({ description: 'price of the collection in ETH', example: '0.0001' })
-    @IsNumber()
-    price: number;
-
     @ApiProperty({ description: 'transaction hash', example: '0xb5b0afc239317a42d5171d526b2f98fb3d77152fd0f36889766ce57dcd6fae3f' })
     @IsString()
     txHash: string;

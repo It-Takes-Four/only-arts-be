@@ -52,7 +52,7 @@ export class ArtCollectionsService {
 
 
 
-  async validatePurchase(collectionId: string, buyerUserId: string, price: string) {
+  async validatePurchase(collectionId: string, buyerUserId: string) {
     // Check if collection exists
     const collection = await this.findOne(collectionId);
 
@@ -66,27 +66,42 @@ export class ArtCollectionsService {
     if (hasAccess) {
       throw new BadRequestException('Buyer already has access to collection');
     }
-
-    const parsedPrice = ParsePriceToDecimal(price)
-
-    if (parsedPrice != collection.price) {
-      throw new BadRequestException('Price differs from stated collection price')
-    }
   }
 
   async prepareCollectionPurchase(dto: PrepareCollectionPurchaseDtoRequest) {
-    await this.validatePurchase(dto.collectionId, dto.buyerId, dto.price)
+    const artCollection = await this.findOne(dto.collectionId);
 
-    return await this.collectionAccessService.prepareCollectionPurchase(dto)
+    if (artCollection == null || !artCollection.isPublished) {
+      throw new BadRequestException("Collection not found")
+    }
+
+    const price = artCollection.price!.toString()
+
+    await this.validatePurchase(dto.collectionId, dto.buyerId)
+
+    const updatedDto = {
+      ...dto,
+      price,
+    };
+
+    return await this.collectionAccessService.prepareCollectionPurchase(updatedDto)
   }
 
   async completePurchase(dto: CompletePurchaseDtoRequest) {
-    await this.validatePurchase(dto.collectionId, dto.buyerId, dto.price.toString())
+    const artCollection = await this.findOne(dto.collectionId);
+
+    if (artCollection == null || !artCollection.isPublished) {
+      throw new BadRequestException("Collection not found")
+    }
+
+    const price = artCollection.price!.toNumber()
+
+    await this.validatePurchase(dto.collectionId, dto.buyerId)
 
     // Create a new purchase record
     await this.purchasesService.createNewPurchase({
       collectionId: dto.collectionId,
-      price: dto.price,
+      price: price,
       txHash: dto.txHash,
       userId: dto.buyerId
     })
@@ -101,7 +116,7 @@ export class ArtCollectionsService {
     // Update purchase record status to COMPLETED
     await this.purchasesService.completePurchase(dto.txHash)
 
-    return new CompletePurchaseDtoResponse(dto.collectionId, dto.buyerId, dto.price, dto.txHash)
+    return new CompletePurchaseDtoResponse(dto.collectionId, dto.buyerId, price, dto.txHash)
   }
 
   async findAll() {

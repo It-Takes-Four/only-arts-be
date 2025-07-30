@@ -5,6 +5,7 @@ import { TokenInfo } from 'src/art-nft/interfaces/art-nft.interface';
 import { Web3ProviderService } from 'src/shared/services/web3-provider.service';
 import { ConfigService } from '@nestjs/config';
 import { PrepareCollectionPurchaseDtoRequest } from './dto/request/prepare-collection-purchase.dto';
+import { ArtCollectionsService } from 'src/art-collections/art-collections.service';
 
 const tokenAbi = collectionAccessABI;
 
@@ -17,7 +18,7 @@ export class CollectionAccessService implements OnModuleInit {
 
   constructor(
     private web3Provider: Web3ProviderService,
-    private configService: ConfigService,
+    private configService: ConfigService
   ) { }
 
   async onModuleInit() {

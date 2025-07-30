@@ -10,10 +10,6 @@ export class PrepareCollectionPurchaseDtoRequest {
     @IsUUID()
     buyerId: string;
 
-    @ApiProperty({ description: 'price of the collection in ETH', example: '0.0001' })
-    @IsString()
-    price: string;
-
     @ApiProperty({
         description: 'wallet address of the artist who owns the collection',
         example: '0xD257B998A205acCE3947eac6C9d57b36024158d1',
