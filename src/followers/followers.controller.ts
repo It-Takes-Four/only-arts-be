@@ -10,6 +10,8 @@ import {
   Req,
   UsePipes,
   ValidationPipe,
+  Request,
+  ConflictException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -22,6 +24,7 @@ import { FollowersService } from './followers.service';
 import { CreateFollowerDto } from './dto/create-follower.dto';
 import { UpdateFollowerDto } from './dto/update-follower.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { AuthenticatedRequest } from 'src/auth/types/auth.types';
 
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth('JWT-auth')
@@ -30,13 +33,20 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 export class FollowersController {
   constructor(private readonly followersService: FollowersService) {}
 
-  @Post()
-  @UsePipes(new ValidationPipe({ whitelist: true }))
-  @ApiOperation({ summary: 'Create a follower relationship' })
-  @ApiBody({ type: CreateFollowerDto })
-  create(@Body() createFollowerDto: CreateFollowerDto, @Req() req) {
-    const followerId = req.user.sub;
-    return this.followersService.create(createFollowerDto, followerId);
+  @Post(':artistId')
+  @ApiOperation({ summary: 'Follow an artist' })
+  @ApiParam({ name: 'artistId', description: 'UUID of the artist to follow' })
+  async followArtist(
+    @Param('artistId') artistId: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    const userId = req.user.userId;
+
+    if (userId === artistId) {
+      throw new ConflictException("You can't follow yourself");
+    }
+
+    return this.followersService.create(userId, artistId);
   }
 
   @Get()

@@ -7,11 +7,11 @@ import { UpdateFollowerDto } from './dto/update-follower.dto';
 export class FollowersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(dto: CreateFollowerDto, userId: string) {
+  async create(userId: string, artistId: string) {
     const existing = await this.prisma.follower.findFirst({
       where: {
         userId,
-        artistId: dto.artistId,
+        artistId,
       },
     });
 
@@ -19,10 +19,18 @@ export class FollowersService {
       throw new ConflictException('You already follow this artist');
     }
 
+    const artistExists = await this.prisma.artist.findUnique({
+      where: { id: artistId },
+    });
+
+    if (!artistExists) {
+      throw new NotFoundException('Artist not found');
+    }
+
     return this.prisma.follower.create({
       data: {
         userId,
-        artistId: dto.artistId,
+        artistId,
       },
     });
   }
