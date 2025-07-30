@@ -13,22 +13,23 @@ import { CompletePurchaseDtoRequest } from './dto/request/complete-purchase.dto'
 import { CompletePurchaseDtoResponse } from './dto/response/complete-purchase.dto';
 import { FileUploadService, UploadedFile } from 'src/shared/services/file-upload.service';
 import { FileType } from '@prisma/client';
+import { ParsePriceToDecimal } from 'src/shared/utils';
 
 @Injectable()
 export class ArtCollectionsService {
   constructor(
-    private readonly prisma: PrismaService, 
-    private readonly artNftService: ArtNftService, 
+    private readonly prisma: PrismaService,
+    private readonly artNftService: ArtNftService,
     private readonly artistsService: ArtistsService,
-    private readonly collectionAccessService: CollectionAccessService, 
-    private readonly purchasesService: PurchasesService, 
+    private readonly collectionAccessService: CollectionAccessService,
+    private readonly purchasesService: PurchasesService,
     private readonly fileUploadService: FileUploadService
   ) { }
 
   async create(dto: CreateArtCollectionDtoRequest, imageCover: Express.Multer.File | undefined, userId: string) {
     // Get the artist record for the authenticated user
     const artist = await this.artistsService.findByUserId(userId);
-    
+
     const collectionId = uuidv4();
     const createCollectionResult = await this.artNftService.createCollection(artist.id, collectionId);
     const tokenId = BigInt(createCollectionResult.tokenId);
@@ -49,25 +50,39 @@ export class ArtCollectionsService {
     return new CreateArtCollectionDtoResponse(artist.id, collectionId, tokenId.toString())
   }
 
-  async prepareCollectionPurchase(dto: PrepareCollectionPurchaseDtoRequest) {
+
+
+  async validatePurchase(collectionId: string, buyerUserId: string, price: string) {
     // Check if collection exists
-    const collection = await this.findOne(dto.collectionId);
+    const collection = await this.findOne(collectionId);
 
     if (!collection) {
       throw new BadRequestException('Collection does not exist');
     }
 
     // Verify that user does not have access yet
-    const hasAccess = await this.collectionAccessService.hasAccessToCollection(dto.buyerId, dto.collectionId)
+    const hasAccess = await this.collectionAccessService.hasAccessToCollection(buyerUserId, collectionId)
 
     if (hasAccess) {
       throw new BadRequestException('Buyer already has access to collection');
     }
 
+    const parsedPrice = ParsePriceToDecimal(price)
+
+    if (parsedPrice != collection.price) {
+      throw new BadRequestException('Price differs from stated collection price')
+    }
+  }
+
+  async prepareCollectionPurchase(dto: PrepareCollectionPurchaseDtoRequest) {
+    await this.validatePurchase(dto.collectionId, dto.buyerId, dto.price)
+
     return await this.collectionAccessService.prepareCollectionPurchase(dto)
   }
 
   async completePurchase(dto: CompletePurchaseDtoRequest) {
+    await this.validatePurchase(dto.collectionId, dto.buyerId, dto.price.toString())
+
     // Create a new purchase record
     await this.purchasesService.createNewPurchase({
       collectionId: dto.collectionId,
