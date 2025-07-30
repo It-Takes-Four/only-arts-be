@@ -75,9 +75,13 @@ export class ArtCollectionsService {
       throw new BadRequestException("Collection not found")
     }
 
-    const price = artCollection.price!.toString()
+    const hasAccess = await this.collectionAccessService.hasAccessToCollection(dto.buyerId, dto.collectionId)
 
-    await this.validatePurchase(dto.collectionId, dto.buyerId)
+    if (hasAccess) {
+      throw new BadRequestException('Buyer already has access to collection');
+    }
+
+    const price = artCollection.price!.toString()
 
     const updatedDto = {
       ...dto,
@@ -95,8 +99,6 @@ export class ArtCollectionsService {
     }
 
     const price = artCollection.price!.toNumber()
-
-    await this.validatePurchase(dto.collectionId, dto.buyerId)
 
     // Create a new purchase record
     await this.purchasesService.createNewPurchase({
