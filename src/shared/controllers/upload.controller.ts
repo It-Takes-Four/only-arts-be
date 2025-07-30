@@ -24,8 +24,6 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { FileUploadService } from '../services/file-upload.service';
 import { Response } from 'express';
 
-@UseGuards(JwtAuthGuard)
-@ApiBearerAuth('JWT-auth')
 @ApiTags('File Upload')
 @Controller('upload')
 export class UploadController {
@@ -109,6 +107,7 @@ export class UploadController {
     res.send(fileBuffer);
   }
 
+
   @Get('art/:fileid')
   @ApiOperation({ summary: 'Get artwork image by file ID' })
   @ApiParam({ 
@@ -184,6 +183,8 @@ export class UploadController {
     return this.serveFile(fileid, res);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
   @Post('art')
   @ApiOperation({ summary: 'Upload artwork image' })
   @ApiConsumes('multipart/form-data')
@@ -250,6 +251,8 @@ export class UploadController {
     }
   }
 
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
   @Post('profile')
   @ApiOperation({ summary: 'Upload profile picture' })
   @ApiConsumes('multipart/form-data')

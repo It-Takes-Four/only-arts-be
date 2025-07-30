@@ -212,7 +212,7 @@ async function main() {
 
   // Create multiple artists (both NSFW and non-NSFW)
   const numberOfArtists = 12;
-  const nsfwArtists = ['NightshadeArt', 'SensualCanvas', 'EroticVisions', 'AdultArtistry'];
+  const nsfwArtists = ['NightshadeArt', 'AbstractCanvas', 'AbstractVisions', 'AbstractArtistry'];
   const regularArtists = ['PixelMaster', 'DigitalDreamer', 'ArtisticSoul', 'CreativeVision', 'AbstractMind', 'ColorfulWorld', 'FantasyRealm', 'ModernArtist'];
 
   for (let i = 0; i < numberOfArtists; i++) {
@@ -289,16 +289,16 @@ async function main() {
       
       if (user.isNsfw) {
         const nsfwCollections = [
-          'Midnight Collection', 'Intimate Gallery', 'Sensual Series', 'Private Vault',
+          'Midnight Collection', 'Intimate Gallery', 'Abstract Series', 'Private Vault',
           'After Hours Collection', 'Forbidden Art Series', 'Adult Anthology', 
-          'Mature Expressions', 'Secret Gallery', 'Passion Project'
+          'Abstract Expressions', 'Secret Gallery', 'Passion Project'
         ];
         collectionName = faker.helpers.arrayElement(nsfwCollections);
         description = faker.helpers.arrayElement([
           'Mature artistic content for adult audiences only. Contains nudity and adult themes.',
           'An exclusive collection of intimate artistic expressions.',
-          'Sensual art series exploring the beauty of human form.',
-          'Adult-themed artwork collection. 18+ viewers only.',
+          'Abstract art series exploring the beauty of human form.',
+          'Adult-themed artwork collection. Adult viewers only.',
           'Private collection featuring mature artistic content.'
         ]);
       } else {
@@ -380,18 +380,18 @@ async function main() {
       
       if (user.isNsfw) {
         const nsfwTitles = [
-          'Midnight Passion', 'Sensual Dreams', 'Forbidden Art', 'Adult Fantasy',
+          'Midnight Passion', 'Abstract Dreams', 'Forbidden Art', 'Abstract Fantasy',
           'Erotic Expression', 'Intimate Moments', 'Mature Beauty', 'Seductive Vision',
           'Private Collection', 'After Dark', 'Tempting Art', 'Sultry Creation'
         ];
         title = `${faker.helpers.arrayElement(nsfwTitles)} #${k + 1}`;
         description = faker.helpers.arrayElement([
           'Adult artistic content. Viewer discretion advised.',
-          'Mature artistic expression exploring human sensuality.',
+          'Mature artistic expression exploring human ideas.',
           'This piece contains adult themes and nudity.',
           'An intimate exploration of form and desire.',
-          'Artistic nude study - 18+ only.',
-          'Sensual art piece for mature audiences.'
+          'Artistic nude study.',
+          'Abstract art piece for mature audiences.'
         ]);
       } else {
         const artThemes = [
