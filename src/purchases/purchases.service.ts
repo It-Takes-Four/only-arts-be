@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateNewPurchaseDtoRequest } from './dto/request/create-new-purchase.dto';
 import { PurchaseStatus } from '@prisma/client';
+import dayjs from 'dayjs';
 
 @Injectable()
 export class PurchasesService {
@@ -20,9 +21,11 @@ export class PurchasesService {
     }
 
     async completePurchase(txHash: string) {
+        const formatted = dayjs().format('YYYY-MM-DD HH:mm:ss.SSS');
+
         return await this.prisma.purchase.update({
             where: { txHash: txHash },
-            data: { status: PurchaseStatus.COMPLETED, completedAt: Date.now().toLocaleString() }
+            data: { status: PurchaseStatus.COMPLETED, completedAt: formatted }
         })
     }
 
