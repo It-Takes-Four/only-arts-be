@@ -160,11 +160,11 @@ export class ArtCollectionsController {
       }
     }
   })
-  async findAllCollectionsByArtistId(
+  async findAllCollectionsByUserId(
     @Request() req: AuthenticatedRequest,
     @Query() paginationQuery: PaginationQueryDto
   ) {
-    const result = await this.artCollectionsService.findAllCollectionsByArtistId(
+    const result = await this.artCollectionsService.findAllCollectionsByUserId(
       req.user.userId,
       paginationQuery.page,
       paginationQuery.limit
