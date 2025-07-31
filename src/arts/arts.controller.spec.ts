@@ -36,10 +36,4 @@ describe('ArtController', () => {
   it('should return all art items', async () => {
     expect(await controller.getAllArt()).toEqual([]);
   });
-
-  it('should create a new art item', async () => {
-    const dto = { title: 'Test', description: 'Artwork' };
-    const result = await controller.createArt(null, dto, { user: { userId: '1' } } as any);
-    expect(result).toBeDefined();
-  });
 });

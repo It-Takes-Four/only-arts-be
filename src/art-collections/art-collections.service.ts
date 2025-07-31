@@ -278,21 +278,60 @@ export class ArtCollectionsService {
     }));
   }
 
-  async findPurchasedCollections(userId: string) {
+  async findPurchasedCollections(userId: string, page: number = 1, limit: number = 10) {
     const purchasedCollectionIds = await this.collectionAccessService.getUserPurchasedCollections(userId);
 
-    const purchasedCollections = await this.prisma.artCollection.findMany({
-      where: {
-        id: {
-          in: purchasedCollectionIds
+    const skip = (page - 1) * limit;
+    
+    const [purchasedCollections, total] = await Promise.all([
+      this.prisma.artCollection.findMany({
+        where: {
+          id: {
+            in: purchasedCollectionIds
+          }
+        },
+        include: {
+          artist: {
+            include: {
+              user: {
+                select: {
+                  username: true,
+                  profilePictureFileId: true,
+                }
+              }
+            }
+          },
+          arts: true,
+        },
+        skip,
+        take: limit,
+        orderBy: {
+          createdAt: 'desc'
         }
-      }
-    })
+      }),
+      this.prisma.artCollection.count({
+        where: {
+          id: {
+            in: purchasedCollectionIds
+          }
+        }
+      })
+    ]);
 
-    return purchasedCollections.map((collection) => ({
-      ...collection,
-      price: collection.price?.toString() ?? null,
-    }));
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data: purchasedCollections.map((collection) => ({
+        ...collection,
+        price: collection.price?.toString() ?? null,
+      })),
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+      }
+    };
   }
 
   async findAllArtsFromUserCollections(userId: string) {
