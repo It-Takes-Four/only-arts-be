@@ -51,6 +51,6 @@ async function bootstrap() {
   await app.listen(port, host);
 
   logger.log(`🚀 Application is running on: http://${host}:${port}`);
-  logger.log(`📚 Swagger documentation: http://${host}:${port}/api/docs`);
+  logger.log(`📚 Swagger documentation: http://${host}:${port}/docs`);
 }
 void bootstrap();
