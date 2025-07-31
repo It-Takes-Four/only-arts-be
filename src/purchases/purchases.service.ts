@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateNewPurchaseDtoRequest } from './dto/request/create-new-purchase.dto';
 import { PurchaseStatus } from '@prisma/client';
-import dayjs from 'dayjs';
+import * as dayjs from 'dayjs';
 
 @Injectable()
 export class PurchasesService {
