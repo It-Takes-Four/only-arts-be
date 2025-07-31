@@ -349,6 +349,8 @@ export class ArtCollectionsService {
   }
 
   async findAllCollectionsByArtistId(artistId: string, page: number = 1, limit: number = 10) {
+    console.log("testtt");
+    
     const skip = (page - 1) * limit;
     
     const [collections, total] = await Promise.all([
@@ -393,6 +395,9 @@ export class ArtCollectionsService {
     ]);
 
     const totalPages = Math.ceil(total / limit);
+
+    console.log(collections);
+    
 
     return {
       data: collections.map((c) => ({

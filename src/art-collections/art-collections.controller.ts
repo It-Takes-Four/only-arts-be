@@ -95,8 +95,8 @@ export class ArtCollectionsController {
   @ApiOperation({ summary: 'Get all art collections' })
   @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number (default: 1)' })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page (default: 10)' })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Paginated list of all published art collections',
     schema: {
       type: 'object',
@@ -123,10 +123,10 @@ export class ArtCollectionsController {
   })
   async findAll(@Query() paginationQuery: PaginationQueryDto) {
     const result = await this.artCollectionsService.findAll(
-      paginationQuery.page, 
+      paginationQuery.page,
       paginationQuery.limit
     );
-    
+
     return PaginatedResource.make(result, ArtCollectionResource);
   }
 
@@ -134,8 +134,8 @@ export class ArtCollectionsController {
   @ApiOperation({ summary: 'Get all collections of current user' })
   @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number (default: 1)' })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page (default: 10)' })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Paginated list of user\'s art collections',
     schema: {
       type: 'object',
@@ -169,7 +169,7 @@ export class ArtCollectionsController {
       paginationQuery.page,
       paginationQuery.limit
     );
-    
+
     return PaginatedResource.make(result, ArtCollectionResource);
   }
 
@@ -183,8 +183,8 @@ export class ArtCollectionsController {
   @ApiOperation({ summary: 'Get all collections purchased by current user' })
   @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number (default: 1)' })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page (default: 10)' })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Paginated list of purchased art collections',
     schema: {
       type: 'object',
@@ -214,11 +214,11 @@ export class ArtCollectionsController {
     @Query() paginationQuery: PaginationQueryDto
   ) {
     const result = await this.artCollectionsService.findPurchasedCollections(
-      req.user.userId, 
-      paginationQuery.page, 
+      req.user.userId,
+      paginationQuery.page,
       paginationQuery.limit
     );
-    
+
     return PaginatedResource.make(result, ArtCollectionResource);
   }
 
@@ -236,11 +236,19 @@ export class ArtCollectionsController {
     return this.artCollectionsService.findOne(id);
   }
 
-  @Get(':artistId')
+  @Get('/artist/:artistId')
   @ApiOperation({ summary: 'Get art collections by artistId' })
   @ApiParam({ name: 'artistId', type: String, description: 'Artist ID' })
-  getCollectionByArtistId(@Param('artistId') artistId: string) {
-    return this.artCollectionsService.findAllCollectionsByArtistId(artistId);
+  @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page' })
+  getCollectionByArtistId(
+    @Param('artistId') artistId: string,
+    @Query('page') page: string,
+    @Query('limit') limit: string
+  ) {
+    const pageNumber = parseInt(page) || 1;
+    const limitNumber = parseInt(limit) || 10;
+    return this.artCollectionsService.findAllCollectionsByArtistId(artistId, pageNumber, limitNumber);
   }
 
   @Patch(':id')
