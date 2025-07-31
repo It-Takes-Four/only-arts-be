@@ -184,7 +184,7 @@ export class ArtCollectionsService {
       },
     });
 
-    return artCollections.map((c)=>({
+    return artCollections.map((c) => ({
       ...c,
       price: c.price?.toString() ?? null,
     }))
@@ -194,6 +194,15 @@ export class ArtCollectionsService {
     const artCollection = await this.prisma.artCollection.findUnique({
       where: { id },
       include: {
+        artist: {
+          include: {
+            user: {
+              select: {
+                profilePictureFileId: true,
+              }
+            }
+          }
+        },
         arts: {
           include: {
             art: {
@@ -204,8 +213,7 @@ export class ArtCollectionsService {
               },
             },
           },
-        },
-        artist: true,
+        }
       },
     });
 
@@ -217,7 +225,7 @@ export class ArtCollectionsService {
     };
   }
 
-  
+
 
   async findArtsInCollection(id: string) {
     const collection = await this.prisma.artCollection.findUnique({
