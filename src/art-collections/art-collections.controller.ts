@@ -91,20 +91,6 @@ export class ArtCollectionsController {
     return this.artCollectionsService.findAll();
   }
 
-  @Get(':id/arts')
-  @ApiOperation({ summary: 'Get arts inside an art collection by ID' })
-  @ApiParam({ name: 'id', type: String, description: 'Art collection ID' })
-  findOne(@Param('id') id: string) {
-    return this.artCollectionsService.findArtsInCollection(id);
-  }
-
-  @Get(':id')
-  @ApiOperation({ summary: 'Get an art collection by ID' })
-  @ApiParam({ name: 'id', type: String, description: 'Art collection ID' })
-  getCollectionById(@Param('id') id: string) {
-    return this.artCollectionsService.findOne(id);
-  }
-
   @Get('my/collections')
   @ApiOperation({ summary: 'Get all collections of current user' })
   findAllCollectionsByArtistId(@Request() req: AuthenticatedRequest) {
@@ -122,6 +108,22 @@ export class ArtCollectionsController {
   findPurchasedCollections(@Request() req: AuthenticatedRequest) {
     return this.artCollectionsService.findPurchasedCollections(req.user.userId);
   }
+
+  @Get(':id/arts')
+  @ApiOperation({ summary: 'Get arts inside an art collection by ID' })
+  @ApiParam({ name: 'id', type: String, description: 'Art collection ID' })
+  findOne(@Param('id') id: string) {
+    return this.artCollectionsService.findArtsInCollection(id);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get an art collection by ID' })
+  @ApiParam({ name: 'id', type: String, description: 'Art collection ID' })
+  getCollectionById(@Param('id') id: string) {
+    return this.artCollectionsService.findOne(id);
+  }
+
+  
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update an art collection by ID' })
