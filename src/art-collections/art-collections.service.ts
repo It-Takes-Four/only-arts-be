@@ -81,7 +81,12 @@ export class ArtCollectionsService {
       throw new BadRequestException('Buyer already has access to collection');
     }
 
-    const price = artCollection.price!.toString()
+    if(!artCollection.price){
+      throw new BadRequestException('price is undefined')
+    }
+
+    const price = artCollection.price.toString()
+    
 
     const updatedDto = {
       ...dto,
