@@ -93,14 +93,84 @@ export class ArtCollectionsController {
 
   @Get()
   @ApiOperation({ summary: 'Get all art collections' })
-  findAll() {
-    return this.artCollectionsService.findAll();
+  @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number (default: 1)' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page (default: 10)' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Paginated list of all published art collections',
+    schema: {
+      type: 'object',
+      properties: {
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+          }
+        },
+        pagination: {
+          type: 'object',
+          properties: {
+            currentPage: { type: 'number' },
+            perPage: { type: 'number' },
+            total: { type: 'number' },
+            totalPages: { type: 'number' },
+            hasNextPage: { type: 'boolean' },
+            hasPrevPage: { type: 'boolean' },
+          }
+        }
+      }
+    }
+  })
+  async findAll(@Query() paginationQuery: PaginationQueryDto) {
+    const result = await this.artCollectionsService.findAll(
+      paginationQuery.page, 
+      paginationQuery.limit
+    );
+    
+    return PaginatedResource.make(result, ArtCollectionResource);
   }
 
   @Get('my/collections')
   @ApiOperation({ summary: 'Get all collections of current user' })
-  findAllCollectionsByArtistId(@Request() req: AuthenticatedRequest) {
-    return this.artCollectionsService.findAllCollectionsByArtistId(req.user.userId);
+  @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number (default: 1)' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page (default: 10)' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Paginated list of user\'s art collections',
+    schema: {
+      type: 'object',
+      properties: {
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+          }
+        },
+        pagination: {
+          type: 'object',
+          properties: {
+            currentPage: { type: 'number' },
+            perPage: { type: 'number' },
+            total: { type: 'number' },
+            totalPages: { type: 'number' },
+            hasNextPage: { type: 'boolean' },
+            hasPrevPage: { type: 'boolean' },
+          }
+        }
+      }
+    }
+  })
+  async findAllCollectionsByArtistId(
+    @Request() req: AuthenticatedRequest,
+    @Query() paginationQuery: PaginationQueryDto
+  ) {
+    const result = await this.artCollectionsService.findAllCollectionsByArtistId(
+      req.user.userId,
+      paginationQuery.page,
+      paginationQuery.limit
+    );
+    
+    return PaginatedResource.make(result, ArtCollectionResource);
   }
 
   @Get('my/arts')
@@ -166,7 +236,6 @@ export class ArtCollectionsController {
     return this.artCollectionsService.findOne(id);
   }
 
-  
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update an art collection by ID' })
