@@ -93,8 +93,8 @@ export class ArtCollectionsController {
 
   @Get('my/collections')
   @ApiOperation({ summary: 'Get all collections of current user' })
-  findAllCollectionsByArtistId(@Request() req: AuthenticatedRequest) {
-    return this.artCollectionsService.findAllCollectionsByArtistId(req.user.userId);
+  findAllCollectionsByUserId(@Request() req: AuthenticatedRequest) {
+    return this.artCollectionsService.findAllCollectionsByUserId(req.user.userId);
   }
 
   @Get('my/arts')
@@ -123,7 +123,12 @@ export class ArtCollectionsController {
     return this.artCollectionsService.findOne(id);
   }
 
-  
+  @Get(':artistId')
+  @ApiOperation({ summary: 'Get art collections by artistId' })
+  @ApiParam({ name: 'artistId', type: String, description: 'Artist ID' })
+  getCollectionByArtistId(@Param('artistId') artistId: string) {
+    return this.artCollectionsService.findAllCollectionsByArtistId(artistId);
+  }
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update an art collection by ID' })
