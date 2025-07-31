@@ -21,7 +21,6 @@ import {
   UploadedFile,
 } from 'src/shared/services/file-upload.service';
 import { FileType } from '@prisma/client';
-import { ParsePriceToDecimal } from 'src/shared/utils';
 
 @Injectable()
 export class ArtCollectionsService {
@@ -32,7 +31,7 @@ export class ArtCollectionsService {
     private readonly collectionAccessService: CollectionAccessService,
     private readonly purchasesService: PurchasesService,
     private readonly fileUploadService: FileUploadService,
-  ) {}
+  ) { }
 
   async create(
     dto: CreateArtCollectionDtoRequest,
@@ -107,7 +106,12 @@ export class ArtCollectionsService {
       throw new BadRequestException('Buyer already has access to collection');
     }
 
-    const price = artCollection.price!.toString();
+    if (!artCollection.price) {
+      throw new BadRequestException('price is undefined')
+    }
+
+    const price = artCollection.price.toString()
+
 
     const updatedDto = {
       ...dto,
@@ -120,7 +124,13 @@ export class ArtCollectionsService {
   }
 
   async completePurchase(dto: CompletePurchaseDtoRequest) {
-    const artCollection = await this.findOne(dto.collectionId);
+    const artCollection = await this.prisma.artCollection.findFirst(
+      {
+        where: {
+          id: dto.collectionId
+        }
+      }
+    );
 
     if (artCollection == null || !artCollection.isPublished) {
       throw new BadRequestException('Collection not found');
@@ -157,7 +167,7 @@ export class ArtCollectionsService {
   }
 
   async findAll() {
-    return this.prisma.artCollection.findMany({
+    const artCollections = await this.prisma.artCollection.findMany({
       include: {
         arts: {
           include: {
@@ -173,10 +183,15 @@ export class ArtCollectionsService {
         artist: true,
       },
     });
+
+    return artCollections.map((c)=>({
+      ...c,
+      price: c.price?.toString() ?? null,
+    }))
   }
 
   async findOne(id: string) {
-    return this.prisma.artCollection.findUnique({
+    const artCollection = await this.prisma.artCollection.findUnique({
       where: { id },
       include: {
         arts: {
@@ -193,6 +208,13 @@ export class ArtCollectionsService {
         artist: true,
       },
     });
+
+    if (!artCollection) return null;
+
+    return {
+      ...artCollection,
+      price: artCollection.price?.toString() ?? null,
+    };
   }
 
   async findArtsInCollection(id: string) {
@@ -240,33 +262,27 @@ export class ArtCollectionsService {
       },
     });
 
-    return collections;
+    return collections.map((c) => ({
+      ...c,
+      price: c.price?.toString() ?? null,
+    }));
   }
 
   async findPurchasedCollections(userId: string) {
-    const purchases = await this.prisma.purchase.findMany({
-      where: { userId },
-      include: {
-        collection: {
-          include: {
-            artist: true,
-            arts: {
-              include: {
-                art: {
-                  include: {
-                    tags: { include: { tag: true } },
-                    comments: { include: { user: true } },
-                    artist: true,
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    });
+    const purchasedCollectionIds = await this.collectionAccessService.getUserPurchasedCollections(userId);
 
-    return purchases.map((purchase) => purchase.collection);
+    const purchasedCollections = await this.prisma.artCollection.findMany({
+      where: {
+        id: {
+          in: purchasedCollectionIds
+        }
+      }
+    })
+
+    return purchasedCollections.map((collection) => ({
+      ...collection,
+      price: collection.price?.toString() ?? null,
+    }));
   }
 
   async findAllArtsFromUserCollections(userId: string) {

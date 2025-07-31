@@ -76,6 +76,11 @@ export class CollectionAccessService implements OnModuleInit {
     return hasAccess
   }
 
+  async getUserPurchasedCollections(userId: string): Promise<string[]> {
+    const purchasedCollectionIds = await this.contract.getUserPurchasedCollections(userId)
+    return purchasedCollectionIds
+  }
+
   // Prepare transaction data for frontend
   async prepareCollectionPurchase(dto: PrepareCollectionPurchaseDtoRequest) {
     return {
@@ -84,10 +89,9 @@ export class CollectionAccessService implements OnModuleInit {
       parameters: {
         collectionId: dto.collectionId,
         buyerId: dto.buyerId,
-        price: ethers.parseEther(dto.price).toString(),
+        price: dto.price,
         artistWalletAddress: dto.artistWalletAddress
       },
-      value: ethers.parseEther(dto.price).toString(),
       abi: collectionAccessABI
     };
   }
