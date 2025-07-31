@@ -16,10 +16,12 @@ import { SharedModule } from './shared/shared.module';
 import { ArtNftModule } from './art-nft/art-nft.module';
 import { CollectionAccessModule } from './collection-access/collection-access.module';
 import { PurchasesModule } from './purchases/purchases.module';
+import { SearchModule } from './search/search.module';
 
 @Module({
   imports: [
     PrismaModule,
+    SearchModule,
     UsersModule,
     ArtistsModule,
     ArtsModule,
@@ -37,6 +39,7 @@ import { PurchasesModule } from './purchases/purchases.module';
     ArtNftModule,
     CollectionAccessModule,
     PurchasesModule,
+    SearchModule,
   ],
 })
 export class AppModule {}
