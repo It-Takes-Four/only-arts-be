@@ -217,6 +217,8 @@ export class ArtCollectionsService {
     };
   }
 
+  
+
   async findArtsInCollection(id: string) {
     const collection = await this.prisma.artCollection.findUnique({
       where: { id },

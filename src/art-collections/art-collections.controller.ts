@@ -91,11 +91,18 @@ export class ArtCollectionsController {
     return this.artCollectionsService.findAll();
   }
 
-  @Get(':id')
-  @ApiOperation({ summary: 'Get an art collection by ID' })
+  @Get(':id/arts')
+  @ApiOperation({ summary: 'Get arts inside an art collection by ID' })
   @ApiParam({ name: 'id', type: String, description: 'Art collection ID' })
   findOne(@Param('id') id: string) {
     return this.artCollectionsService.findArtsInCollection(id);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get an art collection by ID' })
+  @ApiParam({ name: 'id', type: String, description: 'Art collection ID' })
+  getCollectionById(@Param('id') id: string) {
+    return this.artCollectionsService.findOne(id);
   }
 
   @Get('my/collections')
