@@ -21,7 +21,6 @@ import {
   UploadedFile,
 } from 'src/shared/services/file-upload.service';
 import { FileType } from '@prisma/client';
-import { ParsePriceToDecimal } from 'src/shared/utils';
 
 @Injectable()
 export class ArtCollectionsService {
