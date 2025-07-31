@@ -10,6 +10,7 @@ import {
   Request,
   UploadedFile,
   UseInterceptors,
+  Query,
 } from '@nestjs/common';
 import { ArtCollectionsService } from './art-collections.service';
 import { CreateArtCollectionDtoRequest } from './dto/request/create-art-collection.dto';
@@ -22,11 +23,16 @@ import {
   ApiOperation,
   ApiParam,
   ApiConsumes,
+  ApiQuery,
+  ApiResponse,
 } from '@nestjs/swagger';
 import { AuthenticatedRequest } from 'src/auth/types/auth.types';
 import { PrepareCollectionPurchaseDtoRequest } from './dto/request/prepare-collection-purchase.dto';
 import { CompletePurchaseDtoRequest } from './dto/request/complete-purchase.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
+import { PaginatedResource } from 'src/common/resources/paginated.resource';
+import { ArtCollectionResource } from './resources/art-collection.resource';
 
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth('JWT-auth')
@@ -87,14 +93,84 @@ export class ArtCollectionsController {
 
   @Get()
   @ApiOperation({ summary: 'Get all art collections' })
-  findAll() {
-    return this.artCollectionsService.findAll();
+  @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number (default: 1)' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page (default: 10)' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Paginated list of all published art collections',
+    schema: {
+      type: 'object',
+      properties: {
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+          }
+        },
+        pagination: {
+          type: 'object',
+          properties: {
+            currentPage: { type: 'number' },
+            perPage: { type: 'number' },
+            total: { type: 'number' },
+            totalPages: { type: 'number' },
+            hasNextPage: { type: 'boolean' },
+            hasPrevPage: { type: 'boolean' },
+          }
+        }
+      }
+    }
+  })
+  async findAll(@Query() paginationQuery: PaginationQueryDto) {
+    const result = await this.artCollectionsService.findAll(
+      paginationQuery.page, 
+      paginationQuery.limit
+    );
+    
+    return PaginatedResource.make(result, ArtCollectionResource);
   }
 
   @Get('my/collections')
   @ApiOperation({ summary: 'Get all collections of current user' })
-  findAllCollectionsByUserId(@Request() req: AuthenticatedRequest) {
-    return this.artCollectionsService.findAllCollectionsByUserId(req.user.userId);
+  @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number (default: 1)' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page (default: 10)' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Paginated list of user\'s art collections',
+    schema: {
+      type: 'object',
+      properties: {
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+          }
+        },
+        pagination: {
+          type: 'object',
+          properties: {
+            currentPage: { type: 'number' },
+            perPage: { type: 'number' },
+            total: { type: 'number' },
+            totalPages: { type: 'number' },
+            hasNextPage: { type: 'boolean' },
+            hasPrevPage: { type: 'boolean' },
+          }
+        }
+      }
+    }
+  })
+  async findAllCollectionsByArtistId(
+    @Request() req: AuthenticatedRequest,
+    @Query() paginationQuery: PaginationQueryDto
+  ) {
+    const result = await this.artCollectionsService.findAllCollectionsByArtistId(
+      req.user.userId,
+      paginationQuery.page,
+      paginationQuery.limit
+    );
+    
+    return PaginatedResource.make(result, ArtCollectionResource);
   }
 
   @Get('my/arts')
@@ -105,8 +181,45 @@ export class ArtCollectionsController {
 
   @Get('my/purchased-collections')
   @ApiOperation({ summary: 'Get all collections purchased by current user' })
-  findPurchasedCollections(@Request() req: AuthenticatedRequest) {
-    return this.artCollectionsService.findPurchasedCollections(req.user.userId);
+  @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number (default: 1)' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page (default: 10)' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Paginated list of purchased art collections',
+    schema: {
+      type: 'object',
+      properties: {
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+          }
+        },
+        pagination: {
+          type: 'object',
+          properties: {
+            currentPage: { type: 'number' },
+            perPage: { type: 'number' },
+            total: { type: 'number' },
+            totalPages: { type: 'number' },
+            hasNextPage: { type: 'boolean' },
+            hasPrevPage: { type: 'boolean' },
+          }
+        }
+      }
+    }
+  })
+  async findPurchasedCollections(
+    @Request() req: AuthenticatedRequest,
+    @Query() paginationQuery: PaginationQueryDto
+  ) {
+    const result = await this.artCollectionsService.findPurchasedCollections(
+      req.user.userId, 
+      paginationQuery.page, 
+      paginationQuery.limit
+    );
+    
+    return PaginatedResource.make(result, ArtCollectionResource);
   }
 
   @Get(':id/arts')

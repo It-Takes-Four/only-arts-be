@@ -166,28 +166,64 @@ export class ArtCollectionsService {
     );
   }
 
-  async findAll() {
-    const artCollections = await this.prisma.artCollection.findMany({
-      include: {
-        arts: {
-          include: {
-            art: {
-              include: {
-                tags: { include: { tag: true } },
-                comments: { include: { user: true } },
-                artist: true,
+  async findAll(page: number = 1, limit: number = 10) {
+    const skip = (page - 1) * limit;
+    
+    const [artCollections, total] = await Promise.all([
+      this.prisma.artCollection.findMany({
+        where: {
+          isPublished: true, // Only show published collections
+        },
+        include: {
+          arts: {
+            include: {
+              art: {
+                include: {
+                  tags: { include: { tag: true } },
+                  comments: { include: { user: true } },
+                  artist: true,
+                },
               },
             },
           },
+          artist: {
+            include: {
+              user: {
+                select: {
+                  username: true,
+                  profilePictureFileId: true,
+                }
+              }
+            }
+          },
         },
-        artist: true,
-      },
-    });
+        skip,
+        take: limit,
+        orderBy: {
+          createdAt: 'desc'
+        }
+      }),
+      this.prisma.artCollection.count({
+        where: {
+          isPublished: true,
+        }
+      })
+    ]);
 
-    return artCollections.map((c) => ({
-      ...c,
-      price: c.price?.toString() ?? null,
-    }))
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data: artCollections.map((c) => ({
+        ...c,
+        price: c.price?.toString() ?? null,
+      })),
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+      }
+    };
   }
 
   async findOne(id: string) {
@@ -252,73 +288,120 @@ export class ArtCollectionsService {
     return collection.arts.map((item) => item.art);
   }
 
-  async findAllCollectionsByUserId(userId: string) {
-    const collections = await this.prisma.artCollection.findMany({
-      where: {
-        artist: { userId: userId },
-      },
-      include: {
-        arts: {
-          include: {
-            art: {
-              include: {
-                tags: { include: { tag: true } },
-                comments: { include: { user: true } },
-                artist: true,
+  async findAllCollectionsByUserId(userId: string, page: number = 1, limit: number = 10) {
+    const skip = (page - 1) * limit;
+    
+    const [collections, total] = await Promise.all([
+      this.prisma.artCollection.findMany({
+        where: {
+          artist: { userId: userId },
+        },
+        include: {
+          arts: {
+            include: {
+              art: {
+                include: {
+                  tags: { include: { tag: true } },
+                  comments: { include: { user: true } },
+                  artist: true,
+                },
               },
             },
           },
-        },
-      },
-    });
-
-    return collections.map((c) => ({
-      ...c,
-      price: c.price?.toString() ?? null,
-    }));
-  }
-
-  async findAllCollectionsByArtistId(artistId: string) {
-    const collections = await this.prisma.artCollection.findMany({
-      where: {
-        artistId: artistId
-      },
-      include: {
-        arts: {
-          include: {
-            art: {
-              include: {
-                tags: { include: { tag: true } },
-                comments: { include: { user: true } },
-                artist: true,
-              },
-            },
+          artist: {
+            include: {
+              user: {
+                select: {
+                  username: true,
+                  profilePictureFileId: true,
+                }
+              }
+            }
           },
         },
-      },
-    });
+        skip,
+        take: limit,
+        orderBy: {
+          createdAt: 'desc'
+        }
+      }),
+      this.prisma.artCollection.count({
+        where: {
+          artist: { userId: userId },
+        }
+      })
+    ]);
 
-    return collections.map((c) => ({
-      ...c,
-      price: c.price?.toString() ?? null,
-    }));
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data: collections.map((c) => ({
+        ...c,
+        price: c.price?.toString() ?? null,
+      })),
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+      }
+    };
   }
 
-  async findPurchasedCollections(userId: string) {
+  async findPurchasedCollections(userId: string, page: number = 1, limit: number = 10) {
     const purchasedCollectionIds = await this.collectionAccessService.getUserPurchasedCollections(userId);
 
-    const purchasedCollections = await this.prisma.artCollection.findMany({
-      where: {
-        id: {
-          in: purchasedCollectionIds
+    const skip = (page - 1) * limit;
+    
+    const [purchasedCollections, total] = await Promise.all([
+      this.prisma.artCollection.findMany({
+        where: {
+          id: {
+            in: purchasedCollectionIds
+          }
+        },
+        include: {
+          artist: {
+            include: {
+              user: {
+                select: {
+                  username: true,
+                  profilePictureFileId: true,
+                }
+              }
+            }
+          },
+          arts: true,
+        },
+        skip,
+        take: limit,
+        orderBy: {
+          createdAt: 'desc'
         }
-      }
-    })
+      }),
+      this.prisma.artCollection.count({
+        where: {
+          id: {
+            in: purchasedCollectionIds
+          }
+        }
+      })
+    ]);
 
-    return purchasedCollections.map((collection) => ({
-      ...collection,
-      price: collection.price?.toString() ?? null,
-    }));
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data: purchasedCollections.map((collection) => ({
+        ...collection,
+        price: collection.price?.toString() ?? null,
+      })),
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+      }
+    };
   }
 
   async findAllArtsFromUserCollections(userId: string) {
