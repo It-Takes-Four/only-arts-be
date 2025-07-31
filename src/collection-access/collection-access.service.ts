@@ -76,6 +76,11 @@ export class CollectionAccessService implements OnModuleInit {
     return hasAccess
   }
 
+  async getUserPurchasedCollections(userId: string): Promise<[string] | null> {
+    const purchasedCollectionIds = await this.contract.getUserPurchasedCollections(userId)
+    return purchasedCollectionIds
+  }
+
   // Prepare transaction data for frontend
   async prepareCollectionPurchase(dto: PrepareCollectionPurchaseDtoRequest) {
     return {
