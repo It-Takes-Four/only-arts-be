@@ -190,19 +190,19 @@ export const collectionAccessABI =
     "anonymous": false,
     "inputs": [
       {
-        "indexed": true,
+        "indexed": false,
         "internalType": "string",
         "name": "buyerId",
         "type": "string"
       },
       {
-        "indexed": true,
+        "indexed": false,
         "internalType": "string",
         "name": "collectionId",
         "type": "string"
       },
       {
-        "indexed": true,
+        "indexed": false,
         "internalType": "uint256",
         "name": "tokenId",
         "type": "uint256"
@@ -259,7 +259,7 @@ export const collectionAccessABI =
     "anonymous": false,
     "inputs": [
       {
-        "indexed": true,
+        "indexed": false,
         "internalType": "address",
         "name": "recipient",
         "type": "address"
