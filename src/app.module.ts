@@ -17,6 +17,7 @@ import { ArtNftModule } from './art-nft/art-nft.module';
 import { CollectionAccessModule } from './collection-access/collection-access.module';
 import { PurchasesModule } from './purchases/purchases.module';
 import { SearchModule } from './search/search.module';
+import { ArtLikeModule } from './art-like/art-like.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { SearchModule } from './search/search.module';
     CollectionAccessModule,
     PurchasesModule,
     SearchModule,
+    ArtLikeModule,
   ],
 })
 export class AppModule {}
