@@ -248,29 +248,17 @@ export class ArtCollectionsService {
   }
 
   async findPurchasedCollections(userId: string) {
-    const purchases = await this.prisma.purchase.findMany({
-      where: { userId },
-      include: {
-        collection: {
-          include: {
-            artist: true,
-            arts: {
-              include: {
-                art: {
-                  include: {
-                    tags: { include: { tag: true } },
-                    comments: { include: { user: true } },
-                    artist: true,
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    });
+    const purchasedCollectionIds = await this.collectionAccessService.getUserPurchasedCollections(userId);
 
-    return purchases.map((purchase) => purchase.collection);
+    const purchasedCollections = this.prisma.artCollection.findMany({
+      where:{
+        id: {
+          in : purchasedCollectionIds
+        }
+      }
+    })
+
+    return purchasedCollections
   }
 
   async findAllArtsFromUserCollections(userId: string) {

@@ -76,7 +76,7 @@ export class CollectionAccessService implements OnModuleInit {
     return hasAccess
   }
 
-  async getUserPurchasedCollections(userId: string): Promise<[string] | null> {
+  async getUserPurchasedCollections(userId: string): Promise<string[]> {
     const purchasedCollectionIds = await this.contract.getUserPurchasedCollections(userId)
     return purchasedCollectionIds
   }
