@@ -17,6 +17,7 @@ export class UsersService {
       include: this.userInclude(),
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     return users.map(({ password, ...user }) => user);
   }
 
@@ -30,6 +31,34 @@ export class UsersService {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...safeUser } = user;
+    return safeUser;
+  }
+
+  async findByIdMinimal(id: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      include: {
+        artist: {
+          select: {
+            id: true,
+            artistName: true,
+            bio: true,
+            walletAddress: true,
+            isVerified: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...safeUser } = user;
     return safeUser;
   }
@@ -67,6 +96,7 @@ export class UsersService {
       },
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...safeUser } = user;
     return safeUser;
   }
@@ -81,6 +111,7 @@ export class UsersService {
       data: dto,
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...safeUser } = user;
     return safeUser;
   }
@@ -92,9 +123,11 @@ export class UsersService {
         where: { id },
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password, ...safeUser } = deleted;
       return safeUser;
-    } catch (error) {
+    } catch (error: any) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       if (error.code === 'P2003') {
         throw new InternalServerErrorException(
           'User cannot be deleted due to related records. Consider soft-deleting instead.',

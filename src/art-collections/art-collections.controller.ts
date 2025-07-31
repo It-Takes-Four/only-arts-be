@@ -110,6 +110,12 @@ export class ArtCollectionsController {
     return this.artCollectionsService.findAllArtsFromUserCollections(req.user.userId);
   }
 
+  @Get('my/purchased-collections')
+  @ApiOperation({ summary: 'Get all collections purchased by current user' })
+  findPurchasedCollections(@Request() req: AuthenticatedRequest) {
+    return this.artCollectionsService.findPurchasedCollections(req.user.userId);
+  }
+
   @Patch(':id')
   @ApiOperation({ summary: 'Update an art collection by ID' })
   @ApiParam({ name: 'id', type: String, description: 'Art collection ID' })

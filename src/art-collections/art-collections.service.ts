@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateArtCollectionDtoRequest } from './dto/request/create-art-collection.dto';
 import { UpdateArtCollectionDtoRequest } from './dto/request/update-art-collection.dto';
@@ -11,7 +16,10 @@ import { PurchasesService } from 'src/purchases/purchases.service';
 import { PrepareCollectionPurchaseDtoRequest } from './dto/request/prepare-collection-purchase.dto';
 import { CompletePurchaseDtoRequest } from './dto/request/complete-purchase.dto';
 import { CompletePurchaseDtoResponse } from './dto/response/complete-purchase.dto';
-import { FileUploadService, UploadedFile } from 'src/shared/services/file-upload.service';
+import {
+  FileUploadService,
+  UploadedFile,
+} from 'src/shared/services/file-upload.service';
 import { FileType } from '@prisma/client';
 import { ParsePriceToDecimal } from 'src/shared/utils';
 
@@ -23,34 +31,46 @@ export class ArtCollectionsService {
     private readonly artistsService: ArtistsService,
     private readonly collectionAccessService: CollectionAccessService,
     private readonly purchasesService: PurchasesService,
-    private readonly fileUploadService: FileUploadService
-  ) { }
+    private readonly fileUploadService: FileUploadService,
+  ) {}
 
-  async create(dto: CreateArtCollectionDtoRequest, imageCover: Express.Multer.File | undefined, userId: string) {
+  async create(
+    dto: CreateArtCollectionDtoRequest,
+    imageCover: Express.Multer.File | undefined,
+    userId: string,
+  ) {
     // Get the artist record for the authenticated user
     const artist = await this.artistsService.findByUserId(userId);
 
     const collectionId = uuidv4();
-    const createCollectionResult = await this.artNftService.createCollection(artist.id, collectionId);
+    const createCollectionResult = await this.artNftService.createCollection(
+      artist.id,
+      collectionId,
+    );
     const tokenId = BigInt(createCollectionResult.tokenId);
 
     const validFile = imageCover as UploadedFile;
-    const saveFileResult = await this.fileUploadService.saveFile(validFile, FileType.collections);
-    const coverImageFileId = saveFileResult.fileId
+    const saveFileResult = await this.fileUploadService.saveFile(
+      validFile,
+      FileType.collections,
+    );
+    const coverImageFileId = saveFileResult.fileId;
 
     await this.prisma.artCollection.create({
       data: {
         id: collectionId,
         collectionName: dto.collectionName,
         artistId: artist.id,
-        coverImageFileId: coverImageFileId
+        coverImageFileId: coverImageFileId,
       },
     });
 
-    return new CreateArtCollectionDtoResponse(artist.id, collectionId, tokenId.toString())
+    return new CreateArtCollectionDtoResponse(
+      artist.id,
+      collectionId,
+      tokenId.toString(),
+    );
   }
-
-
 
   async validatePurchase(collectionId: string, buyerUserId: string) {
     // Check if collection exists
@@ -61,7 +81,10 @@ export class ArtCollectionsService {
     }
 
     // Verify that user does not have access yet
-    const hasAccess = await this.collectionAccessService.hasAccessToCollection(buyerUserId, collectionId)
+    const hasAccess = await this.collectionAccessService.hasAccessToCollection(
+      buyerUserId,
+      collectionId,
+    );
 
     if (hasAccess) {
       throw new BadRequestException('Buyer already has access to collection');
@@ -72,10 +95,13 @@ export class ArtCollectionsService {
     const artCollection = await this.findOne(dto.collectionId);
 
     if (artCollection == null || !artCollection.isPublished) {
-      throw new BadRequestException("Collection not found")
+      throw new BadRequestException('Collection not found');
     }
 
-    const hasAccess = await this.collectionAccessService.hasAccessToCollection(dto.buyerId, dto.collectionId)
+    const hasAccess = await this.collectionAccessService.hasAccessToCollection(
+      dto.buyerId,
+      dto.collectionId,
+    );
 
     if (hasAccess) {
       throw new BadRequestException('Buyer already has access to collection');
@@ -93,37 +119,46 @@ export class ArtCollectionsService {
       price,
     };
 
-    return await this.collectionAccessService.prepareCollectionPurchase(updatedDto)
+    return await this.collectionAccessService.prepareCollectionPurchase(
+      updatedDto,
+    );
   }
 
   async completePurchase(dto: CompletePurchaseDtoRequest) {
     const artCollection = await this.findOne(dto.collectionId);
 
     if (artCollection == null || !artCollection.isPublished) {
-      throw new BadRequestException("Collection not found")
+      throw new BadRequestException('Collection not found');
     }
 
-    const price = artCollection.price!.toNumber()
+    const price = artCollection.price!.toNumber();
 
     // Create a new purchase record
     await this.purchasesService.createNewPurchase({
       collectionId: dto.collectionId,
       price: price,
       txHash: dto.txHash,
-      userId: dto.buyerId
-    })
+      userId: dto.buyerId,
+    });
 
     // Verify the purchase record from the contract
-    const result = await this.collectionAccessService.verifyPurchase(dto.txHash);
+    const result = await this.collectionAccessService.verifyPurchase(
+      dto.txHash,
+    );
 
     if (!result) {
-      return new InternalServerErrorException('Could not verify transaction')
+      return new InternalServerErrorException('Could not verify transaction');
     }
 
     // Update purchase record status to COMPLETED
-    await this.purchasesService.completePurchase(dto.txHash)
+    await this.purchasesService.completePurchase(dto.txHash);
 
-    return new CompletePurchaseDtoResponse(dto.collectionId, dto.buyerId, price, dto.txHash)
+    return new CompletePurchaseDtoResponse(
+      dto.collectionId,
+      dto.buyerId,
+      price,
+      dto.txHash,
+    );
   }
 
   async findAll() {
@@ -210,7 +245,33 @@ export class ArtCollectionsService {
       },
     });
 
-    return collections
+    return collections;
+  }
+
+  async findPurchasedCollections(userId: string) {
+    const purchases = await this.prisma.purchase.findMany({
+      where: { userId },
+      include: {
+        collection: {
+          include: {
+            artist: true,
+            arts: {
+              include: {
+                art: {
+                  include: {
+                    tags: { include: { tag: true } },
+                    comments: { include: { user: true } },
+                    artist: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return purchases.map((purchase) => purchase.collection);
   }
 
   async findAllArtsFromUserCollections(userId: string) {
@@ -236,7 +297,7 @@ export class ArtCollectionsService {
     return collections.flatMap((collection) =>
       collection.arts.map((item) => item.art),
     );
-  };
+  }
 
   update(id: string, dto: UpdateArtCollectionDtoRequest) {
     return this.prisma.artCollection.update({

@@ -7,6 +7,7 @@ import { ApiBody, ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { CreateUserDto, CreateUserData } from 'src/users/dto/create-user.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { AuthenticatedRequest } from './types/auth.types';
+import { UserProfileResource } from 'src/users/resources/user-profile.resource';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -34,6 +35,7 @@ export class AuthController {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...safeUser } = user;
     return this.authService.generateJwt(safeUser);
   }
@@ -61,6 +63,7 @@ export class AuthController {
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get current authenticated user profile' })
   async getMe(@Request() req: AuthenticatedRequest) {
-    return this.usersService.findById(req.user.userId);
+    const user = await this.usersService.findByIdMinimal(req.user.userId);
+    return UserProfileResource.make(user, { removeNulls: true });
   }
 }
