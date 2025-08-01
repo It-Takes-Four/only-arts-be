@@ -21,13 +21,13 @@ import { ArtLikeModule } from './art-like/art-like.module';
 
 @Module({
   imports: [
+    AuthModule,
     PrismaModule,
     SearchModule,
     UsersModule,
     ArtistsModule,
     ArtsModule,
     CommentsModule,
-    AuthModule,
     ArtCollectionsModule,
     ArtTagsModule,
     FollowersModule,
