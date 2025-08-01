@@ -12,8 +12,8 @@ import { FileType } from '@prisma/client';
 @Injectable()
 export class ArtsService {
   constructor(
-    private readonly prisma: PrismaService, 
-    private readonly artNftService: ArtNftService, 
+    private readonly prisma: PrismaService,
+    private readonly artNftService: ArtNftService,
     private readonly artistsService: ArtistsService,
     private readonly fileUploadService: FileUploadService
   ) { }
@@ -34,7 +34,15 @@ export class ArtsService {
     const art = await this.prisma.art.findUnique({
       where: { id },
       include: {
-        artist: true,
+        artist: {
+          include: {
+            user: {
+              select: {
+                profilePictureFileId: true
+              }
+            }
+          }
+        },
         comments: true,
         tags: { include: { tag: true } },
         collections: true,
@@ -59,7 +67,7 @@ export class ArtsService {
   async createWithTags(dto: CreateArtDtoRequest, file: Express.Multer.File, userId: string) {
     // Get the artist record for the authenticated user
     const artist = await this.artistsService.findByUserId(userId);
-    
+
     const validFile = file as UploadedFile;
     const artId = uuidv4();
     const tagIds = dto.tagIds?.length ? dto.tagIds : [];
@@ -74,7 +82,7 @@ export class ArtsService {
       data: {
         id: artId,
         tokenId: tokenId,
-        title: dto.title, 
+        title: dto.title,
         description: dto.description,
         imageFileId: imageFileId,
         artistId: artist.id,
