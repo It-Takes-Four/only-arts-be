@@ -27,25 +27,10 @@ export class ExploreService {
     const limitNum = Number(limit) || 20;
     const skip = (pageNum - 1) * limitNum;
 
-    // Build the where clause
-    const whereClause: {
-      tags?: {
-        some: {
-          tagId: string;
-        };
-      };
-      OR?: Array<{
-        title?: {
-          contains: string;
-          mode: 'insensitive';
-        };
-        description?: {
-          contains: string;
-          mode: 'insensitive';
-        };
-      }>;
-    } = {};
-    
+    const whereClause: any = {
+      isInACollection: false,
+    };
+
     if (tagId) {
       whereClause.tags = {
         some: {
@@ -180,9 +165,11 @@ export class ExploreService {
     const limitNum = Number(limit) || 20;
     const skip = (pageNum - 1) * limitNum;
 
+    const filter = { artistId, isInACollection: false };
+
     const [arts, total] = await Promise.all([
       this.prisma.art.findMany({
-        where: { artistId },
+        where: filter,
         include: {
           artist: {
             select: {
@@ -206,7 +193,7 @@ export class ExploreService {
         skip,
         take: limitNum,
       }),
-      this.prisma.art.count({ where: { artistId } }),
+      this.prisma.art.count({ where: filter }),
     ]);
 
     const exploreArts: ExploreArt[] = arts.map((art) => ({
