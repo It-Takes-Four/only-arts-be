@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateFollowerDto } from './dto/create-follower.dto';
 import { UpdateFollowerDto } from './dto/update-follower.dto';
@@ -7,31 +11,40 @@ import { UpdateFollowerDto } from './dto/update-follower.dto';
 export class FollowersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(userId: string, artistId: string) {
-    const existing = await this.prisma.follower.findFirst({
-      where: {
-        userId,
-        artistId,
-      },
-    });
-
-    if (existing) {
-      throw new ConflictException('You already follow this artist');
+  async follow(userId: string, artistId: string) {
+    if (userId === artistId) {
+      throw new ConflictException("You can't follow yourself");
     }
 
-    const artistExists = await this.prisma.artist.findUnique({
-      where: { id: artistId },
-    });
+    const [existingFollow, artistExists] = await Promise.all([
+      this.prisma.follower.findFirst({ where: { userId, artistId } }),
+      this.prisma.artist.findUnique({ where: { id: artistId } }),
+    ]);
 
     if (!artistExists) {
       throw new NotFoundException('Artist not found');
     }
 
+    if (existingFollow) {
+      throw new ConflictException('You already follow this artist');
+    }
+
     return this.prisma.follower.create({
-      data: {
-        userId,
-        artistId,
-      },
+      data: { userId, artistId },
+    });
+  }
+
+  async unfollow(userId: string, artistId: string) {
+    const existingFollow = await this.prisma.follower.findFirst({
+      where: { userId, artistId },
+    });
+
+    if (!existingFollow) {
+      throw new NotFoundException('Follow relationship not found');
+    }
+
+    return this.prisma.follower.delete({
+      where: { id: existingFollow.id },
     });
   }
 
@@ -59,7 +72,8 @@ export class FollowersService {
       include: { user: true, artist: true },
     });
 
-    if (!follow) throw new NotFoundException(`Follower with ID ${id} not found`);
+    if (!follow)
+      throw new NotFoundException(`Follower with ID ${id} not found`);
     return follow;
   }
 
@@ -79,13 +93,9 @@ export class FollowersService {
 
   async findOne(id: string) {
     const follow = await this.prisma.follower.findUnique({ where: { id } });
-    if (!follow) throw new NotFoundException(`Follower with ID ${id} not found`);
+    if (!follow)
+      throw new NotFoundException(`Follower with ID ${id} not found`);
     return follow;
-  }
-
-  async remove(id: string) {
-    await this.findOne(id); 
-    return this.prisma.follower.delete({ where: { id } });
   }
 
   update(id: string, dto: UpdateFollowerDto) {

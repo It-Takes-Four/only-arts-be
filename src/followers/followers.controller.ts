@@ -46,7 +46,7 @@ export class FollowersController {
       throw new ConflictException("You can't follow yourself");
     }
 
-    return this.followersService.create(userId, artistId);
+    return this.followersService.follow(userId, artistId);
   }
 
   @Get()
@@ -84,10 +84,15 @@ export class FollowersController {
     return this.followersService.update(id, updateFollowerDto);
   }
 
-  @Delete(':id')
-  @ApiOperation({ summary: 'Remove a follower relationship' })
-  @ApiParam({ name: 'id', description: 'UUID of the follow record to delete' })
-  removeFollow(@Param('id') id: string) {
-    return this.followersService.remove(id);
+  @Delete(':artistId/unfollow')
+  @ApiOperation({ summary: 'Unfollow an artist' })
+  @ApiParam({ name: 'artistId', description: 'UUID of the artist to unfollow' })
+  async unfollowArtist(
+    @Param('artistId') artistId: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    const userId = req.user.userId;
+    return this.followersService.unfollow(userId, artistId);
   }
+
 }
