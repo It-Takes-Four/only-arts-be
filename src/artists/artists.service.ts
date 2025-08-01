@@ -166,6 +166,26 @@ export class ArtistsService {
     });
   }
 
+  async updateWalletAddress(userId: string, walletAddress: string) {
+    const artist = await this.findByUserIdSimple(userId);
+    return this.prisma.artist.update({
+      where: { id: artist.id },
+      data: { walletAddress },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            username: true,
+            profilePictureFileId: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
+      },
+    });
+  }
+
   async deleteByUserId(userId: string) {
     const artist = await this.findByUserId(userId);
     return this.prisma.artist.delete({

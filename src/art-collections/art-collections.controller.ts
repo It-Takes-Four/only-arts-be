@@ -162,26 +162,51 @@ export class ArtCollectionsController {
     name: 'page',
     required: false,
     type: Number,
-    description: 'Page number',
+    description: 'Page number (default: 1)',
   })
   @ApiQuery({
     name: 'limit',
     required: false,
     type: Number,
-    description: 'Items per page',
+    description: 'Items per page (default: 10)',
   })
-  getCollectionByArtistId(
+  @ApiResponse({
+    status: 200,
+    description: 'Paginated list of art collections by artist',
+    schema: {
+      type: 'object',
+      properties: {
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+          },
+        },
+        pagination: {
+          type: 'object',
+          properties: {
+            currentPage: { type: 'number' },
+            perPage: { type: 'number' },
+            total: { type: 'number' },
+            totalPages: { type: 'number' },
+            hasNextPage: { type: 'boolean' },
+            hasPrevPage: { type: 'boolean' },
+          },
+        },
+      },
+    },
+  })
+  async getCollectionByArtistId(
     @Param('artistId') artistId: string,
-    @Query('page') page: string,
-    @Query('limit') limit: string,
+    @Query() paginationQuery: PaginationQueryDto,
   ) {
-    const pageNumber = parseInt(page) || 1;
-    const limitNumber = parseInt(limit) || 10;
-    return this.artCollectionsService.findAllCollectionsByArtistId(
+    const result = await this.artCollectionsService.findAllCollectionsByArtistId(
       artistId,
-      pageNumber,
-      limitNumber,
+      paginationQuery.page,
+      paginationQuery.limit,
     );
+
+    return PaginatedResource.make(result, ArtCollectionResource);
   }
 
   @Get('my/collections')
