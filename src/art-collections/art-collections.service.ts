@@ -475,7 +475,6 @@ export class ArtCollectionsService {
             art: {
               include: {
                 tags: { include: { tag: true } },
-                comments: { include: { user: true } },
                 artist: true,
               },
             },

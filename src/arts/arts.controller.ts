@@ -41,19 +41,19 @@ export class ArtController {
   getAllArt() {
     return this.artService.findAll();
   }
+  
+  @Get('artist/:artistId')
+  @ApiOperation({ summary: 'Get all artworks by artist ID' })
+  @ApiParam({ name: 'artistId', description: 'UUID of the artist' })
+  getArtByArtist(@Param('artistId') artistId: string) {
+    return this.artService.findByArtist(artistId);
+  }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get artwork by ID' })
   @ApiParam({ name: 'id', description: 'UUID of the artwork' })
   getArtById(@Param('id') id: string) {
     return this.artService.findById(id);
-  }
-
-  @Get('artist/:artistId')
-  @ApiOperation({ summary: 'Get all artworks by artist ID' })
-  @ApiParam({ name: 'artistId', description: 'UUID of the artist' })
-  getArtByArtist(@Param('artistId') artistId: string) {
-    return this.artService.findByArtist(artistId);
   }
 
   @Post()

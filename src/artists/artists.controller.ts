@@ -10,12 +10,14 @@ import {
   UseGuards,
   Request,
   ConflictException,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiBody,
   ApiBearerAuth,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { ArtistsService } from './artists.service';
 import { CreateArtistDto } from './dto/create-artist.dto';
@@ -23,6 +25,7 @@ import { UpdateArtistDto } from './dto/update-artist.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { UsersService } from 'src/users/users.service';
 import { AuthenticatedRequest } from 'src/auth/types/auth.types';
+import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth('JWT-auth')
@@ -36,9 +39,21 @@ export class ArtistsController {
   ) {}
 
   @Get()
-  @ApiOperation({ summary: 'Get all artists' })
-  getAllArtists() {
-    return this.artistService.findAll();
+  @ApiOperation({ summary: 'Get all artists with pagination' })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: Number,
+    description: 'Page number',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Items per page',
+  })
+  getAllArtists(@Query() pagination: PaginationQueryDto) {
+    return this.artistService.findAll(pagination);
   }
 
   @Get('me')

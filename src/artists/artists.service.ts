@@ -2,28 +2,47 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
+import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 
 @Injectable()
 export class ArtistsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll() {
-    return this.prisma.artist.findMany({
-      include: {
-        user: true,
-        collections: true,
-        feed: true,
-        followers: true,
-        notifications: true,
-        arts: {
-          include: {
-            collections: { include: { collection: true } },
-            tags: { include: { tag: true } },
-            comments: { include: { user: true } },
+  async findAll(pagination: PaginationQueryDto) {
+    const { page = 1, limit = 10 } = pagination;
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.artist.findMany({
+        skip,
+        take: limit,
+        include: {
+          user: true,
+          collections: true,
+          feed: true,
+          followers: true,
+          notifications: true,
+          arts: {
+            include: {
+              collections: { include: { collection: true } },
+              tags: { include: { tag: true } },
+              comments: { include: { user: true } },
+            },
           },
         },
+      }),
+      this.prisma.artist.count(),
+    ]);
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        pageCount: Math.ceil(total / limit),
       },
-    });
+    };
   }
 
   async findById(id: string) {
