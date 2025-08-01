@@ -194,7 +194,6 @@ export class UsersService {
           },
           feed: true,
           followers: { include: { user: true } },
-          notifications: true,
         },
       },
       comments: { include: { art: true } },
