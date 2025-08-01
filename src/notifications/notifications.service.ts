@@ -115,4 +115,8 @@ export class NotificationsService {
       },
     });
   }
+
+  async sendNotificationsToUserFollower(userId: string, message: string){
+
+  }
 }
