@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { BadRequestException, Injectable, OnModuleInit } from '@nestjs/common';
 import { LikeArtDtoRequest } from './dto/request/like-art.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 
@@ -7,48 +7,31 @@ export class ArtLikeService {
   constructor(private readonly prisma: PrismaService) { }
 
   async likeArt(dto: LikeArtDtoRequest) {
-    return await this.prisma.$transaction(async (tx) => {
-      const existingLike = await tx.artLike.findUnique({
+    try {
+      return await this.prisma.artLike.create({
+        data: {
+          userId: dto.userId,
+          artId: dto.artId,
+        }
+      })
+    } catch (error) {
+      throw new BadRequestException("User already liked this art")
+    }
+  }
+
+  async unlikeArt(dto: LikeArtDtoRequest) {
+    try {
+      return await this.prisma.artLike.delete({
         where: {
           userId_artId: {
             userId: dto.userId,
             artId: dto.artId
           }
         }
-      });
-
-      if (existingLike) {
-        await tx.artLike.delete({
-          where: {
-            userId_artId: {
-              userId: dto.userId,
-              artId: dto.artId
-            }
-          }
-        });
-
-        await tx.art.update({
-          where: { id: dto.artId },
-          data: { likesCount: { decrement: 1 } }
-        });
-
-        return { liked: false, message: 'Art unliked successfully' };
-      } else {
-        await tx.artLike.create({
-          data: {
-            userId: dto.userId,
-            artId: dto.artId
-          }
-        });
-
-        await tx.art.update({
-          where: { id: dto.artId },
-          data: { likesCount: { increment: 1 } }
-        });
-
-        return { liked: true, message: 'Art liked successfully' };
-      }
-    });
+      })
+    } catch (error) {
+      throw new BadRequestException("User has not liked this art")
+    }
   }
 
   async checkUserArtLike(userId: string, artId: string): Promise<boolean> {

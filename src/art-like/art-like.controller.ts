@@ -13,9 +13,14 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 export class ArtLikeController {
   constructor(private readonly artLikeService: ArtLikeService) { }
 
-  @Post('toggle')
+  @Post('like')
   async likeArt(@Body() dto: LikeArtDtoRequest) {
     return await this.artLikeService.likeArt(dto);
+  }
+
+  @Post('unlike')
+  async unlikeArt(@Body() dto: LikeArtDtoRequest) {
+    return await this.artLikeService.unlikeArt(dto);
   }
 
   @Get('check')

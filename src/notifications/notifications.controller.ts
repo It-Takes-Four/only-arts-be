@@ -9,6 +9,7 @@ import {
   UsePipes,
   ValidationPipe,
   UseGuards,
+  Request,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -21,6 +22,7 @@ import { NotificationsService } from './notifications.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { UpdateNotificationDto } from './dto/update-notification.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { AuthenticatedRequest } from 'src/auth/types/auth.types';
 
 @ApiTags('Notifications')
 @ApiBearerAuth('JWT-auth')
@@ -34,6 +36,12 @@ export class NotificationsController {
   @ApiOperation({ summary: 'Get all notifications' })
   getAll() {
     return this.notificationsService.findAll();
+  }
+
+  @Get('my')
+  @ApiOperation({ summary: 'Get all notifications from current user' })
+  getMyNotifications(@Request() req: AuthenticatedRequest) {
+    return this.notificationsService.findByUser(req.user.userId);
   }
 
   @Get(':id')
