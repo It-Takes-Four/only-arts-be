@@ -24,6 +24,7 @@ import {
 import { ArtistsService } from './artists.service';
 import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
+import { UpdateWalletAddressDto } from './dto/update-wallet-address.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { UsersService } from 'src/users/users.service';
 import { AuthenticatedRequest } from 'src/auth/types/auth.types';
@@ -40,6 +41,16 @@ export class ArtistsController {
     private readonly artistService: ArtistsService,
     private readonly usersService: UsersService,
   ) {}
+
+  @Get(':artistId/wallet')
+  @ApiOperation({ summary: 'Get artist wallet address by artist ID' })
+  @ApiParam({ name: 'artistId', description: 'Artist ID', type: 'string' })
+  async getArtistWalletAddress(@Param('artistId') artistId: string) {
+    const artist = await this.artistService.findByIdSimple(artistId);
+    return {
+      walletAddress: artist.walletAddress,
+    };
+  }
 
   @Get()
   @ApiOperation({ summary: 'Get all artists with pagination' })
@@ -110,5 +121,28 @@ export class ArtistsController {
   @ApiOperation({ summary: 'Delete current artist account' })
   deleteMyArtistProfile(@Request() req: AuthenticatedRequest) {
     return this.artistService.deleteByUserId(req.user.userId);
+  }
+
+  @Get('me/wallet')
+  @ApiOperation({ summary: 'Get current artist wallet address' })
+  async getMyWalletAddress(@Request() req: AuthenticatedRequest) {
+    const artist = await this.artistService.findByUserIdSimple(req.user.userId);
+    return {
+      walletAddress: artist.walletAddress,
+    };
+  }
+
+  @Patch('me/wallet')
+  @ApiOperation({ summary: 'Update current artist wallet address' })
+  @ApiBody({ type: UpdateWalletAddressDto })
+  async updateMyWalletAddress(
+    @Request() req: AuthenticatedRequest,
+    @Body() body: UpdateWalletAddressDto,
+  ) {
+    const artist = await this.artistService.updateWalletAddress(req.user.userId, body.walletAddress);
+    return {
+      message: 'Wallet address updated successfully',
+      walletAddress: artist.walletAddress,
+    };
   }
 }
