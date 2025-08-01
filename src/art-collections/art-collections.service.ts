@@ -192,17 +192,6 @@ export class ArtCollectionsService {
           isPublished: true, // Only show published collections
         },
         include: {
-          arts: {
-            include: {
-              art: {
-                include: {
-                  tags: { include: { tag: true } },
-                  comments: { include: { user: true } },
-                  artist: true,
-                },
-              },
-            },
-          },
           artist: {
             include: {
               user: {
@@ -213,6 +202,7 @@ export class ArtCollectionsService {
               }
             }
           },
+          arts: true, // Only count, don't include full art data
         },
         skip,
         take: limit,
@@ -314,17 +304,6 @@ export class ArtCollectionsService {
           artist: { userId: userId },
         },
         include: {
-          arts: {
-            include: {
-              art: {
-                include: {
-                  tags: { include: { tag: true } },
-                  comments: { include: { user: true } },
-                  artist: true,
-                },
-              },
-            },
-          },
           artist: {
             include: {
               user: {
@@ -335,6 +314,7 @@ export class ArtCollectionsService {
               }
             }
           },
+          arts: true, // Only count, don't include full art data
         },
         skip,
         take: limit,
