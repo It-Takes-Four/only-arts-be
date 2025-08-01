@@ -21,7 +21,6 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 import { FollowersService } from './followers.service';
-import { CreateFollowerDto } from './dto/create-follower.dto';
 import { UpdateFollowerDto } from './dto/update-follower.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { AuthenticatedRequest } from 'src/auth/types/auth.types';
@@ -31,7 +30,18 @@ import { AuthenticatedRequest } from 'src/auth/types/auth.types';
 @ApiTags('Followers')
 @Controller('followers')
 export class FollowersController {
-  constructor(private readonly followersService: FollowersService) {}
+  constructor(private readonly followersService: FollowersService) { }
+
+  @Get('is-following/:artistId')
+  @ApiOperation({ summary: 'Check if current user follows a specific artist' })
+  @ApiParam({ name: 'artistId', description: 'UUID of the artist' })
+  async isFollowing(
+    @Param('artistId') artistId: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    const userId = req.user.userId;
+    return this.followersService.isFollowing(userId, artistId);
+  }
 
   @Post(':artistId')
   @ApiOperation({ summary: 'Follow an artist' })

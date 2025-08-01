@@ -9,7 +9,7 @@ import { UpdateFollowerDto } from './dto/update-follower.dto';
 
 @Injectable()
 export class FollowersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async follow(userId: string, artistId: string) {
     if (userId === artistId) {
@@ -46,6 +46,17 @@ export class FollowersService {
     return this.prisma.follower.delete({
       where: { id: existingFollow.id },
     });
+  }
+
+  async isFollowing(userId: string, artistId: string) {
+    const result = await this.prisma.follower.findFirst({
+      where:{
+        userId: userId,
+        artistId: artistId
+      }
+    })
+
+    return !!result
   }
 
   findAll() {
