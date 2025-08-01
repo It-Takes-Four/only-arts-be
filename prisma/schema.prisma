@@ -46,7 +46,6 @@ model Artist {
   arts             Art[]
   feed             Feed[]
   followers        Follower[]      @relation("ArtistFollower")
-  notifications    Notification[]
 
   @@index([artistName])
   @@index([walletAddress])
@@ -58,14 +57,13 @@ model Notification {
   id        String   @id @default(uuid()) @db.Uuid
   message   String
   userId    String   @db.Uuid
-  artistId  String?  @db.Uuid
+  notificationItemId String? @db.Uuid
+  notificationType   NotificationType @default(arts)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  artist    Artist?  @relation(fields: [artistId], references: [id])
   user      User     @relation(fields: [userId], references: [id])
 
   @@index([userId])
-  @@index([artistId])
   @@map("notifications")
 }
 
@@ -259,4 +257,10 @@ enum FileType {
   arts
   collections
   profiles
+}
+
+enum NotificationType {
+  arts
+  collections
+  payments
 }

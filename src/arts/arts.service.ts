@@ -8,6 +8,7 @@ import { ArtistsService } from 'src/artists/artists.service';
 import { v4 as uuidv4 } from 'uuid';
 import { FileUploadService, UploadedFile } from 'src/shared/services/file-upload.service';
 import { FileType } from '@prisma/client';
+import { NotificationsService } from 'src/notifications/notifications.service';
 
 @Injectable()
 export class ArtsService {
@@ -15,7 +16,8 @@ export class ArtsService {
     private readonly prisma: PrismaService,
     private readonly artNftService: ArtNftService,
     private readonly artistsService: ArtistsService,
-    private readonly fileUploadService: FileUploadService
+    private readonly fileUploadService: FileUploadService,
+    private readonly notificationsService: NotificationsService
   ) { }
 
   async findAll() {
@@ -97,6 +99,8 @@ export class ArtsService {
         tags: { include: { tag: true } },
       },
     });
+
+    
 
     return new CreateArtResponse(artist.id, artId, tokenId.toString())
   }
