@@ -6,7 +6,6 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateArtCollectionDtoRequest } from './dto/request/create-art-collection.dto';
-import { UpdateArtCollectionDtoRequest } from './dto/request/update-art-collection.dto';
 import { ArtNftService } from 'src/art-nft/art-nft.service';
 import { ArtistsService } from 'src/artists/artists.service';
 import { v4 as uuidv4 } from 'uuid';
@@ -22,6 +21,7 @@ import {
 } from 'src/shared/services/file-upload.service';
 import { FileType, NotificationType } from '@prisma/client';
 import { NotificationsService } from 'src/notifications/notifications.service';
+import { UpdateCollectionContentDtoRequest } from './dto/request/update-collection-content.dto';
 
 @Injectable()
 export class ArtCollectionsService {
@@ -486,25 +486,60 @@ export class ArtCollectionsService {
     );
   }
 
-  async update(id: string, dto: UpdateArtCollectionDtoRequest) {
-    const existingCollection = await this.prisma.artCollection.findUnique({
-      where: { id },
+  async updateCollectionContent(
+    collectionId: string,
+    dto: UpdateCollectionContentDtoRequest,
+    userId: string,
+  ) {
+    const collection = await this.prisma.artCollection.findUnique({
+      where: { id: collectionId },
+      include: {
+        artist: true,
+      },
     });
 
-    if (!existingCollection) {
-      throw new NotFoundException(`Art collection with ID ${id} not found`);
+    if (!collection) {
+      throw new NotFoundException('Collection not found');
     }
 
-    if (existingCollection.isPublished && dto.price !== undefined) {
+    if (collection.artist.userId !== userId) {
       throw new BadRequestException(
-        'Cannot update price after collection is published',
+        'You are not authorized to modify this collection',
       );
     }
 
-    return this.prisma.artCollection.update({
-      where: { id },
-      data: dto,
-    });
+    if (collection.isPublished) {
+      throw new BadRequestException('Cannot modify a published collection');
+    }
+
+    const updateData: any = {};
+
+    if (dto.price !== undefined) {
+      updateData.price = dto.price;
+    }
+
+    if (dto.artIds !== undefined) {
+      await this.prisma.artToCollection.deleteMany({
+        where: { collectionId },
+      });
+
+      const newRelations = dto.artIds.map((artId) => ({
+        id: uuidv4(),
+        artId,
+        collectionId,
+      }));
+
+      await this.prisma.artToCollection.createMany({ data: newRelations });
+    }
+
+    if (Object.keys(updateData).length > 0) {
+      await this.prisma.artCollection.update({
+        where: { id: collectionId },
+        data: updateData,
+      });
+    }
+
+    return { message: 'Collection updated successfully' };
   }
 
   remove(id: string) {

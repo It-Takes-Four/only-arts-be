@@ -11,10 +11,10 @@ import {
   UploadedFile,
   UseInterceptors,
   Query,
+  HttpCode,
 } from '@nestjs/common';
 import { ArtCollectionsService } from './art-collections.service';
 import { CreateArtCollectionDtoRequest } from './dto/request/create-art-collection.dto';
-import { UpdateArtCollectionDtoRequest } from './dto/request/update-art-collection.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import {
   ApiBearerAuth,
@@ -33,6 +33,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { PaginatedResource } from 'src/common/resources/paginated.resource';
 import { ArtCollectionResource } from './resources/art-collection.resource';
+import { UpdateCollectionContentDtoRequest } from './dto/request/update-collection-content.dto';
 
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth('JWT-auth')
@@ -340,18 +341,22 @@ export class ArtCollectionsController {
     return this.artCollectionsService.findOne(id);
   }
 
-  @Patch(':id')
-  @ApiOperation({ summary: 'Update an art collection by ID' })
-  @ApiParam({ name: 'id', type: String, description: 'Art collection ID' })
-  @ApiBody({
-    type: UpdateArtCollectionDtoRequest,
-    description: 'Payload for updating an art collection',
+  @Patch(':id/content')
+  @ApiOperation({
+    summary: 'Update price and/or arts of an unpublished collection',
   })
-  update(
-    @Param('id') id: string,
-    @Body() updateArtCollectionDto: UpdateArtCollectionDtoRequest,
+  @ApiParam({ name: 'id', type: String, description: 'Collection ID' })
+  @UseGuards(JwtAuthGuard)
+  updateCollectionContent(
+    @Param('id') collectionId: string,
+    @Body() body: UpdateCollectionContentDtoRequest,
+    @Request() req: AuthenticatedRequest,
   ) {
-    return this.artCollectionsService.update(id, updateArtCollectionDto);
+    return this.artCollectionsService.updateCollectionContent(
+      collectionId,
+      body,
+      req.user.userId,
+    );
   }
 
   @Delete(':id')
