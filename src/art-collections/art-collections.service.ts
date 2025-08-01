@@ -33,7 +33,7 @@ export class ArtCollectionsService {
     private readonly purchasesService: PurchasesService,
     private readonly fileUploadService: FileUploadService,
     private readonly notificationsService: NotificationsService,
-  ) {}
+  ) { }
 
   async create(
     dto: CreateArtCollectionDtoRequest,
@@ -75,11 +75,13 @@ export class ArtCollectionsService {
       userId: userId,
     });
 
-    return new CreateArtCollectionDtoResponse(
-      artist.id,
-      collectionId,
-      tokenId.toString(),
-    );
+    return await this.findOne(createArtCollectionPrismaResult.id)
+
+    // return new CreateArtCollectionDtoResponse(
+    //   artist.id,
+    //   collectionId,
+    //   tokenId.toString(),
+    // );
   }
 
   async validatePurchase(collectionId: string, buyerUserId: string) {
