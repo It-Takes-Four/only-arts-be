@@ -92,6 +92,49 @@ export class ArtistsService {
     return artist;
   }
 
+  async findByUserIdSimple(userId: string) {
+    const artist = await this.prisma.artist.findUnique({
+      where: { userId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            username: true,
+            profilePictureFileId: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
+      },
+    });
+
+    if (!artist)
+      throw new NotFoundException(`Artist for user ID ${userId} not found`);
+    return artist;
+  }
+
+  async findByIdSimple(id: string) {
+    const artist = await this.prisma.artist.findUnique({
+      where: { id },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            username: true,
+            profilePictureFileId: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
+      },
+    });
+
+    if (!artist) throw new NotFoundException(`Artist with ID ${id} not found`);
+    return artist;
+  }
+
   async create(createArtistDto: CreateArtistDto, userId: string) {
     return this.prisma.artist.create({
       data: {
@@ -104,10 +147,22 @@ export class ArtistsService {
   }
 
   async updateByUserId(userId: string, dto: UpdateArtistDto) {
-    const artist = await this.findByUserId(userId);
+    const artist = await this.findByUserIdSimple(userId);
     return this.prisma.artist.update({
       where: { id: artist.id },
       data: dto,
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            username: true,
+            profilePictureFileId: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
+      },
     });
   }
 

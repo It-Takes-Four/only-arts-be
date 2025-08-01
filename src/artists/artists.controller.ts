@@ -11,6 +11,7 @@ import {
   Request,
   ConflictException,
   Query,
+  Param,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -18,6 +19,7 @@ import {
   ApiBody,
   ApiBearerAuth,
   ApiQuery,
+  ApiParam,
 } from '@nestjs/swagger';
 import { ArtistsService } from './artists.service';
 import { CreateArtistDto } from './dto/create-artist.dto';
@@ -26,6 +28,7 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { UsersService } from 'src/users/users.service';
 import { AuthenticatedRequest } from 'src/auth/types/auth.types';
 import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
+import { ArtistResource } from './resources/artist.resource';
 
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth('JWT-auth')
@@ -59,7 +62,16 @@ export class ArtistsController {
   @Get('me')
   @ApiOperation({ summary: 'Get current logged-in user as artist' })
   async getMyArtistProfile(@Request() req: AuthenticatedRequest) {
-    return this.artistService.findByUserId(req.user.userId);
+    const artist = await this.artistService.findByUserIdSimple(req.user.userId);
+    return ArtistResource.make(artist, { removeNulls: true });
+  }
+
+  @Get(':artistId')
+  @ApiOperation({ summary: 'Get artist by ID' })
+  @ApiParam({ name: 'artistId', description: 'Artist ID', type: 'string' })
+  async getArtistById(@Param('artistId') artistId: string) {
+    const artist = await this.artistService.findByIdSimple(artistId);
+    return ArtistResource.make(artist, { removeNulls: true });
   }
 
   @Post('register-as-artist')
@@ -86,11 +98,12 @@ export class ArtistsController {
   @Patch('me')
   @ApiOperation({ summary: 'Update current artist profile' })
   @ApiBody({ type: UpdateArtistDto })
-  updateMyArtistProfile(
+  async updateMyArtistProfile(
     @Request() req: AuthenticatedRequest,
     @Body() body: UpdateArtistDto,
   ) {
-    return this.artistService.updateByUserId(req.user.userId, body);
+    const artist = await this.artistService.updateByUserId(req.user.userId, body);
+    return ArtistResource.make(artist, { removeNulls: true });
   }
 
   @Delete('me')
