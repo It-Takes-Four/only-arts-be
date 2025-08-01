@@ -20,7 +20,8 @@ import {
   FileUploadService,
   UploadedFile,
 } from 'src/shared/services/file-upload.service';
-import { FileType } from '@prisma/client';
+import { FileType, NotificationType } from '@prisma/client';
+import { NotificationsService } from 'src/notifications/notifications.service';
 
 @Injectable()
 export class ArtCollectionsService {
@@ -31,6 +32,7 @@ export class ArtCollectionsService {
     private readonly collectionAccessService: CollectionAccessService,
     private readonly purchasesService: PurchasesService,
     private readonly fileUploadService: FileUploadService,
+    private readonly notificationsService: NotificationsService,
   ) { }
 
   async create(
@@ -55,13 +57,21 @@ export class ArtCollectionsService {
     );
     const coverImageFileId = saveFileResult.fileId;
 
-    await this.prisma.artCollection.create({
+    const createArtCollectionPrismaResult = await this.prisma.artCollection.create({
       data: {
         id: collectionId,
         collectionName: dto.collectionName,
         artistId: artist.id,
         coverImageFileId: coverImageFileId,
       },
+    });
+
+    // TODO: move this into publish collection function
+    await this.notificationsService.sendNotificationsToUserFollower({
+      message: `${artist.artistName} just published a new Collection ${createArtCollectionPrismaResult.collectionName}.`,
+      notificationItemId: createArtCollectionPrismaResult.id,
+      notificationType: NotificationType.collections,
+      userId: userId
     });
 
     return new CreateArtCollectionDtoResponse(
@@ -156,7 +166,14 @@ export class ArtCollectionsService {
     }
 
     // Update purchase record status to COMPLETED
-    await this.purchasesService.completePurchase(dto.txHash);
+    const completePurchaseResult = await this.purchasesService.completePurchase(dto.txHash);
+
+    await this.notificationsService.create({
+      message: `Your purchase on Collection ${artCollection.collectionName} is completed.`,
+      notificationItemId: completePurchaseResult.id,
+      notificationType: NotificationType.payments,
+      userId: dto.buyerId
+    })
 
     return new CompletePurchaseDtoResponse(
       dto.collectionId,
@@ -168,7 +185,7 @@ export class ArtCollectionsService {
 
   async findAll(page: number = 1, limit: number = 10) {
     const skip = (page - 1) * limit;
-    
+
     const [artCollections, total] = await Promise.all([
       this.prisma.artCollection.findMany({
         where: {
@@ -290,7 +307,7 @@ export class ArtCollectionsService {
 
   async findAllCollectionsByUserId(userId: string, page: number = 1, limit: number = 10) {
     const skip = (page - 1) * limit;
-    
+
     const [collections, total] = await Promise.all([
       this.prisma.artCollection.findMany({
         where: {
@@ -350,7 +367,7 @@ export class ArtCollectionsService {
 
   async findAllCollectionsByArtistId(artistId: string, page: number = 1, limit: number = 10) {
     const skip = (page - 1) * limit;
-    
+
     const [collections, total] = await Promise.all([
       this.prisma.artCollection.findMany({
         where: {
@@ -402,7 +419,7 @@ export class ArtCollectionsService {
     const purchasedCollectionIds = await this.collectionAccessService.getUserPurchasedCollections(userId);
 
     const skip = (page - 1) * limit;
-    
+
     const [purchasedCollections, total] = await Promise.all([
       this.prisma.artCollection.findMany({
         where: {

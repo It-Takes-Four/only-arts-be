@@ -7,7 +7,7 @@ import { ArtNftService } from 'src/art-nft/art-nft.service';
 import { ArtistsService } from 'src/artists/artists.service';
 import { v4 as uuidv4 } from 'uuid';
 import { FileUploadService, UploadedFile } from 'src/shared/services/file-upload.service';
-import { FileType } from '@prisma/client';
+import { FileType, NotificationType } from '@prisma/client';
 import { NotificationsService } from 'src/notifications/notifications.service';
 
 @Injectable()
@@ -80,7 +80,7 @@ export class ArtsService {
     const createArtResult = await this.artNftService.createArt(artist.id, artId);
     const tokenId = BigInt(createArtResult.tokenId);
 
-    await this.prisma.art.create({
+    const createArtPrismaResult = await this.prisma.art.create({
       data: {
         id: artId,
         tokenId: tokenId,
@@ -100,7 +100,19 @@ export class ArtsService {
       },
     });
 
-    
+    await this.prisma.artist.update({
+      where: { id: artist.id },
+      data: {
+        totalArts: { increment: 1 },
+      },
+    });
+
+    await this.notificationsService.sendNotificationsToUserFollower({
+      message: `${artist.artistName} just posted a new Art ${createArtPrismaResult.title}.`,
+      notificationItemId: createArtPrismaResult.id,
+      notificationType: NotificationType.arts,
+      userId: userId
+    });
 
     return new CreateArtResponse(artist.id, artId, tokenId.toString())
   }

@@ -1,18 +1,19 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { UpdateNotificationDto } from './dto/update-notification.dto';
+import { SendNotificationsToUserFollowerRequestDto } from './dto/request/send-notifications-to-user-follower.dto';
+import { FollowersService } from 'src/followers/followers.service';
 
 @Injectable()
 export class NotificationsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService, private readonly followersService: FollowersService) { }
 
   async create(dto: CreateNotificationDto) {
     return this.prisma.notification.create({
       data: {
         message: dto.message,
         userId: dto.userId,
-        artistId: dto.artistId,
       },
     });
   }
@@ -28,15 +29,6 @@ export class NotificationsService {
             profilePictureFileId: true,
           },
         },
-        artist: {
-          select: {
-            id: true,
-            artistName: true,
-            user: {
-              select: { username: true, profilePictureFileId: true },
-            },
-          },
-        },
       },
     });
   }
@@ -49,12 +41,6 @@ export class NotificationsService {
           select: {
             id: true,
             username: true,
-          },
-        },
-        artist: {
-          select: {
-            id: true,
-            artistName: true,
           },
         },
       },
@@ -74,7 +60,6 @@ export class NotificationsService {
       data: {
         message: dto.message,
         userId: dto.userId,
-        artistId: dto.artistId,
       },
     });
   }
@@ -90,33 +75,36 @@ export class NotificationsService {
     return this.prisma.notification.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
-      include: {
-        artist: {
-          select: {
-            id: true,
-            artistName: true,
-          },
-        },
-      },
     });
   }
 
-  async findByArtist(artistId: string) {
-    return this.prisma.notification.findMany({
-      where: { artistId },
-      orderBy: { createdAt: 'desc' },
-      include: {
-        user: {
-          select: {
-            id: true,
-            username: true,
-          },
-        },
+  async sendNotificationsToUserFollower(dto: SendNotificationsToUserFollowerRequestDto) {
+    const result = await this.prisma.artist.findFirst({
+      where: {
+        userId: dto.userId
       },
+      select: {
+        id: true
+      }
+    })
+
+    if (!result || !result?.id) {
+      throw new BadRequestException("Failed to get artistId of current user")
+    }
+
+    const followers = await this.followersService.findByArtist(result.id)
+
+    if (!followers.length) return;
+
+    const data = followers.map((follower) => ({
+      userId: follower.userId,
+      message: dto.message,
+      notificationType: dto.notificationType,
+      notificationItemId: dto.notificationItemId
+    }));
+
+    await this.prisma.notification.createMany({
+      data,
     });
-  }
-
-  async sendNotificationsToUserFollower(userId: string, message: string){
-
   }
 }
