@@ -357,17 +357,6 @@ export class ArtCollectionsService {
           artistId: artistId
         },
         include: {
-          arts: {
-            include: {
-              art: {
-                include: {
-                  tags: { include: { tag: true } },
-                  comments: { include: { user: true } },
-                  artist: true,
-                },
-              },
-            },
-          },
           artist: {
             include: {
               user: {
@@ -378,6 +367,7 @@ export class ArtCollectionsService {
               }
             }
           },
+          arts: true, // Only count, don't include full art data
         },
         skip,
         take: limit,
