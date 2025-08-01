@@ -46,6 +46,7 @@ export class FeedsService {
       }));
 
       const feedItem = new FindAllDtoResponse(
+        art.id,
         null,
         new ArtFeed(
           art.artistId,
@@ -80,6 +81,7 @@ export class FeedsService {
 
     for (const collection of collections) {
       const feedItem = new FindAllDtoResponse(
+        collection.id,
         null,
         null,
         new ArtCollectionFeed(
@@ -112,6 +114,7 @@ export class FeedsService {
 
     for (const post of feeds) {
       const feedItem = new FindAllDtoResponse(
+        post.id,
         new Post(
           post.artistId,
           post.artist.artistName,

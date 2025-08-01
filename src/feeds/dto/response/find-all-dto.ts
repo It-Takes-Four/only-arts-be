@@ -36,6 +36,7 @@ export class ArtCollectionFeed {
 
 export class FindAllDtoResponse {
     constructor(
+        public feedItemId: string,
         public post: Post | null,
         public art: ArtFeed | null,
         public collection: ArtCollectionFeed | null,
