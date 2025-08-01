@@ -63,7 +63,7 @@ export class ArtistsController {
   @ApiOperation({ summary: 'Get current logged-in user as artist' })
   async getMyArtistProfile(@Request() req: AuthenticatedRequest) {
     const artist = await this.artistService.findByUserIdSimple(req.user.userId);
-    return ArtistResource.make(artist, { removeNulls: true });
+    return ArtistResource.make(artist);
   }
 
   @Get(':artistId')
@@ -71,7 +71,7 @@ export class ArtistsController {
   @ApiParam({ name: 'artistId', description: 'Artist ID', type: 'string' })
   async getArtistById(@Param('artistId') artistId: string) {
     const artist = await this.artistService.findByIdSimple(artistId);
-    return ArtistResource.make(artist, { removeNulls: true });
+    return ArtistResource.make(artist);
   }
 
   @Post('register-as-artist')
@@ -103,7 +103,7 @@ export class ArtistsController {
     @Body() body: UpdateArtistDto,
   ) {
     const artist = await this.artistService.updateByUserId(req.user.userId, body);
-    return ArtistResource.make(artist, { removeNulls: true });
+    return ArtistResource.make(artist);
   }
 
   @Delete('me')
