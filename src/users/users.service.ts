@@ -199,7 +199,7 @@ export class UsersService {
       },
       comments: { include: { art: true } },
       followers: { include: { artist: true } },
-      notifications: { include: { artist: true } },
+      notifications: true,
     };
   }
 }

@@ -21,7 +21,6 @@ export class ArtistsService {
           collections: true,
           feed: true,
           followers: true,
-          notifications: true,
           arts: {
             include: {
               collections: { include: { collection: true } },
@@ -60,7 +59,6 @@ export class ArtistsService {
         },
         feed: true,
         followers: true,
-        notifications: true,
       },
     });
 
@@ -83,7 +81,6 @@ export class ArtistsService {
         },
         feed: true,
         followers: true,
-        notifications: true,
       },
     });
 
