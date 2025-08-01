@@ -200,11 +200,12 @@ export class ArtCollectionsController {
     @Param('artistId') artistId: string,
     @Query() paginationQuery: PaginationQueryDto,
   ) {
-    const result = await this.artCollectionsService.findAllCollectionsByArtistId(
-      artistId,
-      paginationQuery.page,
-      paginationQuery.limit,
-    );
+    const result =
+      await this.artCollectionsService.findAllCollectionsByArtistId(
+        artistId,
+        paginationQuery.page,
+        paginationQuery.limit,
+      );
 
     return PaginatedResource.make(result, ArtCollectionResource);
   }

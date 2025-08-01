@@ -1,7 +1,8 @@
 import { PartialType } from '@nestjs/swagger';
 import { CreateArtCollectionDtoRequest } from './create-art-collection.dto';
-import { IsOptional, IsString } from 'class-validator';
+import { IsNumber, IsOptional, IsString, Min } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 
 export class UpdateArtCollectionDtoRequest extends PartialType(CreateArtCollectionDtoRequest) {
   @ApiPropertyOptional({
@@ -11,4 +12,10 @@ export class UpdateArtCollectionDtoRequest extends PartialType(CreateArtCollecti
   @IsString()
   @IsOptional()
   description?: string;
+
+  @IsOptional()
+  @Transform(({ value }) => parseFloat(value))
+  @IsNumber()
+  @Min(0)
+  price?: number;
 }

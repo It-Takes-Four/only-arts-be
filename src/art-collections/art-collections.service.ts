@@ -486,7 +486,21 @@ export class ArtCollectionsService {
     );
   }
 
-  update(id: string, dto: UpdateArtCollectionDtoRequest) {
+  async update(id: string, dto: UpdateArtCollectionDtoRequest) {
+    const existingCollection = await this.prisma.artCollection.findUnique({
+      where: { id },
+    });
+
+    if (!existingCollection) {
+      throw new NotFoundException(`Art collection with ID ${id} not found`);
+    }
+
+    if (existingCollection.isPublished && dto.price !== undefined) {
+      throw new BadRequestException(
+        'Cannot update price after collection is published',
+      );
+    }
+
     return this.prisma.artCollection.update({
       where: { id },
       data: dto,
