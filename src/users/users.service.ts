@@ -6,11 +6,17 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserData } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
+import { FileUploadService } from 'src/shared/services/file-upload.service';
+import { FileType } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly fileUploadService: FileUploadService,
+  ) {}
 
   async findAll() {
     const users = await this.prisma.user.findMany({
@@ -109,6 +115,35 @@ export class UsersService {
     const user = await this.prisma.user.update({
       where: { id },
       data: dto,
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...safeUser } = user;
+    return safeUser;
+  }
+
+  async updateProfilePicture(id: string, profilePictureFile: Express.Multer.File) {
+    // Handle file upload
+    const fileResult = await this.fileUploadService.saveFile(profilePictureFile, FileType.profiles);
+    
+    const user = await this.prisma.user.update({
+      where: { id },
+      data: {
+        profilePictureFileId: fileResult.fileId,
+      },
+      include: {
+        profilePictureFile: {
+          select: {
+            id: true,
+            fileName: true,
+            originalName: true,
+            mimetype: true,
+            size: true,
+            type: true,
+            createdAt: true,
+          },
+        },
+      },
     });
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
