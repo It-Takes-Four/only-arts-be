@@ -9,7 +9,6 @@ import { CreateArtCollectionDtoRequest } from './dto/request/create-art-collecti
 import { ArtNftService } from 'src/art-nft/art-nft.service';
 import { ArtistsService } from 'src/artists/artists.service';
 import { v4 as uuidv4 } from 'uuid';
-import { CreateArtCollectionDtoResponse } from './dto/response/create-art-collection.dto';
 import { CollectionAccessService } from 'src/collection-access/collection-access.service';
 import { PurchasesService } from 'src/purchases/purchases.service';
 import { PrepareCollectionPurchaseDtoRequest } from './dto/request/prepare-collection-purchase.dto';
@@ -22,6 +21,7 @@ import {
 import { FileType, NotificationType } from '@prisma/client';
 import { NotificationsService } from 'src/notifications/notifications.service';
 import { UpdateCollectionContentDtoRequest } from './dto/request/update-collection-content.dto';
+import { UpdateArtCollectionDtoRequest } from './dto/request/update-art-collection.dto';
 
 @Injectable()
 export class ArtCollectionsService {
@@ -566,6 +566,8 @@ export class ArtCollectionsService {
       ...publishedCollection,
       price: publishedCollection.price?.toString() ?? null,
     };
+  }
+
   async updateCollectionContent(
     collectionId: string,
     dto: UpdateCollectionContentDtoRequest,
@@ -627,4 +629,5 @@ export class ArtCollectionsService {
       where: { id },
     });
   }
+
 }

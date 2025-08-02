@@ -36,6 +36,7 @@ import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { PaginatedResource } from 'src/common/resources/paginated.resource';
 import { ArtCollectionResource } from './resources/art-collection.resource';
 import { UpdateCollectionContentDtoRequest } from './dto/request/update-collection-content.dto';
+import { UpdateArtCollectionDtoRequest } from './dto/request/update-art-collection.dto';
 
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth('JWT-auth')
@@ -368,50 +369,23 @@ export class ArtCollectionsController {
     return ArtCollectionResource.make(result);
   }
 
-  @Patch(':id')
-  @ApiOperation({ summary: 'Update art collection name and description' })
-  @ApiParam({ name: 'id', type: String, description: 'Art collection ID' })
-  @ApiBody({
-    type: UpdateArtCollectionDtoRequest,
-    description: 'Payload for updating collection name and description',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Successfully updated art collection',
-    schema: {
-      type: 'object',
-      properties: {
-        id: { type: 'string' },
-        collectionName: { type: 'string' },
-        description: { type: 'string' },
-        coverImageFileId: { type: 'string' },
-        price: { type: 'string' },
-        tokenId: { type: 'string' },
-        isPublished: { type: 'boolean' },
-        createdAt: { type: 'string', format: 'date-time' },
-        updatedAt: { type: 'string', format: 'date-time' },
-        artistId: { type: 'string' },
-        artist: { type: 'object' },
-        artsCount: { type: 'number' },
-      },
-    },
-  })
-  async update(
-    @Param('id') id: string,
-    @Body() updateArtCollectionDto: UpdateArtCollectionDtoRequest,
   @Patch(':id/content')
   @ApiOperation({
     summary: 'Update price and/or arts of an unpublished collection',
   })
   @ApiParam({ name: 'id', type: String, description: 'Collection ID' })
   @UseGuards(JwtAuthGuard)
-  updateCollectionContent(
+  async updateCollectionContent(
     @Param('id') collectionId: string,
     @Body() body: UpdateCollectionContentDtoRequest,
     @Request() req: AuthenticatedRequest,
   ) {
-    const result = await this.artCollectionsService.update(id, updateArtCollectionDto);
-    return ArtCollectionResource.make(result);
+    const result = await this.artCollectionsService.updateCollectionContent(
+      collectionId,
+      body,
+      req.user.userId,
+    );
+    return result;
   }
 
   @Patch(':id/cover-image')
@@ -476,11 +450,6 @@ export class ArtCollectionsController {
   async publish(@Param('id') id: string) {
     const result = await this.artCollectionsService.publish(id);
     return ArtCollectionResource.make(result);
-    return this.artCollectionsService.updateCollectionContent(
-      collectionId,
-      body,
-      req.user.userId,
-    );
   }
 
   @Delete(':id')
