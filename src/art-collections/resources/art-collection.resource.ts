@@ -36,11 +36,31 @@ export class ArtCollectionResource extends BaseResource {
   coverImageFileId: string | null;
 
   @Expose()
-  @Transform(({ value }) => value?.toString() ?? null)
+  @Transform(({ value }) => {
+    if (value === null || value === undefined) {
+      return null;
+    }
+    // Handle Prisma Decimal objects
+    if (typeof value === 'object' && value.toString) {
+      return value.toString();
+    }
+    // Handle regular numbers or strings
+    return value?.toString() ?? null;
+  })
   price: string | null;
 
   @Expose()
-  @Transform(({ value }) => value?.toString() ?? null)
+  @Transform(({ value }) => {
+    if (value === null || value === undefined) {
+      return null;
+    }
+    // Handle BigInt and other objects with toString method
+    if (typeof value === 'object' && value.toString) {
+      return value.toString();
+    }
+    // Handle regular numbers or strings
+    return value?.toString() ?? null;
+  })
   tokenId: string | null;
 
   @Expose()

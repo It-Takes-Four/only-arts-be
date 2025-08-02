@@ -56,7 +56,17 @@ export class ArtResource extends BaseResource {
   id: string;
 
   @Expose()
-  @Transform(({ value }) => value?.toString() ?? null)
+  @Transform(({ value }) => {
+    if (value === null || value === undefined) {
+      return null;
+    }
+    // Handle BigInt and other objects with toString method
+    if (typeof value === 'object' && value.toString) {
+      return value.toString();
+    }
+    // Handle regular numbers or strings
+    return value?.toString() ?? null;
+  })
   tokenId: string | null;
 
   @Expose()
