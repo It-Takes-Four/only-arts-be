@@ -59,7 +59,6 @@ export class ArtsService {
       where: { artistId },
       include: {
         tags: { include: { tag: true } },
-        comments: true,
         collections: true,
       },
       orderBy: { datePosted: 'desc' },

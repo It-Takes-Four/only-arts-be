@@ -27,6 +27,7 @@ import { ArtsService } from './arts.service';
 import { CreateArtDtoRequest } from './dto/request/create-art.dto';
 import { UpdateArtDtoRequest } from './dto/request/update-art.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ArtResource } from './resources/art.resource';
 
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth('JWT-auth')
@@ -38,22 +39,25 @@ export class ArtController {
 
   @Get()
   @ApiOperation({ summary: 'Get all artworks' })
-  getAllArt() {
-    return this.artService.findAll();
+  async getAllArt() {
+    const arts = await this.artService.findAll();
+    return ArtResource.collection(arts);
   }
   
   @Get('artist/:artistId')
   @ApiOperation({ summary: 'Get all artworks by artist ID' })
   @ApiParam({ name: 'artistId', description: 'UUID of the artist' })
-  getArtByArtist(@Param('artistId') artistId: string) {
-    return this.artService.findByArtist(artistId);
+  async getArtByArtist(@Param('artistId') artistId: string) {
+    const arts = await this.artService.findByArtist(artistId);
+    return ArtResource.collection(arts);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get artwork by ID' })
   @ApiParam({ name: 'id', description: 'UUID of the artwork' })
-  getArtById(@Param('id') id: string) {
-    return this.artService.findById(id);
+  async getArtById(@Param('id') id: string) {
+    const art = await this.artService.findById(id);
+    return ArtResource.make(art);
   }
 
   @Post()
@@ -96,14 +100,16 @@ export class ArtController {
   @ApiOperation({ summary: 'Update artwork by ID' })
   @ApiParam({ name: 'id', description: 'UUID of the artwork to update' })
   @ApiBody({ type: UpdateArtDtoRequest })
-  updateArt(@Param('id') id: string, @Body() body: UpdateArtDtoRequest) {
-    return this.artService.updateWithTags(id, body);
+  async updateArt(@Param('id') id: string, @Body() body: UpdateArtDtoRequest) {
+    const art = await this.artService.updateWithTags(id, body);
+    return ArtResource.make(art);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete artwork by ID' })
   @ApiParam({ name: 'id', description: 'UUID of the artwork to delete' })
-  deleteArt(@Param('id') id: string) {
-    return this.artService.delete(id);
+  async deleteArt(@Param('id') id: string) {
+    const art = await this.artService.delete(id);
+    return ArtResource.make(art);
   }
 }

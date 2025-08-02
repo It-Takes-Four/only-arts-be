@@ -6,7 +6,7 @@ import { ArtistsModule } from '../artists/artists.module';
 import { ArtistsService } from '../artists/artists.service';
 import { ArtNftService } from 'src/art-nft/art-nft.service';
 import { FileUploadService } from 'src/shared/services/file-upload.service';
-import { NotificationsModule } from 'src/notifications/notifications.module'; // Import the module
+import { NotificationsModule } from 'src/notifications/notifications.module';
 
 @Module({
   imports: [ArtistsModule, NotificationsModule],
