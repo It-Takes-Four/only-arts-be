@@ -17,6 +17,8 @@ export class ArtFeed {
         public artDescription: string,
         public imageFileId: string,
         public artTitle: string,
+        public likesCount: number,
+        public isLiked: boolean,
         public createdDate: Date,
         public tags: { id: string; tagName: string }[]
     ) {}
