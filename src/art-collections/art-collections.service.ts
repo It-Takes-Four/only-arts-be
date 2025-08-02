@@ -380,7 +380,9 @@ export class ArtCollectionsService {
               },
             },
           },
-          arts: true, // Only count, don't include full art data
+          _count: {
+            select: { arts: true },
+          }, // Only count, don't include full art data // Only count, don't include full art data
         },
         skip,
         take: limit,
@@ -408,6 +410,7 @@ export class ArtCollectionsService {
         ...c,
         price: c.price?.toString() ?? null,
         isPurchased: userId ? purchasedCollectionIds.includes(c.id) : false,
+        artsCount: c._count.arts,
       })),
       pagination: {
         page,

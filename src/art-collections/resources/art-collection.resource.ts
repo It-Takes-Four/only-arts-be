@@ -84,7 +84,7 @@ export class ArtCollectionResource extends BaseResource {
   artist: ArtistResource | null;
 
   @Expose()
-  @Transform(({ obj }) => obj.arts ? obj.arts.length : 0)
+  @Transform(({ obj }) => obj.artsCount ?? obj._count?.arts ?? 0)
   artsCount: number;
 
   @Expose()
