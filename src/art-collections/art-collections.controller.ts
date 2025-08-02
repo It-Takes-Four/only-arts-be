@@ -13,7 +13,6 @@ import {
   Query,
   NotFoundException,
   BadRequestException,
-  HttpCode,
 } from '@nestjs/common';
 import { ArtCollectionsService } from './art-collections.service';
 import { CreateArtCollectionDtoRequest } from './dto/request/create-art-collection.dto';
@@ -36,7 +35,6 @@ import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { PaginatedResource } from 'src/common/resources/paginated.resource';
 import { ArtCollectionResource } from './resources/art-collection.resource';
 import { UpdateCollectionContentDtoRequest } from './dto/request/update-collection-content.dto';
-import { UpdateArtCollectionDtoRequest } from './dto/request/update-art-collection.dto';
 import { OptionalJwtAuthGuard } from 'src/auth/guards/optional-jwt-auth.guard';
 
 @ApiBearerAuth('JWT-auth')
