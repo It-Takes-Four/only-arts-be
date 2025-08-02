@@ -6,7 +6,7 @@ import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 
 @Injectable()
 export class ArtistsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async findAll(pagination: PaginationQueryDto) {
     const { page = 1, limit = 10 } = pagination;
@@ -21,7 +21,6 @@ export class ArtistsService {
           collections: true,
           feed: true,
           followers: true,
-          notifications: true,
           arts: {
             include: {
               collections: { include: { collection: true } },
@@ -60,7 +59,6 @@ export class ArtistsService {
         },
         feed: true,
         followers: true,
-        notifications: true,
       },
     });
 
@@ -83,7 +81,6 @@ export class ArtistsService {
         },
         feed: true,
         followers: true,
-        notifications: true,
       },
     });
 
@@ -111,8 +108,35 @@ export class ArtistsService {
 
     if (!artist)
       throw new NotFoundException(`Artist for user ID ${userId} not found`);
-    return artist;
+
+    const totalCollections = await this.prisma.artCollection.count({
+      where: {
+        artistId: artist.id,
+        isPublished: true,
+      },
+    });
+
+    const totalArts = await this.prisma.art.count({
+      where: {
+        artistId: artist.id,
+      },
+    });
+
+    await this.prisma.artist.update({
+      where: { id: artist.id },
+      data: {
+        totalCollections,
+        totalArts,
+      },
+    });
+
+    return {
+      ...artist,
+      totalCollections,
+      totalArts,
+    };
   }
+
 
   async findByIdSimple(id: string) {
     const artist = await this.prisma.artist.findUnique({

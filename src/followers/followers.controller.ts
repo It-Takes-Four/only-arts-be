@@ -21,7 +21,6 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 import { FollowersService } from './followers.service';
-import { CreateFollowerDto } from './dto/create-follower.dto';
 import { UpdateFollowerDto } from './dto/update-follower.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { AuthenticatedRequest } from 'src/auth/types/auth.types';
@@ -31,7 +30,18 @@ import { AuthenticatedRequest } from 'src/auth/types/auth.types';
 @ApiTags('Followers')
 @Controller('followers')
 export class FollowersController {
-  constructor(private readonly followersService: FollowersService) {}
+  constructor(private readonly followersService: FollowersService) { }
+
+  @Get('is-following/:artistId')
+  @ApiOperation({ summary: 'Check if current user follows a specific artist' })
+  @ApiParam({ name: 'artistId', description: 'UUID of the artist' })
+  async isFollowing(
+    @Param('artistId') artistId: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    const userId = req.user.userId;
+    return this.followersService.isFollowing(userId, artistId);
+  }
 
   @Post(':artistId')
   @ApiOperation({ summary: 'Follow an artist' })
@@ -46,7 +56,7 @@ export class FollowersController {
       throw new ConflictException("You can't follow yourself");
     }
 
-    return this.followersService.create(userId, artistId);
+    return this.followersService.follow(userId, artistId);
   }
 
   @Get()
@@ -84,10 +94,15 @@ export class FollowersController {
     return this.followersService.update(id, updateFollowerDto);
   }
 
-  @Delete(':id')
-  @ApiOperation({ summary: 'Remove a follower relationship' })
-  @ApiParam({ name: 'id', description: 'UUID of the follow record to delete' })
-  removeFollow(@Param('id') id: string) {
-    return this.followersService.remove(id);
+  @Delete(':artistId/unfollow')
+  @ApiOperation({ summary: 'Unfollow an artist' })
+  @ApiParam({ name: 'artistId', description: 'UUID of the artist to unfollow' })
+  async unfollowArtist(
+    @Param('artistId') artistId: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    const userId = req.user.userId;
+    return this.followersService.unfollow(userId, artistId);
   }
+
 }

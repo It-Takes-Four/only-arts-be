@@ -58,13 +58,6 @@ export class NotificationsController {
     return this.notificationsService.findByUser(userId);
   }
 
-  @Get('artist/:artistId')
-  @ApiOperation({ summary: 'Get notifications by artist ID' })
-  @ApiParam({ name: 'artistId', description: 'UUID of the artist' })
-  getByArtist(@Param('artistId') artistId: string) {
-    return this.notificationsService.findByArtist(artistId);
-  }
-
   @Post()
   @ApiOperation({ summary: 'Create a new notification' })
   @ApiBody({ type: CreateNotificationDto })

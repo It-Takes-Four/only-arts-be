@@ -194,12 +194,11 @@ export class UsersService {
           },
           feed: true,
           followers: { include: { user: true } },
-          notifications: true,
         },
       },
       comments: { include: { art: true } },
       followers: { include: { artist: true } },
-      notifications: { include: { artist: true } },
+      notifications: true,
     };
   }
 }

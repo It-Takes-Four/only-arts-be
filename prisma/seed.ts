@@ -528,7 +528,6 @@ async function main() {
         data: {
           id: uuidv4(),
           userId: target.userId,
-          artistId: target.artistId,
           message: `${user.artistName} started following you!`,
         },
       });

@@ -6,7 +6,6 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateArtCollectionDtoRequest } from './dto/request/create-art-collection.dto';
-import { UpdateArtCollectionDtoRequest } from './dto/request/update-art-collection.dto';
 import { ArtNftService } from 'src/art-nft/art-nft.service';
 import { ArtistsService } from 'src/artists/artists.service';
 import { v4 as uuidv4 } from 'uuid';
@@ -20,7 +19,9 @@ import {
   FileUploadService,
   UploadedFile,
 } from 'src/shared/services/file-upload.service';
-import { FileType } from '@prisma/client';
+import { FileType, NotificationType } from '@prisma/client';
+import { NotificationsService } from 'src/notifications/notifications.service';
+import { UpdateCollectionContentDtoRequest } from './dto/request/update-collection-content.dto';
 
 @Injectable()
 export class ArtCollectionsService {
@@ -31,6 +32,7 @@ export class ArtCollectionsService {
     private readonly collectionAccessService: CollectionAccessService,
     private readonly purchasesService: PurchasesService,
     private readonly fileUploadService: FileUploadService,
+    private readonly notificationsService: NotificationsService,
   ) { }
 
   async create(
@@ -55,20 +57,31 @@ export class ArtCollectionsService {
     );
     const coverImageFileId = saveFileResult.fileId;
 
-    await this.prisma.artCollection.create({
-      data: {
-        id: collectionId,
-        collectionName: dto.collectionName,
-        artistId: artist.id,
-        coverImageFileId: coverImageFileId,
-      },
+    const createArtCollectionPrismaResult =
+      await this.prisma.artCollection.create({
+        data: {
+          id: collectionId,
+          collectionName: dto.collectionName,
+          artistId: artist.id,
+          coverImageFileId: coverImageFileId,
+        },
+      });
+
+    // TODO: move this into publish collection function
+    await this.notificationsService.sendNotificationsToUserFollower({
+      message: `${artist.artistName} just published a new Collection ${createArtCollectionPrismaResult.collectionName}.`,
+      notificationItemId: createArtCollectionPrismaResult.id,
+      notificationType: NotificationType.collections,
+      userId: userId,
     });
 
-    return new CreateArtCollectionDtoResponse(
-      artist.id,
-      collectionId,
-      tokenId.toString(),
-    );
+    return await this.findOne(createArtCollectionPrismaResult.id)
+
+    // return new CreateArtCollectionDtoResponse(
+    //   artist.id,
+    //   collectionId,
+    //   tokenId.toString(),
+    // );
   }
 
   async validatePurchase(collectionId: string, buyerUserId: string) {
@@ -107,11 +120,10 @@ export class ArtCollectionsService {
     }
 
     if (!artCollection.price) {
-      throw new BadRequestException('price is undefined')
+      throw new BadRequestException('price is undefined');
     }
 
-    const price = artCollection.price.toString()
-
+    const price = artCollection.price.toString();
 
     const updatedDto = {
       ...dto,
@@ -124,13 +136,11 @@ export class ArtCollectionsService {
   }
 
   async completePurchase(dto: CompletePurchaseDtoRequest) {
-    const artCollection = await this.prisma.artCollection.findFirst(
-      {
-        where: {
-          id: dto.collectionId
-        }
-      }
-    );
+    const artCollection = await this.prisma.artCollection.findFirst({
+      where: {
+        id: dto.collectionId,
+      },
+    });
 
     if (artCollection == null || !artCollection.isPublished) {
       throw new BadRequestException('Collection not found');
@@ -156,7 +166,16 @@ export class ArtCollectionsService {
     }
 
     // Update purchase record status to COMPLETED
-    await this.purchasesService.completePurchase(dto.txHash);
+    const completePurchaseResult = await this.purchasesService.completePurchase(
+      dto.txHash,
+    );
+
+    await this.notificationsService.create({
+      message: `Your purchase on Collection ${artCollection.collectionName} is completed.`,
+      notificationItemId: completePurchaseResult.id,
+      notificationType: NotificationType.payments,
+      userId: dto.buyerId,
+    });
 
     return new CompletePurchaseDtoResponse(
       dto.collectionId,
@@ -168,7 +187,7 @@ export class ArtCollectionsService {
 
   async findAll(page: number = 1, limit: number = 10) {
     const skip = (page - 1) * limit;
-    
+
     const [artCollections, total] = await Promise.all([
       this.prisma.artCollection.findMany({
         where: {
@@ -181,23 +200,23 @@ export class ArtCollectionsService {
                 select: {
                   username: true,
                   profilePictureFileId: true,
-                }
-              }
-            }
+                },
+              },
+            },
           },
           arts: true, // Only count, don't include full art data
         },
         skip,
         take: limit,
         orderBy: {
-          createdAt: 'desc'
-        }
+          createdAt: 'desc',
+        },
       }),
       this.prisma.artCollection.count({
         where: {
           isPublished: true,
-        }
-      })
+        },
+      }),
     ]);
 
     const totalPages = Math.ceil(total / limit);
@@ -212,7 +231,7 @@ export class ArtCollectionsService {
         limit,
         total,
         totalPages,
-      }
+      },
     };
   }
 
@@ -225,9 +244,9 @@ export class ArtCollectionsService {
             user: {
               select: {
                 profilePictureFileId: true,
-              }
-            }
-          }
+              },
+            },
+          },
         },
         arts: {
           include: {
@@ -239,7 +258,7 @@ export class ArtCollectionsService {
               },
             },
           },
-        }
+        },
       },
     });
 
@@ -250,8 +269,6 @@ export class ArtCollectionsService {
       price: artCollection.price?.toString() ?? null,
     };
   }
-
-
 
   async findArtsInCollection(id: string) {
     const collection = await this.prisma.artCollection.findUnique({
@@ -278,9 +295,13 @@ export class ArtCollectionsService {
     return collection.arts.map((item) => item.art);
   }
 
-  async findAllCollectionsByUserId(userId: string, page: number = 1, limit: number = 10) {
+  async findAllCollectionsByUserId(
+    userId: string,
+    page: number = 1,
+    limit: number = 10,
+  ) {
     const skip = (page - 1) * limit;
-    
+
     const [collections, total] = await Promise.all([
       this.prisma.artCollection.findMany({
         where: {
@@ -293,23 +314,23 @@ export class ArtCollectionsService {
                 select: {
                   username: true,
                   profilePictureFileId: true,
-                }
-              }
-            }
+                },
+              },
+            },
           },
           arts: true, // Only count, don't include full art data
         },
         skip,
         take: limit,
         orderBy: {
-          createdAt: 'desc'
-        }
+          createdAt: 'desc',
+        },
       }),
       this.prisma.artCollection.count({
         where: {
           artist: { userId: userId },
-        }
-      })
+        },
+      }),
     ]);
 
     const totalPages = Math.ceil(total / limit);
@@ -324,17 +345,21 @@ export class ArtCollectionsService {
         limit,
         total,
         totalPages,
-      }
+      },
     };
   }
 
-  async findAllCollectionsByArtistId(artistId: string, page: number = 1, limit: number = 10) {
+  async findAllCollectionsByArtistId(
+    artistId: string,
+    page: number = 1,
+    limit: number = 10,
+  ) {
     const skip = (page - 1) * limit;
-    
+
     const [collections, total] = await Promise.all([
       this.prisma.artCollection.findMany({
         where: {
-          artistId: artistId
+          artistId: artistId,
         },
         include: {
           artist: {
@@ -343,23 +368,23 @@ export class ArtCollectionsService {
                 select: {
                   username: true,
                   profilePictureFileId: true,
-                }
-              }
-            }
+                },
+              },
+            },
           },
           arts: true, // Only count, don't include full art data
         },
         skip,
         take: limit,
         orderBy: {
-          createdAt: 'desc'
-        }
+          createdAt: 'desc',
+        },
       }),
       this.prisma.artCollection.count({
         where: {
           artistId: artistId,
-        }
-      })
+        },
+      }),
     ]);
 
     const totalPages = Math.ceil(total / limit);
@@ -374,21 +399,26 @@ export class ArtCollectionsService {
         limit,
         total,
         totalPages,
-      }
+      },
     };
   }
 
-  async findPurchasedCollections(userId: string, page: number = 1, limit: number = 10) {
-    const purchasedCollectionIds = await this.collectionAccessService.getUserPurchasedCollections(userId);
+  async findPurchasedCollections(
+    userId: string,
+    page: number = 1,
+    limit: number = 10,
+  ) {
+    const purchasedCollectionIds =
+      await this.collectionAccessService.getUserPurchasedCollections(userId);
 
     const skip = (page - 1) * limit;
-    
+
     const [purchasedCollections, total] = await Promise.all([
       this.prisma.artCollection.findMany({
         where: {
           id: {
-            in: purchasedCollectionIds
-          }
+            in: purchasedCollectionIds,
+          },
         },
         include: {
           artist: {
@@ -397,25 +427,25 @@ export class ArtCollectionsService {
                 select: {
                   username: true,
                   profilePictureFileId: true,
-                }
-              }
-            }
+                },
+              },
+            },
           },
           arts: true,
         },
         skip,
         take: limit,
         orderBy: {
-          createdAt: 'desc'
-        }
+          createdAt: 'desc',
+        },
       }),
       this.prisma.artCollection.count({
         where: {
           id: {
-            in: purchasedCollectionIds
-          }
-        }
-      })
+            in: purchasedCollectionIds,
+          },
+        },
+      }),
     ]);
 
     const totalPages = Math.ceil(total / limit);
@@ -430,7 +460,7 @@ export class ArtCollectionsService {
         limit,
         total,
         totalPages,
-      }
+      },
     };
   }
 
@@ -536,6 +566,60 @@ export class ArtCollectionsService {
       ...publishedCollection,
       price: publishedCollection.price?.toString() ?? null,
     };
+  async updateCollectionContent(
+    collectionId: string,
+    dto: UpdateCollectionContentDtoRequest,
+    userId: string,
+  ) {
+    const collection = await this.prisma.artCollection.findUnique({
+      where: { id: collectionId },
+      include: {
+        artist: true,
+      },
+    });
+
+    if (!collection) {
+      throw new NotFoundException('Collection not found');
+    }
+
+    if (collection.artist.userId !== userId) {
+      throw new BadRequestException(
+        'You are not authorized to modify this collection',
+      );
+    }
+
+    if (collection.isPublished) {
+      throw new BadRequestException('Cannot modify a published collection');
+    }
+
+    const updateData: any = {};
+
+    if (dto.price !== undefined) {
+      updateData.price = dto.price;
+    }
+
+    if (dto.artIds !== undefined) {
+      await this.prisma.artToCollection.deleteMany({
+        where: { collectionId },
+      });
+
+      const newRelations = dto.artIds.map((artId) => ({
+        id: uuidv4(),
+        artId,
+        collectionId,
+      }));
+
+      await this.prisma.artToCollection.createMany({ data: newRelations });
+    }
+
+    if (Object.keys(updateData).length > 0) {
+      await this.prisma.artCollection.update({
+        where: { id: collectionId },
+        data: updateData,
+      });
+    }
+
+    return { message: 'Collection updated successfully' };
   }
 
   remove(id: string) {
