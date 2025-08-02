@@ -11,6 +11,8 @@ import {
   UploadedFile,
   UseInterceptors,
   Query,
+  NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { ArtCollectionsService } from './art-collections.service';
 import { CreateArtCollectionDtoRequest } from './dto/request/create-art-collection.dto';
@@ -335,22 +337,133 @@ export class ArtCollectionsController {
   @Get(':id')
   @ApiOperation({ summary: 'Get an art collection by ID' })
   @ApiParam({ name: 'id', type: String, description: 'Art collection ID' })
-  getCollectionById(@Param('id') id: string) {
-    return this.artCollectionsService.findOne(id);
+  @ApiResponse({
+    status: 200,
+    description: 'Art collection details',
+    schema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string' },
+        collectionName: { type: 'string' },
+        description: { type: 'string' },
+        coverImageFileId: { type: 'string' },
+        price: { type: 'string' },
+        tokenId: { type: 'string' },
+        isPublished: { type: 'boolean' },
+        createdAt: { type: 'string', format: 'date-time' },
+        updatedAt: { type: 'string', format: 'date-time' },
+        artistId: { type: 'string' },
+        artist: { type: 'object' },
+        artsCount: { type: 'number' },
+      },
+    },
+  })
+  async getCollectionById(@Param('id') id: string) {
+    const result = await this.artCollectionsService.findOne(id);
+    if (!result) {
+      throw new NotFoundException(`Collection with ID ${id} not found`);
+    }
+    return ArtCollectionResource.make(result);
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Update an art collection by ID' })
+  @ApiOperation({ summary: 'Update art collection name and description' })
   @ApiParam({ name: 'id', type: String, description: 'Art collection ID' })
   @ApiBody({
     type: UpdateArtCollectionDtoRequest,
-    description: 'Payload for updating an art collection',
+    description: 'Payload for updating collection name and description',
   })
-  update(
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully updated art collection',
+    schema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string' },
+        collectionName: { type: 'string' },
+        description: { type: 'string' },
+        coverImageFileId: { type: 'string' },
+        price: { type: 'string' },
+        tokenId: { type: 'string' },
+        isPublished: { type: 'boolean' },
+        createdAt: { type: 'string', format: 'date-time' },
+        updatedAt: { type: 'string', format: 'date-time' },
+        artistId: { type: 'string' },
+        artist: { type: 'object' },
+        artsCount: { type: 'number' },
+      },
+    },
+  })
+  async update(
     @Param('id') id: string,
     @Body() updateArtCollectionDto: UpdateArtCollectionDtoRequest,
   ) {
-    return this.artCollectionsService.update(id, updateArtCollectionDto);
+    const result = await this.artCollectionsService.update(id, updateArtCollectionDto);
+    return ArtCollectionResource.make(result);
+  }
+
+  @Patch(':id/cover-image')
+  @ApiOperation({ summary: 'Update art collection cover image' })
+  @ApiParam({ name: 'id', type: String, description: 'Art collection ID' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Cover image file',
+    schema: {
+      type: 'object',
+      properties: {
+        coverImage: {
+          type: 'string',
+          format: 'binary',
+          description: 'Cover image file (JPEG, PNG, GIF, WebP - max 10MB)',
+        },
+      },
+      required: ['coverImage'],
+    },
+  })
+  @UseInterceptors(
+    FileInterceptor('coverImage', {
+      limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+    }),
+  )
+  async updateCoverImage(
+    @Param('id') id: string,
+    @UploadedFile() coverImage: Express.Multer.File,
+  ) {
+    if (!coverImage) {
+      throw new BadRequestException('Cover image file is required');
+    }
+
+    const result = await this.artCollectionsService.updateCoverImage(id, coverImage);
+    return ArtCollectionResource.make(result);
+  }
+
+  @Patch(':id/publish')
+  @ApiOperation({ summary: 'Publish an art collection (irreversible)' })
+  @ApiParam({ name: 'id', type: String, description: 'Art collection ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully published art collection',
+    schema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string' },
+        collectionName: { type: 'string' },
+        description: { type: 'string' },
+        coverImageFileId: { type: 'string' },
+        price: { type: 'string' },
+        tokenId: { type: 'string' },
+        isPublished: { type: 'boolean' },
+        createdAt: { type: 'string', format: 'date-time' },
+        updatedAt: { type: 'string', format: 'date-time' },
+        artistId: { type: 'string' },
+        artist: { type: 'object' },
+        artsCount: { type: 'number' },
+      },
+    },
+  })
+  async publish(@Param('id') id: string) {
+    const result = await this.artCollectionsService.publish(id);
+    return ArtCollectionResource.make(result);
   }
 
   @Delete(':id')

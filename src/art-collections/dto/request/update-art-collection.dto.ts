@@ -1,12 +1,18 @@
-import { PartialType } from '@nestjs/swagger';
-import { CreateArtCollectionDtoRequest } from './create-art-collection.dto';
 import { IsOptional, IsString } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
-export class UpdateArtCollectionDtoRequest extends PartialType(CreateArtCollectionDtoRequest) {
+export class UpdateArtCollectionDtoRequest {
   @ApiPropertyOptional({
-    description: 'Optional description or notes about the update',
-    example: 'Updated to include a new art theme',
+    description: 'Name of the art collection',
+    example: 'Updated Modern Art Showcase',
+  })
+  @IsString()
+  @IsOptional()
+  collectionName?: string;
+
+  @ApiPropertyOptional({
+    description: 'Description of the art collection',
+    example: 'A curated collection of contemporary modern art pieces',
   })
   @IsString()
   @IsOptional()

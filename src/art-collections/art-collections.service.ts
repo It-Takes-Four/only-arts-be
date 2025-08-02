@@ -458,11 +458,84 @@ export class ArtCollectionsService {
     );
   }
 
-  update(id: string, dto: UpdateArtCollectionDtoRequest) {
-    return this.prisma.artCollection.update({
+  async update(id: string, dto: UpdateArtCollectionDtoRequest) {
+    const updatedCollection = await this.prisma.artCollection.update({
       where: { id },
       data: dto,
+      include: {
+        artist: {
+          include: {
+            user: {
+              select: {
+                username: true,
+                profilePictureFileId: true,
+              }
+            }
+          }
+        },
+        arts: true, // Only count, don't include full art data
+      },
     });
+
+    return {
+      ...updatedCollection,
+      price: updatedCollection.price?.toString() ?? null,
+    };
+  }
+
+  async updateCoverImage(id: string, coverImageFile: Express.Multer.File) {
+    // Handle file upload
+    const fileResult = await this.fileUploadService.saveFile(coverImageFile, FileType.collections);
+    
+    const updatedCollection = await this.prisma.artCollection.update({
+      where: { id },
+      data: {
+        coverImageFileId: fileResult.fileId,
+      },
+      include: {
+        artist: {
+          include: {
+            user: {
+              select: {
+                username: true,
+                profilePictureFileId: true,
+              }
+            }
+          }
+        },
+        arts: true, // Only count, don't include full art data
+      },
+    });
+
+    return {
+      ...updatedCollection,
+      price: updatedCollection.price?.toString() ?? null,
+    };
+  }
+
+  async publish(id: string) {
+    const publishedCollection = await this.prisma.artCollection.update({
+      where: { id },
+      data: { isPublished: true },
+      include: {
+        artist: {
+          include: {
+            user: {
+              select: {
+                username: true,
+                profilePictureFileId: true,
+              }
+            }
+          }
+        },
+        arts: true, // Only count, don't include full art data
+      },
+    });
+
+    return {
+      ...publishedCollection,
+      price: publishedCollection.price?.toString() ?? null,
+    };
   }
 
   remove(id: string) {
