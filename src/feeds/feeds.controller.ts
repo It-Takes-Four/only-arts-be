@@ -10,6 +10,7 @@ import {
   ValidationPipe,
   UseGuards,
   Query,
+  Request,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -25,6 +26,7 @@ import { UpdateFeedDto } from './dto/update-feed.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { FeedsQueryDto } from './dto/feeds-query.dto';
 import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
+import { AuthenticatedRequest } from 'src/auth/types/auth.types';
 
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth('JWT-auth')
@@ -54,8 +56,8 @@ export class FeedsController {
     description: 'Filter feeds by a specific tag ID', 
     example: 'e3b0c442-98fc-1c14-9afb-4c1d4c6d2111' 
   })
-  getAll(@Query() query: FeedsQueryDto) {
-    return this.feedsService.findAll(query);
+  getAll(@Query() query: FeedsQueryDto, @Request() req?: AuthenticatedRequest) {
+    return this.feedsService.findAll(query, req?.user.userId);
   }
 
   @Get(':id')

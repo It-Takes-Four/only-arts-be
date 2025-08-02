@@ -13,7 +13,7 @@ export class FeedsService {
     return this.prisma.feed.create({ data: dto });
   }
 
-  async findAll(pagination: { page?: number; limit?: number }) {
+  async findAll(pagination: { page?: number; limit?: number }, userId?: string) {
     const response: FindAllDtoResponse[] = []
     const { page = 1, limit = 10 } = pagination;
 
@@ -40,6 +40,31 @@ export class FeedsService {
     });
 
     for (const art of arts) {
+      // Fetch and update likesCount
+      const likesCount = await this.prisma.artLike.count({
+        where: { artId: art.id },
+      });
+
+      // Update likesCount field in DB
+      await this.prisma.art.update({
+        where: { id: art.id },
+        data: { likesCount },
+      });
+
+      // Check if current user liked this art
+      let isLiked = false;
+      if (userId) {
+        const like = await this.prisma.artLike.findUnique({
+          where: {
+            userId_artId: {
+              userId,
+              artId: art.id,
+            },
+          },
+        });
+        isLiked = !!like;
+      }
+
       const tags = art.tags.map(relation => ({
         id: relation.tag.id,
         tagName: relation.tag.tagName,
@@ -55,6 +80,8 @@ export class FeedsService {
           art.description,
           art.imageFileId,
           art.title,
+          likesCount,
+          isLiked,
           art.datePosted,
           tags
         ),
@@ -148,59 +175,59 @@ export class FeedsService {
   }
 
   async findOne(id: string) {
-  const feed = await this.prisma.feed.findUnique({
-    where: { id },
-    include: {
-      artist: {
-        select: {
-          id: true,
-          user: { select: { username: true } },
+    const feed = await this.prisma.feed.findUnique({
+      where: { id },
+      include: {
+        artist: {
+          select: {
+            id: true,
+            user: { select: { username: true } },
+          },
         },
       },
-    },
-  });
-  if (!feed) throw new NotFoundException(`Feed with ID ${id} not found`);
-  return feed;
-}
+    });
+    if (!feed) throw new NotFoundException(`Feed with ID ${id} not found`);
+    return feed;
+  }
 
   async update(id: string, dto: UpdateFeedDto) {
-  await this.findOne(id);
-  return this.prisma.feed.update({
-    where: { id },
-    data: dto,
-  });
-}
+    await this.findOne(id);
+    return this.prisma.feed.update({
+      where: { id },
+      data: dto,
+    });
+  }
 
   async remove(id: string) {
-  await this.findOne(id);
-  return this.prisma.feed.delete({ where: { id } });
-}
+    await this.findOne(id);
+    return this.prisma.feed.delete({ where: { id } });
+  }
 
   async findByArtist(
-  artistId: string,
-  pagination: { page?: number; limit?: number },
-) {
-  const { page = 1, limit = 10 } = pagination;
-  
-  // Ensure page and limit are numbers
-  const pageNum = Number(page) || 1;
-  const limitNum = Number(limit) || 10;
+    artistId: string,
+    pagination: { page?: number; limit?: number },
+  ) {
+    const { page = 1, limit = 10 } = pagination;
 
-  const [feeds, total] = await Promise.all([
-    this.prisma.feed.findMany({
-      where: { artistId },
-      skip: (pageNum - 1) * limitNum,
-      take: limitNum,
-      orderBy: { datePosted: 'desc' },
-    }),
-    this.prisma.feed.count({ where: { artistId } }),
-  ]);
+    // Ensure page and limit are numbers
+    const pageNum = Number(page) || 1;
+    const limitNum = Number(limit) || 10;
 
-  return {
-    data: feeds,
-    total,
-    page: pageNum,
-    limit: limitNum,
-  };
-}
+    const [feeds, total] = await Promise.all([
+      this.prisma.feed.findMany({
+        where: { artistId },
+        skip: (pageNum - 1) * limitNum,
+        take: limitNum,
+        orderBy: { datePosted: 'desc' },
+      }),
+      this.prisma.feed.count({ where: { artistId } }),
+    ]);
+
+    return {
+      data: feeds,
+      total,
+      page: pageNum,
+      limit: limitNum,
+    };
+  }
 }
