@@ -588,37 +588,6 @@ async function main() {
       data: { likesCount: totalLikes },
     });
   }
-
-  // Create some purchases for paid collections
-  console.log('💰 Creating purchases...');
-  const paidCollections = await prisma.artCollection.findMany({
-    where: { price: { not: null } },
-  });
-
-  for (const collection of paidCollections) {
-    const numPurchases = faker.number.int({ min: 0, max: 5 });
-    const buyers = faker.helpers.arrayElements(
-      userList.filter(u => u.artistId !== collection.artistId), 
-      numPurchases
-    );
-
-    for (const buyer of buyers) {
-      await prisma.purchase.create({
-        data: {
-          id: uuidv4(),
-          userId: buyer.userId,
-          collectionId: collection.id,
-          price: collection.price!,
-          txHash: `0x${faker.string.hexadecimal({ length: 64, prefix: '' })}`,
-          status: faker.helpers.arrayElement(['COMPLETED', 'PENDING', 'FAILED']),
-          completedAt: faker.datatype.boolean({ probability: 0.8 }) 
-            ? faker.date.recent({ days: 30 }) 
-            : null,
-        },
-      });
-    }
-  }
-
   // Update artist statistics
   console.log('📊 Updating artist statistics...');
   for (const user of userList) {
