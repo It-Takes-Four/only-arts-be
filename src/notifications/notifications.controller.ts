@@ -10,6 +10,7 @@ import {
   ValidationPipe,
   UseGuards,
   Request,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -17,12 +18,14 @@ import {
   ApiParam,
   ApiBody,
   ApiBearerAuth,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { NotificationsService } from './notifications.service';
-import { CreateNotificationDto } from './dto/create-notification.dto';
-import { UpdateNotificationDto } from './dto/update-notification.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { AuthenticatedRequest } from 'src/auth/types/auth.types';
+import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
+import { PaginatedResource } from 'src/common/resources/paginated.resource';
+import { NotificationResource } from './resources/notification.resource';
 
 @ApiTags('Notifications')
 @ApiBearerAuth('JWT-auth')
@@ -30,18 +33,29 @@ import { AuthenticatedRequest } from 'src/auth/types/auth.types';
 @UsePipes(new ValidationPipe({ whitelist: true }))
 @Controller('notifications')
 export class NotificationsController {
-  constructor(private readonly notificationsService: NotificationsService) {}
-
-  @Get()
-  @ApiOperation({ summary: 'Get all notifications' })
-  getAll() {
-    return this.notificationsService.findAll();
-  }
+  constructor(private readonly notificationsService: NotificationsService) { }
 
   @Get('my')
   @ApiOperation({ summary: 'Get all notifications from current user' })
-  getMyNotifications(@Request() req: AuthenticatedRequest) {
-    return this.notificationsService.findByUser(req.user.userId);
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: Number,
+    description: 'Page number (default: 1)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Items per page (default: 10)',
+  })
+  async getMyNotifications(
+    @Request() req: AuthenticatedRequest,
+    @Query() paginationQuery: PaginationQueryDto
+  ) {
+    const result = await this.notificationsService.findByUser(req.user.userId, paginationQuery.page, paginationQuery.limit);
+
+    return PaginatedResource.make(result, NotificationResource)
   }
 
   @Get(':id')
@@ -49,28 +63,6 @@ export class NotificationsController {
   @ApiParam({ name: 'id', description: 'UUID of the notification' })
   getById(@Param('id') id: string) {
     return this.notificationsService.findOne(id);
-  }
-
-  @Get('user/:userId')
-  @ApiOperation({ summary: 'Get notifications by user ID' })
-  @ApiParam({ name: 'userId', description: 'UUID of the user' })
-  getByUser(@Param('userId') userId: string) {
-    return this.notificationsService.findByUser(userId);
-  }
-
-  @Post()
-  @ApiOperation({ summary: 'Create a new notification' })
-  @ApiBody({ type: CreateNotificationDto })
-  create(@Body() body: CreateNotificationDto) {
-    return this.notificationsService.create(body);
-  }
-
-  @Patch(':id')
-  @ApiOperation({ summary: 'Update an existing notification' })
-  @ApiParam({ name: 'id', description: 'UUID of the notification to update' })
-  @ApiBody({ type: UpdateNotificationDto })
-  update(@Param('id') id: string, @Body() body: UpdateNotificationDto) {
-    return this.notificationsService.update(id, body);
   }
 
   @Delete(':id')

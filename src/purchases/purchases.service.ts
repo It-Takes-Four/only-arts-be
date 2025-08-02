@@ -22,7 +22,10 @@ export class PurchasesService {
     async completePurchase(txHash: string) {
         return await this.prisma.purchase.update({
             where: { txHash: txHash },
-            data: { status: PurchaseStatus.COMPLETED, completedAt: new Date() }
+            data: { status: PurchaseStatus.COMPLETED, completedAt: new Date() },
+            select: {
+                id: true
+            }
         })
     }
 
