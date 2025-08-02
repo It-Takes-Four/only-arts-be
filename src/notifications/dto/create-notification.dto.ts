@@ -9,19 +9,20 @@ export class CreateNotificationDto {
   userId: string;
 
   @ApiProperty({ description: 'Notification item ID' })
-    @IsUUID()
-    @IsNotEmpty()
-    notificationItemId: string;
-  
-    @ApiProperty({ description: 'Content of the notification' })
-    @IsString()
-    @IsNotEmpty()
-    message: string;
-  
-    @ApiProperty({
-      description: 'Content type of the notification',
-      enum: NotificationType,
-    })
-    @IsEnum(NotificationType)
-    notificationType: NotificationType;
+  @IsUUID()
+  @IsNotEmpty()
+  notificationItemId: string;
+
+  @ApiProperty({ description: 'Content of the notification' })
+  @IsString()
+  @IsNotEmpty()
+  message: string;
+
+  @ApiProperty({
+    description: 'Content type of the notification',
+    enum: NotificationType,
+  })
+  @IsEnum(NotificationType)
+  @IsNotEmpty()
+  notificationType: NotificationType;
 }

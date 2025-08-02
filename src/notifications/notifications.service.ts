@@ -14,6 +14,8 @@ export class NotificationsService {
       data: {
         message: dto.message,
         userId: dto.userId,
+        notificationType: dto.notificationType,
+        notificationItemId: dto.notificationItemId
       },
     });
   }
