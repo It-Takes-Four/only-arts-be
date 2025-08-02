@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, UsePipes, ValidationPipe, Request } from '@nestjs/common';
 import { ArtLikeService } from './art-like.service';
 import { LikeArtDtoRequest } from './dto/request/like-art.dto';
 import { CheckUserArtLikeDtoRequest } from './dto/request/check-user-art-like.dto';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { AuthenticatedRequest } from 'src/auth/types/auth.types';
 
 @ApiTags('Art Like')
 @ApiBearerAuth('JWT-auth')
@@ -27,6 +28,17 @@ export class ArtLikeController {
   async checkUserArtLike(@Query() dto: CheckUserArtLikeDtoRequest) {
     const hasLiked = await this.artLikeService.checkUserArtLike(dto.userId, dto.artId);
     return { hasLiked };
+  }
+
+  @Get('me/has-liked/:artId')
+  @ApiOperation({ summary: 'Check if current user has liked an art' })
+  @ApiParam({ name: 'artId', type: String, description: 'Art ID' })
+  async getMyNotifications(
+    @Request() req: AuthenticatedRequest,
+    @Param('artId') artId: string,
+  ) {
+    const result = await this.artLikeService.checkUserArtLike(req.user.userId, artId);
+    return result
   }
 
   @Get('count/:artId')
