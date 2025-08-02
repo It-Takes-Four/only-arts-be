@@ -26,6 +26,5 @@ export class CreateArtCollectionDtoRequest {
   @Type(() => Number)
   @IsNumber()
   @IsPositive()
-  @IsOptional()
   price?: number;
 }
