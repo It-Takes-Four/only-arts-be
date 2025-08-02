@@ -66,6 +66,9 @@ export class ArtResource extends BaseResource {
   description: string | null;
 
   @Expose()
+  likeCount: number;
+
+  @Expose()
   imageFileId: string;
 
   @Expose()

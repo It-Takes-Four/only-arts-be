@@ -79,6 +79,21 @@ export class ArtsService {
     });
     if (!art) throw new NotFoundException(`Art with ID ${id} not found`);
 
+    // recalculate likesCount
+    const likeCount = await this.prisma.artLike.count({
+      where: {
+        artId: id,
+      },
+    });
+
+    // Update likesCount field
+    await this.prisma.art.update({
+      where: { id },
+      data: {
+        likesCount: likeCount,
+      },
+    });
+
     let isLiked = false;
 
     if (userId) {
