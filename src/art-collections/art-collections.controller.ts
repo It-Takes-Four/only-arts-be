@@ -319,7 +319,7 @@ export class ArtCollectionsController {
       paginationQuery.page,
       paginationQuery.limit,
     );
-    console.log('Collections found:', result.data);
+
     return PaginatedResource.make(result, ArtCollectionResource);
   }
 

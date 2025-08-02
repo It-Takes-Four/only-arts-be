@@ -23,6 +23,10 @@ class ArtistResource extends BaseResource {
 }
 
 export class ArtCollectionResource extends BaseResource {
+  constructor(data: any) {
+    super(data);
+  }
+
   @Expose()
   id: string;
 
