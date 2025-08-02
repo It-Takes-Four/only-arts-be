@@ -91,11 +91,10 @@ export class ArtController {
   }
 
   @Get('my')
-  @ApiOperation({ summary: 'Get artwork by ID' })
-  @ApiParam({ name: 'id', description: 'UUID of the artwork' })
+  @ApiOperation({ summary: 'Get artworks of current logged in user' })
   async getMyArts(@Request() req: AuthenticatedRequest,) {
-    const art = await this.artService.findByUser(req.user.userId);
-    return ArtResource.make(art);
+    const result = await this.artService.findByUser(req.user.userId);
+    return PaginatedResource.make(result, ArtResource)
   }
 
   @Get('artist/:artistId')
