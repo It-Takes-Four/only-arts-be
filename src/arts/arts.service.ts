@@ -59,7 +59,7 @@ export class ArtsService {
     };
   }
 
-  async findById(id: string) {
+  async findById(id: string, userId?: string) {
     const art = await this.prisma.art.findUnique({
       where: { id },
       include: {
@@ -78,7 +78,40 @@ export class ArtsService {
       },
     });
     if (!art) throw new NotFoundException(`Art with ID ${id} not found`);
-    return art;
+
+    // recalculate likesCount
+    const likeCount = await this.prisma.artLike.count({
+      where: {
+        artId: id,
+      },
+    });
+
+    // Update likesCount field
+    await this.prisma.art.update({
+      where: { id },
+      data: {
+        likesCount: likeCount,
+      },
+    });
+
+    let isLiked = false;
+
+    if (userId) {
+      const like = await this.prisma.artLike.findUnique({
+        where: {
+          userId_artId: {
+            userId,
+            artId: id
+          }
+        }
+      });
+      isLiked = !!like;
+    }
+
+    return {
+      ...art,
+      isLiked
+    };
   }
 
   async findByArtist(artistId: string, page: number = 1, limit: number = 10) {

@@ -89,7 +89,7 @@ export class ArtController {
     );
     return PaginatedResource.make(result, ArtResource);
   }
-  
+
   @Get('artist/:artistId')
   @ApiOperation({ summary: 'Get all artworks by artist ID' })
   @ApiParam({ name: 'artistId', description: 'UUID of the artist' })
@@ -146,8 +146,8 @@ export class ArtController {
   @Get(':id')
   @ApiOperation({ summary: 'Get artwork by ID' })
   @ApiParam({ name: 'id', description: 'UUID of the artwork' })
-  async getArtById(@Param('id') id: string) {
-    const art = await this.artService.findById(id);
+  async getArtById(@Param('id') id: string, @Request() req?: AuthenticatedRequest,) {
+    const art = await this.artService.findById(id, req?.user.userId);
     return ArtResource.make(art);
   }
 

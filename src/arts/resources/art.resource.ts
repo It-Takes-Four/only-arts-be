@@ -76,6 +76,9 @@ export class ArtResource extends BaseResource {
   description: string | null;
 
   @Expose()
+  likesCount: number;
+
+  @Expose()
   imageFileId: string;
 
   @Expose()
@@ -99,14 +102,14 @@ export class ArtResource extends BaseResource {
     if (!obj.tags || !Array.isArray(obj.tags)) {
       return [];
     }
-    
+
     return obj.tags.map((tagRelation) => {
       // If it's already a simple object with tagId and tagName directly (already transformed)
-      if (tagRelation && typeof tagRelation === 'object' && 
-          'tagId' in tagRelation && 'tagName' in tagRelation && !('tag' in tagRelation)) {
+      if (tagRelation && typeof tagRelation === 'object' &&
+        'tagId' in tagRelation && 'tagName' in tagRelation && !('tag' in tagRelation)) {
         return { tagId: tagRelation.tagId, tagName: tagRelation.tagName };
       }
-      
+
       // Handle the original structure with nested tag object
       if (tagRelation && tagRelation.tag && typeof tagRelation.tag === 'object') {
         return {
@@ -114,7 +117,7 @@ export class ArtResource extends BaseResource {
           tagName: tagRelation.tag.tagName || tagRelation.tagName || null
         };
       }
-      
+
       // Fallback - try to extract what we can
       return {
         tagId: tagRelation?.tagId || null,
@@ -132,6 +135,9 @@ export class ArtResource extends BaseResource {
   @Expose()
   @Type(() => CommentResource)
   comments?: CommentResource[];
+
+  @Expose()
+  isLiked: boolean;
 
   static make(data: any, options?: { removeNulls?: boolean }): any {
     return super.make.call(this, data, options);
