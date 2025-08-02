@@ -446,9 +446,15 @@ export class SearchService {
       }),
     ]);
 
+    // Convert price to string for collections (same fix as in searchCollections)
+    const collectionsWithStringPrice = collections.map(collection => ({
+      ...collection,
+      price: collection.price?.toString() ?? null
+    }));
+
     const searchData = {
       arts: SearchArtResource.collection(arts),
-      collections: SearchCollectionResource.collection(collections),
+      collections: SearchCollectionResource.collection(collectionsWithStringPrice),
       artists: SearchArtistResource.collection(artists),
     };
 
