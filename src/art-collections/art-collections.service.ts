@@ -321,7 +321,9 @@ export class ArtCollectionsService {
               },
             },
           },
-          arts: true, // Only count, don't include full art data
+          _count: {
+            select: { arts: true },
+          }, // Only count, don't include full art data
         },
         skip,
         take: limit,
@@ -343,7 +345,7 @@ export class ArtCollectionsService {
         ...c,
         price: c.price?.toString() ?? null,
         isPurchased: false,
-        arts: c.arts,
+        artsCount: c._count.arts,
       })),
       pagination: {
         page,
@@ -538,7 +540,7 @@ export class ArtCollectionsService {
       }),
     ]);
 
-    
+
 
     const arts = artCollectionRelations.map(relation => relation.art);
     const totalPages = Math.ceil(total / limit);
@@ -611,7 +613,7 @@ export class ArtCollectionsService {
 
     // Handle file upload
     const fileResult = await this.fileUploadService.saveFile(coverImageFile, FileType.collections);
-    
+
     const updatedCollection = await this.prisma.artCollection.update({
       where: { id },
       data: {
