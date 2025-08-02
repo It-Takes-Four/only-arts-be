@@ -400,7 +400,7 @@ async function main() {
       } else if (contentType === 'collection') {
         // Create collection
         const collectionId = uuidv4();
-        const isPaid = faker.datatype.boolean({ probability: 0.4 });
+        const isPaid = true; // All collections are paid with price 0.0001
         
         // Create file record for the collection cover image
         const dummyFileName = faker.helpers.arrayElement(COLLECTION_DUMMY_FILES);
@@ -449,10 +449,10 @@ async function main() {
             collectionName,
             description,
             coverImageFileId,
-            price: isPaid ? faker.number.float({ min: 0.0005, max: 0.001, fractionDigits: 4 }) : null,
-            tokenId: isPaid ? BigInt(faker.number.int({ min: 1000, max: 999999 })) : null,
+            price: 0.0001, // Fixed price for all collections
+            tokenId: BigInt(faker.number.int({ min: 1000, max: 999999 })),
             artistId: user.artistId,
-            isPublished: faker.datatype.boolean({ probability: 0.8 }),
+            isPublished: true, // All collections are published
             createdAt: contentDate,
           },
         });
@@ -474,27 +474,38 @@ async function main() {
     });
 
     if (artistArtworks.length > 0) {
-      // Add 1-8 artworks to each collection (or all available if less than 8)
-      const maxToAdd = Math.min(8, artistArtworks.length);
-      const minToAdd = Math.min(1, maxToAdd);
-      const artworksToAdd = faker.helpers.arrayElements(
-        artistArtworks, 
-        faker.number.int({ min: minToAdd, max: maxToAdd })
+      // Reserve at least 2-4 artworks as free (not in collections) per artist
+      const freeArtworksCount = Math.min(
+        faker.number.int({ min: 2, max: 4 }), 
+        Math.floor(artistArtworks.length * 0.4) // At least 40% of artworks should remain free
       );
+      
+      // Available artworks that can be added to collections (excluding reserved free ones)
+      const availableForCollections = artistArtworks.slice(freeArtworksCount);
+      
+      if (availableForCollections.length > 0) {
+        // Add 1-6 artworks to each collection from available ones
+        const maxToAdd = Math.min(6, availableForCollections.length);
+        const minToAdd = Math.min(1, maxToAdd);
+        const artworksToAdd = faker.helpers.arrayElements(
+          availableForCollections, 
+          faker.number.int({ min: minToAdd, max: maxToAdd })
+        );
 
-      for (const artwork of artworksToAdd) {
-        await prisma.artToCollection.create({
-          data: {
-            id: uuidv4(),
-            artId: artwork.id,
-            collectionId: collection.id,
-          },
-        });
+        for (const artwork of artworksToAdd) {
+          await prisma.artToCollection.create({
+            data: {
+              id: uuidv4(),
+              artId: artwork.id,
+              collectionId: collection.id,
+            },
+          });
 
-        await prisma.art.update({
-          where: { id: artwork.id },
-          data: { isInACollection: true },
-        });
+          await prisma.art.update({
+            where: { id: artwork.id },
+            data: { isInACollection: true },
+          });
+        }
       }
     }
   }
@@ -628,15 +639,20 @@ async function main() {
   📊 Summary:
   👥 Users: ${userList.length}
   🎨 Artists: ${userList.length} (All Safe Content)
-  📚 Collections: ${collections.length}
+  📚 Collections: ${collections.length} (All priced at 0.0001 ETH & published)
   🖼️ Artworks: ${artworks.length}
   🏷️ Tags: ${allTags.length}
   
   🎲 Balanced Feed Content:
   - Posts, artworks, and collections are chronologically mixed
-  - Content ratios: 40% posts, 50% artworks, 10% collections
+  - Content ratios: 30% posts, 40% artworks, 30% collections
   - Each user has varied posting history over 6 months
   - Active users create 13-35 pieces, regular users 8-20 pieces
+  
+  🎨 Artwork Distribution:
+  - Each artist has 2-4 free artworks (not in collections)
+  - At least 40% of each artist's works remain free
+  - Collections contain 1-6 artworks each from available pool
   
   Test credentials:
   - Email: user@example.com / Password: securePass1
