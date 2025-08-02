@@ -139,6 +139,20 @@ export class ArtCollectionsController {
           type: 'array',
           items: {
             type: 'object',
+            properties: {
+              id: { type: 'string' },
+              collectionName: { type: 'string' },
+              description: { type: 'string' },
+              coverImageFileId: { type: 'string' },
+              price: { type: 'string' },
+              tokenId: { type: 'string' },
+              isPublished: { type: 'boolean' },
+              createdAt: { type: 'string', format: 'date-time' },
+              updatedAt: { type: 'string', format: 'date-time' },
+              artistId: { type: 'string' },
+              artist: { type: 'object' },
+              artsCount: { type: 'number', description: 'Number of artworks in the collection' },
+            },
           },
         },
         pagination: {
@@ -206,7 +220,7 @@ export class ArtCollectionsController {
               updatedAt: { type: 'string', format: 'date-time' },
               artistId: { type: 'string' },
               artist: { type: 'object' },
-              artsCount: { type: 'number' },
+              artsCount: { type: 'number', description: 'Number of artworks in the collection' },
             },
           },
         },
@@ -266,6 +280,20 @@ export class ArtCollectionsController {
           type: 'array',
           items: {
             type: 'object',
+            properties: {
+              id: { type: 'string' },
+              collectionName: { type: 'string' },
+              description: { type: 'string' },
+              coverImageFileId: { type: 'string' },
+              price: { type: 'string' },
+              tokenId: { type: 'string' },
+              isPublished: { type: 'boolean' },
+              createdAt: { type: 'string', format: 'date-time' },
+              updatedAt: { type: 'string', format: 'date-time' },
+              artistId: { type: 'string' },
+              artist: { type: 'object' },
+              artsCount: { type: 'number', description: 'Number of artworks in the collection' },
+            },
           },
         },
         pagination: {
@@ -291,7 +319,7 @@ export class ArtCollectionsController {
       paginationQuery.page,
       paginationQuery.limit,
     );
-
+    console.log('Collections found:', result.data);
     return PaginatedResource.make(result, ArtCollectionResource);
   }
 
@@ -395,6 +423,20 @@ export class ArtCollectionsController {
           type: 'array',
           items: {
             type: 'object',
+            properties: {
+              id: { type: 'string' },
+              collectionName: { type: 'string' },
+              description: { type: 'string' },
+              coverImageFileId: { type: 'string' },
+              price: { type: 'string' },
+              tokenId: { type: 'string' },
+              isPublished: { type: 'boolean' },
+              createdAt: { type: 'string', format: 'date-time' },
+              updatedAt: { type: 'string', format: 'date-time' },
+              artistId: { type: 'string' },
+              artist: { type: 'object' },
+              artsCount: { type: 'number', description: 'Number of artworks in the collection' },
+            },
           },
         },
         pagination: {

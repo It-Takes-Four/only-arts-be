@@ -342,6 +342,8 @@ export class ArtCollectionsService {
       data: collections.map((c) => ({
         ...c,
         price: c.price?.toString() ?? null,
+        isPurchased: false,
+        arts: c.arts,
       })),
       pagination: {
         page,
@@ -465,6 +467,7 @@ export class ArtCollectionsService {
       data: purchasedCollections.map((collection) => ({
         ...collection,
         price: collection.price?.toString() ?? null,
+        isPurchased: true, // These are purchased collections
       })),
       pagination: {
         page,
@@ -587,6 +590,7 @@ export class ArtCollectionsService {
     return {
       ...updatedCollection,
       price: updatedCollection.price?.toString() ?? null,
+      isPurchased: false, // User's own collection
     };
   }
 
@@ -631,6 +635,7 @@ export class ArtCollectionsService {
     return {
       ...updatedCollection,
       price: updatedCollection.price?.toString() ?? null,
+      isPurchased: false, // User's own collection
     };
   }
 
@@ -656,6 +661,7 @@ export class ArtCollectionsService {
     return {
       ...publishedCollection,
       price: publishedCollection.price?.toString() ?? null,
+      isPurchased: false, // User's own collection
     };
   }
 
