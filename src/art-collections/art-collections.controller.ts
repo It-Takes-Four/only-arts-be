@@ -115,6 +115,36 @@ export class ArtCollectionsController {
     );
   }
 
+  @Get(':id/arts')
+  @ApiOperation({ summary: 'Get arts inside an art collection by ID' })
+  @ApiParam({ name: 'id', type: String, description: 'Art collection ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of arts inside the collection with their tags',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          title: { type: 'string' },
+          description: { type: 'string' },
+          imageFileId: { type: 'string' },
+          datePosted: { type: 'string', format: 'date-time' },
+          artist: { type: 'object' },
+          tags: {
+            type: 'array',
+            items: { type: 'object' }
+          },
+        },
+      },
+    },
+  })
+  async getArtsInCollection(@Param('id') id: string) {
+    const arts = await this.artCollectionsService.findArtsInCollection(id);
+    return ArtResource.collection(arts);
+  }
+
   @Get()
   @ApiOperation({ summary: 'Get all art collections' })
   @ApiQuery({
@@ -467,33 +497,32 @@ export class ArtCollectionsController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get arts inside an art collection by ID' })
+  @ApiOperation({ summary: 'Get art collection details by ID' })
   @ApiParam({ name: 'id', type: String, description: 'Art collection ID' })
   @ApiResponse({
     status: 200,
-    description: 'List of arts inside the collection with their tags',
+    description: 'Art collection details with artist information',
     schema: {
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: {
-          id: { type: 'string' },
-          title: { type: 'string' },
-          description: { type: 'string' },
-          imageFileId: { type: 'string' },
-          datePosted: { type: 'string', format: 'date-time' },
-          artist: { type: 'object' },
-          tags: {
-            type: 'array',
-            items: { type: 'object' }
-          },
-        },
+      type: 'object',
+      properties: {
+        id: { type: 'string' },
+        collectionName: { type: 'string' },
+        description: { type: 'string' },
+        coverImageFileId: { type: 'string' },
+        price: { type: 'string' },
+        tokenId: { type: 'string' },
+        isPublished: { type: 'boolean' },
+        createdAt: { type: 'string', format: 'date-time' },
+        updatedAt: { type: 'string', format: 'date-time' },
+        artistId: { type: 'string' },
+        artist: { type: 'object' },
+        artsCount: { type: 'number', description: 'Number of artworks in the collection' },
       },
     },
   })
   async getCollectionById(@Param('id') id: string) {
-    const arts = await this.artCollectionsService.findArtsInCollection(id);
-    return ArtResource.collection(arts);
+    const result = await this.artCollectionsService.findOne(id);
+    return ArtCollectionResource.make(result);
   }
 
   @Patch(':id/content')
