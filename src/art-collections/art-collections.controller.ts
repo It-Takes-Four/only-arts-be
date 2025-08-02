@@ -424,44 +424,34 @@ export class ArtCollectionsController {
     return PaginatedResource.make(result, ArtCollectionResource);
   }
 
-  @Get(':id/arts')
-  @ApiOperation({ summary: 'Get arts inside an art collection by ID' })
-  @ApiParam({ name: 'id', type: String, description: 'Art collection ID' })
-  async findOne(@Param('id') id: string) {
-    const arts = await this.artCollectionsService.findArtsInCollection(id);
-    return ArtResource.collection(arts);
-  }
-
   @Get(':id')
-  @ApiOperation({ summary: 'Get an art collection by ID' })
+  @ApiOperation({ summary: 'Get arts inside an art collection by ID' })
   @ApiParam({ name: 'id', type: String, description: 'Art collection ID' })
   @ApiResponse({
     status: 200,
-    description: 'Art collection details',
+    description: 'List of arts inside the collection with their tags',
     schema: {
-      type: 'object',
-      properties: {
-        id: { type: 'string' },
-        collectionName: { type: 'string' },
-        description: { type: 'string' },
-        coverImageFileId: { type: 'string' },
-        price: { type: 'string' },
-        tokenId: { type: 'string' },
-        isPublished: { type: 'boolean' },
-        createdAt: { type: 'string', format: 'date-time' },
-        updatedAt: { type: 'string', format: 'date-time' },
-        artistId: { type: 'string' },
-        artist: { type: 'object' },
-        artsCount: { type: 'number' },
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          title: { type: 'string' },
+          description: { type: 'string' },
+          imageFileId: { type: 'string' },
+          datePosted: { type: 'string', format: 'date-time' },
+          artist: { type: 'object' },
+          tags: {
+            type: 'array',
+            items: { type: 'object' }
+          },
+        },
       },
     },
   })
   async getCollectionById(@Param('id') id: string) {
-    const result = await this.artCollectionsService.findOne(id);
-    if (!result) {
-      throw new NotFoundException(`Collection with ID ${id} not found`);
-    }
-    return ArtCollectionResource.make(result);
+    const arts = await this.artCollectionsService.findArtsInCollection(id);
+    return ArtResource.collection(arts);
   }
 
   @Patch(':id/content')
