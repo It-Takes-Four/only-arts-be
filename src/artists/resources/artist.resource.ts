@@ -2,7 +2,7 @@ import { Expose, Type } from 'class-transformer';
 import { BaseResource } from '../../common/resources/base.resource';
 import { AuditMixin } from '../../common/mixins/audit.mixin';
 
-class UserResource extends BaseResource {
+class UserResource extends AuditMixin(BaseResource) {
   @Expose()
   id: string;
 
@@ -14,12 +14,6 @@ class UserResource extends BaseResource {
 
   @Expose()
   profilePictureFileId: string | null;
-
-  @Expose()
-  createdAt: Date;
-
-  @Expose()
-  updatedAt: Date;
 }
 
 export class ArtistResource extends AuditMixin(BaseResource) {
