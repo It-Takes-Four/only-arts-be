@@ -297,11 +297,74 @@ export class ArtCollectionsController {
   @ApiOperation({
     summary: 'Get all arts from all collections of current user',
   })
-  async findArtsFromMyCollections(@Request() req: AuthenticatedRequest) {
-    const arts = await this.artCollectionsService.findAllArtsFromUserCollections(
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: Number,
+    description: 'Page number (default: 1)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Items per page (default: 10)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Paginated list of arts from user collections',
+    schema: {
+      type: 'object',
+      properties: {
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+          },
+        },
+        pagination: {
+          type: 'object',
+          properties: {
+            currentPage: { type: 'number' },
+            perPage: { type: 'number' },
+            total: { type: 'number' },
+            totalPages: { type: 'number' },
+            hasNextPage: { type: 'boolean' },
+            hasPrevPage: { type: 'boolean' },
+          },
+        },
+      },
+    },
+  })
+  async findArtsFromMyCollections(
+    @Request() req: AuthenticatedRequest,
+    @Query() paginationQuery: PaginationQueryDto,
+  ) {
+    const result = await this.artCollectionsService.findAllArtsFromUserCollections(
       req.user.userId,
+      paginationQuery.page,
+      paginationQuery.limit,
     );
-    return ArtResource.collection(arts);
+    
+    // Debug logging to see raw data
+    console.log('Raw result from service:');
+    console.log(JSON.stringify(result.data?.[0]?.tags, null, 2));
+    
+    // Transform data manually to avoid PaginatedResource issues
+    const transformedData = ArtResource.collection(result.data);
+    console.log('Transformed data tags:');
+    console.log(JSON.stringify(transformedData?.[0]?.tags, null, 2));
+    
+    return {
+      data: transformedData,
+      pagination: {
+        currentPage: result.pagination.page,
+        perPage: result.pagination.limit,
+        total: result.pagination.total,
+        totalPages: result.pagination.totalPages,
+        hasNextPage: result.pagination.page < result.pagination.totalPages,
+        hasPrevPage: result.pagination.page > 1,
+      },
+    };
   }
 
   @Get('my/purchased-collections')

@@ -85,12 +85,32 @@ export class ArtResource extends BaseResource {
   artist: ArtistResource;
 
   @Expose()
-  @Transform(({ obj }) => {
-    if (!obj.tags || !Array.isArray(obj.tags)) return [];
-    return obj.tags.map(tagRelation => ({
-      tagId: tagRelation.tag?.id || null,
-      tagName: tagRelation.tag?.tagName || null
-    }));
+  @Transform(({ obj, value }) => {
+    if (!obj.tags || !Array.isArray(obj.tags)) {
+      return [];
+    }
+    
+    return obj.tags.map((tagRelation) => {
+      // If it's already a simple object with tagId and tagName directly (already transformed)
+      if (tagRelation && typeof tagRelation === 'object' && 
+          'tagId' in tagRelation && 'tagName' in tagRelation && !('tag' in tagRelation)) {
+        return { tagId: tagRelation.tagId, tagName: tagRelation.tagName };
+      }
+      
+      // Handle the original structure with nested tag object
+      if (tagRelation && tagRelation.tag && typeof tagRelation.tag === 'object') {
+        return {
+          tagId: tagRelation.tag.id || tagRelation.tagId || null,
+          tagName: tagRelation.tag.tagName || tagRelation.tagName || null
+        };
+      }
+      
+      // Fallback - try to extract what we can
+      return {
+        tagId: tagRelation?.tagId || null,
+        tagName: tagRelation?.tagName || null
+      };
+    });
   })
   tags: { tagId: string | null; tagName: string | null }[];
 

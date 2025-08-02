@@ -472,28 +472,80 @@ export class ArtCollectionsService {
     };
   }
 
-  async findAllArtsFromUserCollections(userId: string) {
-    const collections = await this.prisma.artCollection.findMany({
+  async findAllArtsFromUserCollections(userId: string, page: number = 1, limit: number = 10) {
+    const skip = (page - 1) * limit;
+
+    // First, get all collection IDs for the user
+    const userCollections = await this.prisma.artCollection.findMany({
       where: {
         artist: { userId: userId },
       },
-      include: {
-        arts: {
-          include: {
-            art: {
-              include: {
-                tags: { include: { tag: true } },
-                artist: true,
+      select: { id: true },
+    });
+
+    const collectionIds = userCollections.map(c => c.id);
+
+    if (collectionIds.length === 0) {
+      return {
+        data: [],
+        pagination: {
+          page,
+          limit,
+          total: 0,
+          totalPages: 0,
+        },
+      };
+    }
+
+    // Get paginated arts and total count
+    const [artCollectionRelations, total] = await Promise.all([
+      this.prisma.artToCollection.findMany({
+        where: {
+          collectionId: { in: collectionIds },
+        },
+        include: {
+          art: {
+            include: {
+              artist: {
+                include: {
+                  user: {
+                    select: {
+                      profilePictureFileId: true
+                    }
+                  }
+                }
               },
+              comments: true,
+              tags: { include: { tag: true } },
+              collections: true,
             },
           },
         },
-      },
-    });
+        skip,
+        take: limit,
+        orderBy: { art: { datePosted: 'desc' } },
+      }),
+      this.prisma.artToCollection.count({
+        where: {
+          collectionId: { in: collectionIds },
+        },
+      }),
+    ]);
 
-    return collections.flatMap((collection) =>
-      collection.arts.map((item) => item.art),
-    );
+    
+
+    const arts = artCollectionRelations.map(relation => relation.art);
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data: arts,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+      },
+    };
   }
 
   async update(id: string, dto: UpdateArtCollectionDtoRequest) {
