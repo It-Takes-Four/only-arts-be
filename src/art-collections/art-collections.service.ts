@@ -22,6 +22,7 @@ import { FileType, NotificationType } from '@prisma/client';
 import { NotificationsService } from 'src/notifications/notifications.service';
 import { UpdateCollectionContentDtoRequest } from './dto/request/update-collection-content.dto';
 import { UpdateArtCollectionDtoRequest } from './dto/request/update-art-collection.dto';
+import { CreateArtDtoRequest } from 'src/arts/dto/request/create-art.dto';
 
 @Injectable()
 export class ArtCollectionsService {
@@ -62,6 +63,8 @@ export class ArtCollectionsService {
         data: {
           id: collectionId,
           collectionName: dto.collectionName,
+          description: dto.description,
+          price: dto.price,
           artistId: artist.id,
           coverImageFileId: coverImageFileId,
         },
@@ -549,6 +552,20 @@ export class ArtCollectionsService {
   }
 
   async update(id: string, dto: UpdateArtCollectionDtoRequest) {
+    // First check if the collection exists and is not published
+    const existingCollection = await this.prisma.artCollection.findUnique({
+      where: { id },
+      select: { isPublished: true },
+    });
+
+    if (!existingCollection) {
+      throw new NotFoundException('Collection not found');
+    }
+
+    if (existingCollection.isPublished) {
+      throw new BadRequestException('Cannot modify a published collection');
+    }
+
     const updatedCollection = await this.prisma.artCollection.update({
       where: { id },
       data: dto,
@@ -574,6 +591,20 @@ export class ArtCollectionsService {
   }
 
   async updateCoverImage(id: string, coverImageFile: Express.Multer.File) {
+    // First check if the collection exists and is not published
+    const existingCollection = await this.prisma.artCollection.findUnique({
+      where: { id },
+      select: { isPublished: true },
+    });
+
+    if (!existingCollection) {
+      throw new NotFoundException('Collection not found');
+    }
+
+    if (existingCollection.isPublished) {
+      throw new BadRequestException('Cannot modify a published collection');
+    }
+
     // Handle file upload
     const fileResult = await this.fileUploadService.saveFile(coverImageFile, FileType.collections);
     
@@ -656,6 +687,14 @@ export class ArtCollectionsService {
 
     const updateData: any = {};
 
+    if (dto.collectionName !== undefined) {
+      updateData.collectionName = dto.collectionName;
+    }
+
+    if (dto.description !== undefined) {
+      updateData.description = dto.description;
+    }
+
     if (dto.price !== undefined) {
       updateData.price = dto.price;
     }
@@ -682,6 +721,155 @@ export class ArtCollectionsService {
     }
 
     return { message: 'Collection updated successfully' };
+  }
+
+  async createArtInCollection(
+    collectionId: string,
+    dto: CreateArtDtoRequest,
+    file: Express.Multer.File,
+    userId: string,
+  ) {
+    // First check if the collection exists and is not published
+    const collection = await this.prisma.artCollection.findUnique({
+      where: { id: collectionId },
+      include: {
+        artist: true,
+      },
+    });
+
+    if (!collection) {
+      throw new NotFoundException('Collection not found');
+    }
+
+    if (collection.artist.userId !== userId) {
+      throw new BadRequestException(
+        'You are not authorized to modify this collection',
+      );
+    }
+
+    if (collection.isPublished) {
+      throw new BadRequestException('Cannot add art to a published collection');
+    }
+
+    // Get the artist record for the authenticated user
+    const artist = await this.artistsService.findByUserId(userId);
+
+    const validFile = file as UploadedFile;
+    const artId = uuidv4();
+    const tagIds = dto.tagIds?.length ? dto.tagIds : [];
+
+    const saveFileResult = await this.fileUploadService.saveFile(validFile, FileType.arts);
+    const imageFileId = saveFileResult.fileId;
+
+    const createArtResult = await this.artNftService.createArt(artist.id, artId);
+    const tokenId = BigInt(createArtResult.tokenId);
+
+    // Create the art
+    const createArtPrismaResult = await this.prisma.art.create({
+      data: {
+        id: artId,
+        tokenId: tokenId,
+        title: dto.title,
+        description: dto.description,
+        imageFileId: imageFileId,
+        artistId: artist.id,
+        tags: {
+          create: tagIds.map((tagId) => ({
+            tag: { connect: { id: tagId } },
+          })),
+        },
+      },
+      include: {
+        artist: {
+          include: {
+            user: {
+              select: {
+                profilePictureFileId: true
+              }
+            }
+          }
+        },
+        tags: { include: { tag: true } },
+        comments: true,
+        collections: true,
+      },
+    });
+
+    // Add the art to the collection
+    await this.prisma.artToCollection.create({
+      data: {
+        id: uuidv4(),
+        artId: artId,
+        collectionId: collectionId,
+      },
+    });
+
+    // Update artist total arts count
+    await this.prisma.artist.update({
+      where: { id: artist.id },
+      data: {
+        totalArts: { increment: 1 },
+      },
+    });
+
+    // Send notification to followers
+    await this.notificationsService.sendNotificationsToUserFollower({
+      message: `${artist.artistName} just posted a new Art ${createArtPrismaResult.title} in collection ${collection.collectionName}.`,
+      notificationItemId: createArtPrismaResult.id,
+      notificationType: NotificationType.arts,
+      userId: userId,
+    });
+
+    return createArtPrismaResult;
+  }
+
+  async removeArtFromCollection(
+    collectionId: string,
+    artId: string,
+    userId: string,
+  ) {
+    // First check if the collection exists and is not published
+    const collection = await this.prisma.artCollection.findUnique({
+      where: { id: collectionId },
+      include: {
+        artist: true,
+      },
+    });
+
+    if (!collection) {
+      throw new NotFoundException('Collection not found');
+    }
+
+    if (collection.artist.userId !== userId) {
+      throw new BadRequestException(
+        'You are not authorized to modify this collection',
+      );
+    }
+
+    if (collection.isPublished) {
+      throw new BadRequestException('Cannot remove art from a published collection');
+    }
+
+    // Check if the art exists in the collection
+    const artToCollection = await this.prisma.artToCollection.findFirst({
+      where: {
+        artId: artId,
+        collectionId: collectionId,
+      },
+    });
+
+    if (!artToCollection) {
+      throw new NotFoundException('Art not found in this collection');
+    }
+
+    // Remove the art from the collection (not delete the art itself)
+    await this.prisma.artToCollection.delete({
+      where: {
+        id: artToCollection.id,
+      },
+    });
+
+    return { message: 'Art removed from collection successfully' };
   }
 
   remove(id: string) {

@@ -37,6 +37,7 @@ import { ArtCollectionResource } from './resources/art-collection.resource';
 import { UpdateCollectionContentDtoRequest } from './dto/request/update-collection-content.dto';
 import { OptionalJwtAuthGuard } from 'src/auth/guards/optional-jwt-auth.guard';
 import { ArtResource } from 'src/arts/resources/art.resource';
+import { CreateArtDtoRequest } from 'src/arts/dto/request/create-art.dto';
 
 @ApiBearerAuth('JWT-auth')
 @ApiTags('Art Collections')
@@ -56,6 +57,8 @@ export class ArtCollectionsController {
       type: 'object',
       properties: {
         collectionName: { type: 'string', example: 'Modern Art Showcase' },
+        description: { type: 'string', example: 'A curated collection of modern art pieces' },
+        price: { type: 'number', example: 100 },
         file: {
           type: 'string',
           format: 'binary',
@@ -463,7 +466,8 @@ export class ArtCollectionsController {
 
   @Patch(':id/content')
   @ApiOperation({
-    summary: 'Update price and/or arts of an unpublished collection',
+    summary: 'Update collection name, description, price and/or arts of an unpublished collection',
+    description: 'Updates the content of an art collection including name, description, price, and associated artworks. Can only be performed on collections that have not been published yet.'
   })
   @ApiParam({ name: 'id', type: String, description: 'Collection ID' })
   @UseGuards(JwtAuthGuard)
@@ -482,7 +486,10 @@ export class ArtCollectionsController {
 
   @Patch(':id/cover-image')
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Update art collection cover image' })
+  @ApiOperation({ 
+    summary: 'Update art collection cover image (only for unpublished collections)',
+    description: 'Updates the cover image of an art collection. Can only be performed on collections that have not been published yet.'
+  })
   @ApiParam({ name: 'id', type: String, description: 'Art collection ID' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -544,6 +551,84 @@ export class ArtCollectionsController {
   async publish(@Param('id') id: string) {
     const result = await this.artCollectionsService.publish(id);
     return ArtCollectionResource.make(result);
+  }
+
+  @Post(':id/arts')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ 
+    summary: 'Create art inside a specific collection (only for unpublished collections)',
+    description: 'Creates a new artwork and adds it to the specified collection. Can only be performed on collections that have not been published yet.'
+  })
+  @ApiParam({ name: 'id', type: String, description: 'Collection ID' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Create artwork with image and metadata for collection',
+    schema: {
+      type: 'object',
+      properties: {
+        title: { type: 'string', example: 'Sungazer' },
+        description: { type: 'string', example: 'A surreal sunset over an alien landscape.' },
+        tagIds: {
+          type: 'array',
+          items: { type: 'string', format: 'uuid' },
+          example: ['4e365859-e8d4-4cf7-8091-9acbb7c1dc56'],
+        },
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+      required: ['title', 'description', 'file'],
+    },
+  })
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+    }),
+  )
+  async createArtInCollection(
+    @Param('id') collectionId: string,
+    @UploadedFile() file: Express.Multer.File,
+    @Body() body: CreateArtDtoRequest,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    const result = await this.artCollectionsService.createArtInCollection(
+      collectionId,
+      body,
+      file,
+      req.user.userId,
+    );
+    return ArtResource.make(result);
+  }
+
+  @Delete(':id/arts/:artId')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ 
+    summary: 'Remove art from a specific collection (only for unpublished collections)',
+    description: 'Removes an artwork from the specified collection. Can only be performed on collections that have not been published yet. The artwork itself is not deleted, only removed from the collection.'
+  })
+  @ApiParam({ name: 'id', type: String, description: 'Collection ID' })
+  @ApiParam({ name: 'artId', type: String, description: 'Art ID to remove from collection' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully removed art from collection',
+    schema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string', example: 'Art removed from collection successfully' },
+      },
+    },
+  })
+  async removeArtFromCollection(
+    @Param('id') collectionId: string,
+    @Param('artId') artId: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    return await this.artCollectionsService.removeArtFromCollection(
+      collectionId,
+      artId,
+      req.user.userId,
+    );
   }
 
   @Delete(':id')

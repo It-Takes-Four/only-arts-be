@@ -1,6 +1,6 @@
-import { IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
+import { IsNotEmpty, IsNumber, IsString, Min, IsOptional, IsPositive } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform, Type } from 'class-transformer';
 
 export class CreateArtCollectionDtoRequest {
   @ApiProperty({
@@ -10,4 +10,22 @@ export class CreateArtCollectionDtoRequest {
   @IsString()
   @IsNotEmpty()
   collectionName: string;
+
+  @ApiPropertyOptional({
+    description: 'Description of the art collection',
+    example: 'A curated collection of modern art pieces',
+  })
+  @IsString()
+  @IsOptional()
+  description?: string;
+
+  @ApiPropertyOptional({
+    description: 'Price of the art collection',
+    example: 100,
+  })
+  @Type(() => Number)
+  @IsNumber()
+  @IsPositive()
+  @IsOptional()
+  price?: number;
 }

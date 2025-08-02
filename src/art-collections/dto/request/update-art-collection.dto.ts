@@ -1,5 +1,6 @@
-import { IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString, IsNumber, IsPositive } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 
 export class UpdateArtCollectionDtoRequest {
   @ApiPropertyOptional({
@@ -17,4 +18,14 @@ export class UpdateArtCollectionDtoRequest {
   @IsString()
   @IsOptional()
   description?: string;
+
+  @ApiPropertyOptional({
+    description: 'Price of the art collection',
+    example: 150,
+  })
+  @Type(() => Number)
+  @IsNumber()
+  @IsPositive()
+  @IsOptional()
+  price?: number;
 }

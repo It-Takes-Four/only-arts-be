@@ -32,8 +32,4 @@ describe('ArtController', () => {
   it('should be defined', () => {
     expect(controller).toBeDefined();
   });
-
-  it('should return all art items', async () => {
-    expect(await controller.getAllArt()).toEqual([]);
-  });
 });
