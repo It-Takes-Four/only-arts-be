@@ -156,6 +156,48 @@ export class ArtsService {
     };
   }
 
+  async findByUser(userId: string, page: number = 1, limit: number = 10) {
+    const skip = (page - 1) * limit;
+
+    const [arts, total] = await Promise.all([
+      this.prisma.art.findMany({
+        where: { artist: { userId: userId } },
+        include: {
+          artist: {
+            include: {
+              user: {
+                select: {
+                  profilePictureFileId: true
+                }
+              }
+            }
+          },
+          comments: true,
+          tags: { include: { tag: true } },
+          collections: true,
+        },
+        skip,
+        take: limit,
+        orderBy: { datePosted: 'desc' },
+      }),
+      this.prisma.art.count({
+        where: { artist: { userId: userId } },
+      }),
+    ]);
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data: arts,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+      },
+    };
+  }
+
   async createWithTags(dto: CreateArtDtoRequest, file: Express.Multer.File, userId: string) {
     // Get the artist record for the authenticated user
     const artist = await this.artistsService.findByUserId(userId);
