@@ -12,6 +12,7 @@ import {
   UseInterceptors,
   UploadedFile,
   Request,
+  Query,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -20,6 +21,8 @@ import {
   ApiParam,
   ApiBody,
   ApiConsumes,
+  ApiQuery,
+  ApiResponse,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { AuthenticatedRequest } from 'src/auth/types/auth.types';
@@ -28,6 +31,8 @@ import { CreateArtDtoRequest } from './dto/request/create-art.dto';
 import { UpdateArtDtoRequest } from './dto/request/update-art.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ArtResource } from './resources/art.resource';
+import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
+import { PaginatedResource } from 'src/common/resources/paginated.resource';
 
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth('JWT-auth')
@@ -39,17 +44,103 @@ export class ArtController {
 
   @Get()
   @ApiOperation({ summary: 'Get all artworks' })
-  async getAllArt() {
-    const arts = await this.artService.findAll();
-    return ArtResource.collection(arts);
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: Number,
+    description: 'Page number (default: 1)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Items per page (default: 10)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Paginated list of all artworks',
+    schema: {
+      type: 'object',
+      properties: {
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+          },
+        },
+        pagination: {
+          type: 'object',
+          properties: {
+            currentPage: { type: 'number' },
+            perPage: { type: 'number' },
+            total: { type: 'number' },
+            totalPages: { type: 'number' },
+            hasNextPage: { type: 'boolean' },
+            hasPrevPage: { type: 'boolean' },
+          },
+        },
+      },
+    },
+  })
+  async getAllArt(@Query() paginationQuery: PaginationQueryDto) {
+    const result = await this.artService.findAll(
+      paginationQuery.page,
+      paginationQuery.limit,
+    );
+    return PaginatedResource.make(result, ArtResource);
   }
   
   @Get('artist/:artistId')
   @ApiOperation({ summary: 'Get all artworks by artist ID' })
   @ApiParam({ name: 'artistId', description: 'UUID of the artist' })
-  async getArtByArtist(@Param('artistId') artistId: string) {
-    const arts = await this.artService.findByArtist(artistId);
-    return ArtResource.collection(arts);
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: Number,
+    description: 'Page number (default: 1)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Items per page (default: 10)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Paginated list of artworks by artist',
+    schema: {
+      type: 'object',
+      properties: {
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+          },
+        },
+        pagination: {
+          type: 'object',
+          properties: {
+            currentPage: { type: 'number' },
+            perPage: { type: 'number' },
+            total: { type: 'number' },
+            totalPages: { type: 'number' },
+            hasNextPage: { type: 'boolean' },
+            hasPrevPage: { type: 'boolean' },
+          },
+        },
+      },
+    },
+  })
+  async getArtByArtist(
+    @Param('artistId') artistId: string,
+    @Query() paginationQuery: PaginationQueryDto,
+  ) {
+    const result = await this.artService.findByArtist(
+      artistId,
+      paginationQuery.page,
+      paginationQuery.limit,
+    );
+    return PaginatedResource.make(result, ArtResource);
   }
 
   @Get(':id')

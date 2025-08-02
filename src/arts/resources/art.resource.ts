@@ -1,19 +1,6 @@
 import { Expose, Transform, Type } from 'class-transformer';
 import { BaseResource } from 'src/common/resources/base.resource';
 
-class ArtTagResource extends BaseResource {
-  @Expose()
-  id: string;
-
-  @Expose()
-  @Transform(({ obj }) => obj.tag ? obj.tag.id : null)
-  tagId: string;
-
-  @Expose()
-  @Transform(({ obj }) => obj.tag ? obj.tag.tagName : null)
-  tagName: string;
-}
-
 class ArtCollectionResource extends BaseResource {
   @Expose()
   id: string;
@@ -98,8 +85,14 @@ export class ArtResource extends BaseResource {
   artist: ArtistResource;
 
   @Expose()
-  @Type(() => ArtTagResource)
-  tags: ArtTagResource[];
+  @Transform(({ obj }) => {
+    if (!obj.tags || !Array.isArray(obj.tags)) return [];
+    return obj.tags.map(tagRelation => ({
+      tagId: tagRelation.tag?.id || null,
+      tagName: tagRelation.tag?.tagName || null
+    }));
+  })
+  tags: { tagId: string | null; tagName: string | null }[];
 
   @Expose()
   @Type(() => ArtCollectionResource)

@@ -20,16 +20,43 @@ export class ArtsService {
     private readonly notificationsService: NotificationsService
   ) { }
 
-  async findAll() {
-    return this.prisma.art.findMany({
-      include: {
-        artist: true,
-        comments: true,
-        tags: { include: { tag: true } },
-        collections: true,
+  async findAll(page: number = 1, limit: number = 10) {
+    const skip = (page - 1) * limit;
+
+    const [arts, total] = await Promise.all([
+      this.prisma.art.findMany({
+        include: {
+          artist: {
+            include: {
+              user: {
+                select: {
+                  profilePictureFileId: true
+                }
+              }
+            }
+          },
+          comments: true,
+          tags: { include: { tag: true } },
+          collections: true,
+        },
+        skip,
+        take: limit,
+        orderBy: { datePosted: 'desc' },
+      }),
+      this.prisma.art.count(),
+    ]);
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data: arts,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
       },
-      orderBy: { datePosted: 'desc' },
-    });
+    };
   }
 
   async findById(id: string) {
@@ -54,15 +81,46 @@ export class ArtsService {
     return art;
   }
 
-  async findByArtist(artistId: string) {
-    return this.prisma.art.findMany({
-      where: { artistId },
-      include: {
-        tags: { include: { tag: true } },
-        collections: true,
+  async findByArtist(artistId: string, page: number = 1, limit: number = 10) {
+    const skip = (page - 1) * limit;
+
+    const [arts, total] = await Promise.all([
+      this.prisma.art.findMany({
+        where: { artistId },
+        include: {
+          artist: {
+            include: {
+              user: {
+                select: {
+                  profilePictureFileId: true
+                }
+              }
+            }
+          },
+          comments: true,
+          tags: { include: { tag: true } },
+          collections: true,
+        },
+        skip,
+        take: limit,
+        orderBy: { datePosted: 'desc' },
+      }),
+      this.prisma.art.count({
+        where: { artistId },
+      }),
+    ]);
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data: arts,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
       },
-      orderBy: { datePosted: 'desc' },
-    });
+    };
   }
 
   async createWithTags(dto: CreateArtDtoRequest, file: Express.Multer.File, userId: string) {

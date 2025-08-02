@@ -36,6 +36,7 @@ import { PaginatedResource } from 'src/common/resources/paginated.resource';
 import { ArtCollectionResource } from './resources/art-collection.resource';
 import { UpdateCollectionContentDtoRequest } from './dto/request/update-collection-content.dto';
 import { OptionalJwtAuthGuard } from 'src/auth/guards/optional-jwt-auth.guard';
+import { ArtResource } from 'src/arts/resources/art.resource';
 
 @ApiBearerAuth('JWT-auth')
 @ApiTags('Art Collections')
@@ -296,10 +297,11 @@ export class ArtCollectionsController {
   @ApiOperation({
     summary: 'Get all arts from all collections of current user',
   })
-  findArtsFromMyCollections(@Request() req: AuthenticatedRequest) {
-    return this.artCollectionsService.findAllArtsFromUserCollections(
+  async findArtsFromMyCollections(@Request() req: AuthenticatedRequest) {
+    const arts = await this.artCollectionsService.findAllArtsFromUserCollections(
       req.user.userId,
     );
+    return ArtResource.collection(arts);
   }
 
   @Get('my/purchased-collections')
@@ -359,8 +361,9 @@ export class ArtCollectionsController {
   @Get(':id/arts')
   @ApiOperation({ summary: 'Get arts inside an art collection by ID' })
   @ApiParam({ name: 'id', type: String, description: 'Art collection ID' })
-  findOne(@Param('id') id: string) {
-    return this.artCollectionsService.findArtsInCollection(id);
+  async findOne(@Param('id') id: string) {
+    const arts = await this.artCollectionsService.findArtsInCollection(id);
+    return ArtResource.collection(arts);
   }
 
   @Get(':id')
