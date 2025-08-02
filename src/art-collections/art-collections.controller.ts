@@ -37,8 +37,8 @@ import { PaginatedResource } from 'src/common/resources/paginated.resource';
 import { ArtCollectionResource } from './resources/art-collection.resource';
 import { UpdateCollectionContentDtoRequest } from './dto/request/update-collection-content.dto';
 import { UpdateArtCollectionDtoRequest } from './dto/request/update-art-collection.dto';
+import { OptionalJwtAuthGuard } from 'src/auth/guards/optional-jwt-auth.guard';
 
-@UseGuards(JwtAuthGuard)
 @ApiBearerAuth('JWT-auth')
 @ApiTags('Art Collections')
 @Controller('art-collections')
@@ -46,6 +46,7 @@ export class ArtCollectionsController {
   constructor(private readonly artCollectionsService: ArtCollectionsService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: 'Create a new art collection (with optional cover image)',
   })
@@ -78,6 +79,7 @@ export class ArtCollectionsController {
   }
 
   @Post('/prepare-collection-purchase')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: 'Returns necessary data for collection purchase transaction',
   })
@@ -95,6 +97,7 @@ export class ArtCollectionsController {
   }
 
   @Post('/complete-collection-purchase')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: 'Verify and complete collection purchase transaction',
   })
@@ -160,7 +163,11 @@ export class ArtCollectionsController {
   }
 
   @Get('/artist/:artistId')
-  @ApiOperation({ summary: 'Get art collections by artistId' })
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiOperation({ 
+    summary: 'Get art collections by artistId', 
+    description: 'Returns paginated list of collections by artist. If authenticated, includes purchase status for each collection.' 
+  })
   @ApiParam({ name: 'artistId', type: String, description: 'Artist ID' })
   @ApiQuery({
     name: 'page',
@@ -184,6 +191,21 @@ export class ArtCollectionsController {
           type: 'array',
           items: {
             type: 'object',
+            properties: {
+              id: { type: 'string' },
+              collectionName: { type: 'string' },
+              description: { type: 'string' },
+              coverImageFileId: { type: 'string' },
+              price: { type: 'string' },
+              tokenId: { type: 'string' },
+              isPublished: { type: 'boolean' },
+              isPurchased: { type: 'boolean', description: 'Whether the current user has purchased this collection (false if not authenticated)' },
+              createdAt: { type: 'string', format: 'date-time' },
+              updatedAt: { type: 'string', format: 'date-time' },
+              artistId: { type: 'string' },
+              artist: { type: 'object' },
+              artsCount: { type: 'number' },
+            },
           },
         },
         pagination: {
@@ -203,18 +225,22 @@ export class ArtCollectionsController {
   async getCollectionByArtistId(
     @Param('artistId') artistId: string,
     @Query() paginationQuery: PaginationQueryDto,
+    @Request() req?: AuthenticatedRequest,
   ) {
+    const userId = req?.user?.userId;
     const result =
       await this.artCollectionsService.findAllCollectionsByArtistId(
         artistId,
         paginationQuery.page,
         paginationQuery.limit,
+        userId,
       );
 
     return PaginatedResource.make(result, ArtCollectionResource);
   }
 
   @Get('my/collections')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get all collections of current user' })
   @ApiQuery({
     name: 'page',
@@ -268,6 +294,7 @@ export class ArtCollectionsController {
   }
 
   @Get('my/arts')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: 'Get all arts from all collections of current user',
   })
@@ -278,6 +305,7 @@ export class ArtCollectionsController {
   }
 
   @Get('my/purchased-collections')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get all collections purchased by current user' })
   @ApiQuery({
     name: 'page',
@@ -389,6 +417,7 @@ export class ArtCollectionsController {
   }
 
   @Patch(':id/cover-image')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Update art collection cover image' })
   @ApiParam({ name: 'id', type: String, description: 'Art collection ID' })
   @ApiConsumes('multipart/form-data')
@@ -424,6 +453,7 @@ export class ArtCollectionsController {
   }
 
   @Patch(':id/publish')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Publish an art collection (irreversible)' })
   @ApiParam({ name: 'id', type: String, description: 'Art collection ID' })
   @ApiResponse({
@@ -453,6 +483,7 @@ export class ArtCollectionsController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Delete an art collection by ID' })
   @ApiParam({ name: 'id', type: String, description: 'Art collection ID' })
   remove(@Param('id') id: string) {

@@ -353,6 +353,7 @@ export class ArtCollectionsService {
     artistId: string,
     page: number = 1,
     limit: number = 10,
+    userId?: string,
   ) {
     const skip = (page - 1) * limit;
 
@@ -389,10 +390,17 @@ export class ArtCollectionsService {
 
     const totalPages = Math.ceil(total / limit);
 
+    // Get purchased collections if userId is provided
+    let purchasedCollectionIds: string[] = [];
+    if (userId) {
+      purchasedCollectionIds = await this.collectionAccessService.getUserPurchasedCollections(userId);
+    }
+
     return {
       data: collections.map((c) => ({
         ...c,
         price: c.price?.toString() ?? null,
+        isPurchased: userId ? purchasedCollectionIds.includes(c.id) : false,
       })),
       pagination: {
         page,

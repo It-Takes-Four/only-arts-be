@@ -63,6 +63,9 @@ export class ArtCollectionResource extends BaseResource {
   @Transform(({ obj }) => obj.arts ? obj.arts.length : 0)
   artsCount: number;
 
+  @Expose()
+  isPurchased: boolean;
+
   static make(data: any, options?: { removeNulls?: boolean }): any {
     return super.make.call(this, data, options);
   }
