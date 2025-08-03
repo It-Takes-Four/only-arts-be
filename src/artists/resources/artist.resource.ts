@@ -42,6 +42,9 @@ export class ArtistResource extends AuditMixin(BaseResource) {
   totalArts: number;
 
   @Expose()
+  totalPublishedCollections: number;
+
+  @Expose()
   totalCollections: number;
 
   @Expose()

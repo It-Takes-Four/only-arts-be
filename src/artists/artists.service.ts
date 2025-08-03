@@ -112,6 +112,12 @@ export class ArtistsService {
     const totalCollections = await this.prisma.artCollection.count({
       where: {
         artistId: artist.id,
+      },
+    });
+
+    const totalPublishedCollections = await this.prisma.artCollection.count({
+      where: {
+        artistId: artist.id,
         isPublished: true,
       },
     });
@@ -132,6 +138,7 @@ export class ArtistsService {
 
     return {
       ...artist,
+      totalPublishedCollections,
       totalCollections,
       totalArts,
     };
@@ -156,7 +163,40 @@ export class ArtistsService {
     });
 
     if (!artist) throw new NotFoundException(`Artist with ID ${id} not found`);
-    return artist;
+
+    const totalCollections = await this.prisma.artCollection.count({
+      where: {
+        artistId: artist.id,
+      },
+    });
+
+    const totalPublishedCollections = await this.prisma.artCollection.count({
+      where: {
+        artistId: artist.id,
+        isPublished: true,
+      },
+    });
+
+    const totalArts = await this.prisma.art.count({
+      where: {
+        artistId: artist.id,
+      },
+    });
+
+    await this.prisma.artist.update({
+      where: { id: artist.id },
+      data: {
+        totalCollections,
+        totalArts,
+      },
+    });
+
+    return {
+      ...artist,
+      totalPublishedCollections,
+      totalCollections,
+      totalArts,
+    };
   }
 
   async create(createArtistDto: CreateArtistDto, userId: string) {

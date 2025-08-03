@@ -40,7 +40,7 @@ export class ArtistsController {
   constructor(
     private readonly artistService: ArtistsService,
     private readonly usersService: UsersService,
-  ) {}
+  ) { }
 
   @Get(':artistId/wallet')
   @ApiOperation({ summary: 'Get artist wallet address by artist ID' })
@@ -53,6 +53,7 @@ export class ArtistsController {
   }
 
   @Get()
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get all artists with pagination' })
   @ApiQuery({
     name: 'page',
@@ -71,6 +72,7 @@ export class ArtistsController {
   }
 
   @Get('me')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get current logged-in user as artist' })
   async getMyArtistProfile(@Request() req: AuthenticatedRequest) {
     const artist = await this.artistService.findByUserIdSimple(req.user.userId);
