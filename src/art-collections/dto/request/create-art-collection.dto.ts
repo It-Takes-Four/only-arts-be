@@ -24,7 +24,7 @@ export class CreateArtCollectionDtoRequest {
     example: 100,
   })
   @Type(() => Number)
-  @IsNumber()
-  @IsPositive()
+  @IsNumber({}, { message: 'Price must be a number' })
+  @Min(0, { message: 'Price cannot be a negative value' })
   price?: number;
 }
