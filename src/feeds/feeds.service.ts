@@ -18,6 +18,9 @@ export class FeedsService {
     const { page = 1, limit = 10 } = pagination;
 
     const arts = await this.prisma.art.findMany({
+      where:{
+        isInACollection: false, // Only fetch arts not in a collection
+      },
       include: {
         artist: {
           select: {
