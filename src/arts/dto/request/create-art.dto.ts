@@ -6,6 +6,7 @@ import {
   IsUUID,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 
 export class CreateArtDtoRequest {
   @ApiProperty({ description: 'Title of the artwork', example: 'Sungazer.' })
@@ -22,5 +23,13 @@ export class CreateArtDtoRequest {
   @IsOptional()
   @IsArray()
   @IsUUID('all', { each: true })
+  @Transform(({ value }) => {
+    // Convert single string to array
+    if (typeof value === 'string') {
+      return [value];
+    }
+    // Return as-is if already an array or undefined
+    return value;
+  })
   tagIds?: string[];
 }
