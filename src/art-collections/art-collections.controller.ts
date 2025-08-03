@@ -64,7 +64,7 @@ export class ArtCollectionsController {
           format: 'binary',
         },
       },
-      required: ['collectionName'],
+      required: ['collectionName', 'price', 'file'],
     },
   })
   @UseInterceptors(
