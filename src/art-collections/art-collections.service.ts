@@ -238,7 +238,7 @@ export class ArtCollectionsService {
     };
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, userId?: string) {
     const artCollection = await this.prisma.artCollection.findUnique({
       where: { id },
       include: {
@@ -267,9 +267,16 @@ export class ArtCollectionsService {
 
     if (!artCollection) return null;
 
+
+    let purchasedCollectionIds: string[] = [];
+    if (userId) {
+      purchasedCollectionIds = await this.collectionAccessService.getUserPurchasedCollections(userId);
+    }
+
     return {
       ...artCollection,
       price: artCollection.price?.toString() ?? null,
+      isPurchased: userId ? purchasedCollectionIds.includes(artCollection.id) : false,
     };
   }
 

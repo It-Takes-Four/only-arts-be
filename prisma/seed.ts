@@ -8,8 +8,8 @@ import * as path from 'path';
 const prisma = new PrismaClient();
 
 // Dummy asset file names
-const ART_DUMMY_FILES = ['landscape.png', 'portrait.png', 'square.png'];
-const COLLECTION_DUMMY_FILES = ['landscape.png', 'portrait.png', 'square.png'];
+const ART_DUMMY_FILES = ['landscape.jpg', 'portrait.jpg', 'square.jpg'];
+const COLLECTION_DUMMY_FILES = ['landscape.jpg', 'portrait.jpg', 'square.png'];
 
 // Helper function to create file records from dummy assets
 async function createDummyFileRecord(
