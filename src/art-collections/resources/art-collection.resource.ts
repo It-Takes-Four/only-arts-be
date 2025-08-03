@@ -110,9 +110,9 @@ export class ArtCollectionResource extends BaseResource {
       id: obj.artist.id,
       artistName: obj.artist.artistName,
       isVerified: obj.artist.isVerified,
-      artistArtsCount: obj.artist.artistArtsCount ?? obj.artist.totalArts ?? 0,
-      artistCollectionsCount: obj.artist.artistCollectionsCount ?? obj.artist.totalCollections ?? 0,
-      artistFollowersCount: obj.artist.artistFollowersCount ?? obj.artist.totalFollowers ?? 0,
+      totalArts: obj.artist.artistArtsCount ?? obj.artist.totalArts ?? 0,
+      totalCollections: obj.artist.artistCollectionsCount ?? obj.artist.totalCollections ?? 0,
+      totalFollowers: obj.artist.artistFollowersCount ?? obj.artist.totalFollowers ?? 0,
       user: obj.artist.user ? {
         username: obj.artist.user.username,
         profilePictureFileId: obj.artist.user.profilePictureFileId
