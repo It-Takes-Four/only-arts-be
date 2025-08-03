@@ -92,8 +92,8 @@ export class ArtController {
 
   @Get('my')
   @ApiOperation({ summary: 'Get artworks of current logged in user' })
-  async getMyArts(@Request() req: AuthenticatedRequest,) {
-    const result = await this.artService.findByUser(req.user.userId);
+  async getMyArts(@Query() paginationQuery: PaginationQueryDto, @Request() req: AuthenticatedRequest,) {
+    const result = await this.artService.findByUser(req.user.userId, paginationQuery.page, paginationQuery.limit);
     return PaginatedResource.make(result, ArtResource)
   }
 
