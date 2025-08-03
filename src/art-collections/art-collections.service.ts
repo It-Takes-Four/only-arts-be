@@ -784,6 +784,7 @@ export class ArtCollectionsService {
         description: dto.description,
         imageFileId: imageFileId,
         artistId: artist.id,
+        isInACollection: true,
         tags: {
           create: tagIds.map((tagId) => ({
             tag: { connect: { id: tagId } },
@@ -821,14 +822,6 @@ export class ArtCollectionsService {
       data: {
         totalArts: { increment: 1 },
       },
-    });
-
-    // Send notification to followers
-    await this.notificationsService.sendNotificationsToUserFollower({
-      message: `${artist.artistName} just posted a new Art ${createArtPrismaResult.title} in collection ${collection.collectionName}.`,
-      notificationItemId: createArtPrismaResult.id,
-      notificationType: NotificationType.arts,
-      userId: userId,
     });
 
     return createArtPrismaResult;

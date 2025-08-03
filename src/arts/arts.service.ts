@@ -119,7 +119,7 @@ export class ArtsService {
 
     const [arts, total] = await Promise.all([
       this.prisma.art.findMany({
-        where: { artistId },
+        where: { artistId, isInACollection: false },
         include: {
           artist: {
             include: {
@@ -161,7 +161,7 @@ export class ArtsService {
 
     const [arts, total] = await Promise.all([
       this.prisma.art.findMany({
-        where: { artist: { userId: userId } },
+        where: { artist: { userId: userId }, isInACollection: false },
         include: {
           artist: {
             include: {
