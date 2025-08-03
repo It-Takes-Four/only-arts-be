@@ -595,15 +595,14 @@ export class ArtCollectionsController {
         artistId: { type: 'string' },
         artist: { type: 'object' },
         artsCount: { type: 'number', description: 'Number of artworks in the collection' },
-        artistArtsCount: { type: 'number', description: 'Number of artworks made by the artist' },
-        artistCollectionsCount: { type: 'number', description: 'Number of collections made by the artist' },
-        artistFollowersCount: { type: 'number', description: 'Number of followers of the artist' },
         isPurchased: { type: 'boolean', description: 'Whether the current user has purchased this collection (false if not authenticated)' },
       },
     },
   })
   async getCollectionById(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
     const result = await this.artCollectionsService.findOne(id, req.user?.userId);
+    console.log("Artist _count:", result!.artist?._count);
+    
     return ArtCollectionResource.make(result);
   }
 

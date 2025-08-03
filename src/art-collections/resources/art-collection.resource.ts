@@ -11,6 +11,29 @@ class ArtistResource extends BaseResource {
   @Expose()
   isVerified: boolean;
 
+  @Transform(({ obj }) => {
+    console.log('Arts count transform - obj._count:', obj._count);
+    console.log('Arts count transform - obj.totalArts:', obj.totalArts);
+    return obj._count?.arts ?? obj.totalArts ?? 0;
+  })
+  artistArtsCount: number;
+
+  @Expose()
+  @Transform(({ obj }) => {
+    console.log('Collections count transform - obj._count:', obj._count);
+    console.log('Collections count transform - obj.totalCollections:', obj.totalCollections);
+    return obj._count?.collections ?? obj.totalCollections ?? 0;
+  })
+  artistCollectionsCount: number;
+
+  @Expose()
+  @Transform(({ obj }) => {
+    console.log('Followers count transform - obj._count:', obj._count);
+    console.log('Followers count transform - obj.totalFollowers:', obj.totalFollowers);
+    return obj._count?.followers ?? obj.totalFollowers ?? 0;
+  })
+  artistFollowersCount: number;
+
   @Expose()
   @Transform(({ obj }) => obj.user ? {
     username: obj.user.username,
@@ -80,24 +103,27 @@ export class ArtCollectionResource extends BaseResource {
   artistId: string;
 
   @Expose()
-  @Type(() => ArtistResource)
-  artist: ArtistResource | null;
+  @Transform(({ obj }) => {
+    if (!obj.artist) return null;
+    // Manually create the artist resource to ensure proper transformation
+    return {
+      id: obj.artist.id,
+      artistName: obj.artist.artistName,
+      isVerified: obj.artist.isVerified,
+      artistArtsCount: obj.artist.artistArtsCount ?? obj.artist.totalArts ?? 0,
+      artistCollectionsCount: obj.artist.artistCollectionsCount ?? obj.artist.totalCollections ?? 0,
+      artistFollowersCount: obj.artist.artistFollowersCount ?? obj.artist.totalFollowers ?? 0,
+      user: obj.artist.user ? {
+        username: obj.artist.user.username,
+        profilePictureFileId: obj.artist.user.profilePictureFileId
+      } : null
+    };
+  })
+  artist: any;
 
   @Expose()
   @Transform(({ obj }) => obj.artsCount ?? obj._count?.arts ?? 0)
   artsCount: number;
-
-  @Expose()
-  @Transform(({ obj }) => obj.artistArtsCount ?? 0)
-  artistArtsCount: number;
-
-  @Expose()
-  @Transform(({ obj }) => obj.artistCollectionsCount ?? 0)
-  artistCollectionsCount: number;
-
-  @Expose()
-  @Transform(({ obj }) => obj.artistFollowersCount ?? 0)
-  artistFollowersCount: number;
 
   @Expose()
   isPurchased: boolean;

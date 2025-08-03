@@ -296,9 +296,6 @@ export class ArtCollectionsService {
       price: artCollection.price?.toString() ?? null,
       isPurchased: userId ? purchasedCollectionIds.includes(artCollection.id) : false,
       artsCount: artCollection._count.arts,
-      artistArtsCount: artCollection.artist._count.arts,
-      artistCollectionsCount: artCollection.artist._count.collections,
-      artistFollowersCount: artCollection.artist._count.followers,
     };
   }
 
