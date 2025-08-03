@@ -285,6 +285,83 @@ export class ArtCollectionsController {
     return PaginatedResource.make(result, ArtCollectionResource);
   }
 
+  @Get('/artist/:artistId/published')
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiOperation({ 
+    summary: 'Get art collections by artistId', 
+    description: 'Returns paginated list of published collections by artist. If authenticated, includes purchase status for each collection.' 
+  })
+  @ApiParam({ name: 'artistId', type: String, description: 'Artist ID' })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: Number,
+    description: 'Page number (default: 1)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Items per page (default: 10)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Paginated list of art collections by artist',
+    schema: {
+      type: 'object',
+      properties: {
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              collectionName: { type: 'string' },
+              description: { type: 'string' },
+              coverImageFileId: { type: 'string' },
+              price: { type: 'string' },
+              tokenId: { type: 'string' },
+              isPublished: { type: 'boolean' },
+              isPurchased: { type: 'boolean', description: 'Whether the current user has purchased this collection (false if not authenticated)' },
+              createdAt: { type: 'string', format: 'date-time' },
+              updatedAt: { type: 'string', format: 'date-time' },
+              artistId: { type: 'string' },
+              artist: { type: 'object' },
+              artsCount: { type: 'number', description: 'Number of artworks in the collection' },
+            },
+          },
+        },
+        pagination: {
+          type: 'object',
+          properties: {
+            currentPage: { type: 'number' },
+            perPage: { type: 'number' },
+            total: { type: 'number' },
+            totalPages: { type: 'number' },
+            hasNextPage: { type: 'boolean' },
+            hasPrevPage: { type: 'boolean' },
+          },
+        },
+      },
+    },
+  })
+  async getPublishedCollectionByArtistId(
+    @Param('artistId') artistId: string,
+    @Query() paginationQuery: PaginationQueryDto,
+    @Request() req?: AuthenticatedRequest,
+  ) {
+    const userId = req?.user?.userId;
+    const result =
+      await this.artCollectionsService.findAllPublishedCollectionsByArtistId(
+        artistId,
+        paginationQuery.page,
+        paginationQuery.limit,
+        userId,
+      );
+
+    return PaginatedResource.make(result, ArtCollectionResource);
+  }
+
   @Get('my/collections')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get all collections of current user' })

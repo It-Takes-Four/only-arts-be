@@ -421,6 +421,72 @@ export class ArtCollectionsService {
     };
   }
 
+  async findAllPublishedCollectionsByArtistId(
+    artistId: string,
+    page: number = 1,
+    limit: number = 10,
+    userId?: string,
+  ) {
+    const skip = (page - 1) * limit;
+
+    const [collections, total] = await Promise.all([
+      this.prisma.artCollection.findMany({
+        where: {
+          artistId: artistId,
+          isPublished: true,
+        },
+        include: {
+          artist: {
+            include: {
+              user: {
+                select: {
+                  username: true,
+                  profilePictureFileId: true,
+                },
+              },
+            },
+          },
+          _count: {
+            select: { arts: true },
+          }, // Only count, don't include full art data // Only count, don't include full art data
+        },
+        skip,
+        take: limit,
+        orderBy: {
+          createdAt: 'desc',
+        },
+      }),
+      this.prisma.artCollection.count({
+        where: {
+          artistId: artistId,
+        },
+      }),
+    ]);
+
+    const totalPages = Math.ceil(total / limit);
+
+    // Get purchased collections if userId is provided
+    let purchasedCollectionIds: string[] = [];
+    if (userId) {
+      purchasedCollectionIds = await this.collectionAccessService.getUserPurchasedCollections(userId);
+    }
+
+    return {
+      data: collections.map((c) => ({
+        ...c,
+        price: c.price?.toString() ?? null,
+        isPurchased: userId ? purchasedCollectionIds.includes(c.id) : false,
+        artsCount: c._count.arts,
+      })),
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+      },
+    };
+  }
+
   async findPurchasedCollections(
     userId: string,
     page: number = 1,
