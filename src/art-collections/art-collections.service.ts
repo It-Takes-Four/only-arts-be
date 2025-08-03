@@ -250,6 +250,17 @@ export class ArtCollectionsService {
                 profilePictureFileId: true,
               },
             },
+            _count: {
+              select: {
+                followers: true,
+                arts: {
+                  where: {
+                    isInACollection: false // Only count arts not in a collection
+                  }
+                },
+                collections: true
+              }
+            }
           },
         },
         arts: {
@@ -269,6 +280,9 @@ export class ArtCollectionsService {
       },
     });
 
+    console.log(artCollection);
+    
+
     if (!artCollection) return null;
 
 
@@ -282,6 +296,9 @@ export class ArtCollectionsService {
       price: artCollection.price?.toString() ?? null,
       isPurchased: userId ? purchasedCollectionIds.includes(artCollection.id) : false,
       artsCount: artCollection._count.arts,
+      artistArtsCount: artCollection.artist._count.arts,
+      artistCollectionsCount: artCollection.artist._count.collections,
+      artistFollowersCount: artCollection.artist._count.followers,
     };
   }
 

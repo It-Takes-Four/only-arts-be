@@ -88,6 +88,18 @@ export class ArtCollectionResource extends BaseResource {
   artsCount: number;
 
   @Expose()
+  @Transform(({ obj }) => obj.artistArtsCount ?? 0)
+  artistArtsCount: number;
+
+  @Expose()
+  @Transform(({ obj }) => obj.artistCollectionsCount ?? 0)
+  artistCollectionsCount: number;
+
+  @Expose()
+  @Transform(({ obj }) => obj.artistFollowersCount ?? 0)
+  artistFollowersCount: number;
+
+  @Expose()
   isPurchased: boolean;
 
   static make(data: any, options?: { removeNulls?: boolean }): any {
