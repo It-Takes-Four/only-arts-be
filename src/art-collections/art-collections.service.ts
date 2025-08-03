@@ -281,7 +281,7 @@ export class ArtCollectionsService {
     });
 
     console.log(artCollection);
-    
+
 
     if (!artCollection) return null;
 
@@ -737,6 +737,21 @@ export class ArtCollectionsService {
   }
 
   async publish(id: string) {
+    const existingCollection = await this.prisma.artCollection.findUnique({
+      where: { id },
+      include: {
+        artist: {
+          select: {
+            walletAddress: true
+          }
+        }
+      }
+    })
+
+    if (existingCollection?.artist.walletAddress == null || existingCollection.artist.walletAddress === '') {
+      throw new BadRequestException('Artist wallet address is not set');
+    }
+
     const publishedCollection = await this.prisma.artCollection.update({
       where: { id },
       data: { isPublished: true },
