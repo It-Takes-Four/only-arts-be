@@ -262,6 +262,9 @@ export class ArtCollectionsService {
             },
           },
         },
+        _count: {
+          select: { arts: true },
+        }, // Only count, don't include full art data
       },
     });
 
@@ -277,6 +280,7 @@ export class ArtCollectionsService {
       ...artCollection,
       price: artCollection.price?.toString() ?? null,
       isPurchased: userId ? purchasedCollectionIds.includes(artCollection.id) : false,
+      artsCount: artCollection._count.arts,
     };
   }
 
