@@ -574,6 +574,7 @@ export class ArtCollectionsController {
   }
 
   @Get(':id')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get art collection details by ID' })
   @ApiParam({ name: 'id', type: String, description: 'Art collection ID' })
   @ApiResponse({
