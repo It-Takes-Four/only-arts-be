@@ -63,6 +63,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           source: "./downloaded/*"
           target: "/var/www/sharkcat/onlyarts-be/deploy"
+          strip_components: 1
           rm: true
           overwrite: true
 
