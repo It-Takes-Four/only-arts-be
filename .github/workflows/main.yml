@@ -53,7 +53,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: nestjs-build
-          path: ./deploy
+          path: ./downloaded
 
       - name: Copy build files to server
         uses: appleboy/scp-action@v0.1.7
@@ -61,7 +61,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
-          source: "./deploy/*"
+          source: "./downloaded/*"
           target: "/var/www/sharkcat/onlyarts-be/deploy"
           rm: true
           overwrite: true
