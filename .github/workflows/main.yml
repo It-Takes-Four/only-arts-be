@@ -74,6 +74,9 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            nvm use 23
             cd /var/www/sharkcat/onlyarts-be/deploy
             npm ci --omit=dev
             sudo systemctl restart onlyarts-be
