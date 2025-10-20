@@ -77,5 +77,6 @@ jobs:
             nvm use 23
             cd /var/www/sharkcat/onlyarts-be/deploy
             npm ci --omit=dev
+            npx prisma generate
+            sudo systemctl daemon-reload
             sudo systemctl restart onlyarts-be
-            sudo systemctl status onlyarts-be --no-pager
