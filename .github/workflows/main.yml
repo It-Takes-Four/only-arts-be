@@ -79,4 +79,4 @@ jobs:
             nvm use 23
             cd /var/www/sharkcat/onlyarts-be/deploy
             npm ci --omit=dev
-            node /dist/src/main.js
+            node dist/src/main.js
