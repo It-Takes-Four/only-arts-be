@@ -32,7 +32,6 @@ jobs:
           ARTNFT_CONTRACT_ADDRESS: ${{ secrets.ARTNFT_CONTRACT_ADDRESS }}
           COLLECTION_ACCESS_CONTRACT_ADDRESS: ${{ secrets.COLLECTION_ACCESS_CONTRACT_ADDRESS }}
 
-
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
@@ -66,8 +65,7 @@ jobs:
           rm: true
           overwrite: true
 
-
-      - name: Restart NestJS service
+      - name: Install dependencies and restart service
         uses: appleboy/ssh-action@v1.1.0
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -79,4 +77,5 @@ jobs:
             nvm use 23
             cd /var/www/sharkcat/onlyarts-be/deploy
             npm ci --omit=dev
-            node dist/src/main.js
+            sudo systemctl restart onlyarts-be
+            sudo systemctl status onlyarts-be --no-pager
