@@ -78,6 +78,7 @@ jobs:
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
             nvm use 23
             cd /var/www/sharkcat/onlyarts-be/deploy
+            cp /var/www/sharkcat/onlyarts-be/.env .
             npm ci --omit=dev
             npx prisma generate
             sudo systemctl daemon-reload
