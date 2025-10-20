@@ -42,6 +42,7 @@ jobs:
             package-lock.json
             nest-cli.json
             tsconfig*.json
+            prisma
 
   deploy:
     runs-on: ubuntu-latest
@@ -61,7 +62,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           source: "./deploy/*"
-          target: "/var/www/sharkcat/onlyarts-be"
+          target: "/var/www/sharkcat/onlyarts-be/deploy"
           rm: true
           overwrite: true
 
