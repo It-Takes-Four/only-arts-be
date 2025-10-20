@@ -74,6 +74,6 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            cd /var/www/sharkcat/onlyarts-be
+            cd /var/www/sharkcat/onlyarts-be/deploy
             npm ci --omit=dev
             sudo systemctl restart onlyarts-be
