@@ -19,7 +19,7 @@ jobs:
           node-version: 23.10.0
 
       - name: Install dependencies
-        run: npm install --omit=dev
+        run: npm ci
 
       - name: Build project
         run: npm run build
@@ -75,5 +75,5 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             cd /var/www/sharkcat/onlyarts-be
-            npm install --omit=dev
+            npm ci --omit=dev
             sudo systemctl restart onlyarts-be
