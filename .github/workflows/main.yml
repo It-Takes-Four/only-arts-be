@@ -54,6 +54,9 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           source: "./deploy/*"
           target: "/var/www/sharkcat/onlyarts-be"
+          rm: true
+          overwrite: true
+
 
       - name: Restart NestJS service
         uses: appleboy/ssh-action@v1.1.0
