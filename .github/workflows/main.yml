@@ -23,6 +23,15 @@ jobs:
 
       - name: Build project
         run: npm run build
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          JWT_EXPIRES_IN: ${{ secrets.JWT_EXPIRES_IN }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          RPC_URL: ${{ secrets.RPC_URL }}
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+          ARTNFT_CONTRACT_ADDRESS: ${{ secrets.ARTNFT_CONTRACT_ADDRESS }}
+          COLLECTION_ACCESS_CONTRACT_ADDRESS: ${{ secrets.COLLECTION_ACCESS_CONTRACT_ADDRESS }}
+
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
