@@ -1,8 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
 import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class ArtistsService {
@@ -232,22 +233,52 @@ export class ArtistsService {
 
   async updateWalletAddress(userId: string, walletAddress: string) {
     const artist = await this.findByUserIdSimple(userId);
-    return this.prisma.artist.update({
-      where: { id: artist.id },
-      data: { walletAddress },
-      include: {
-        user: {
-          select: {
-            id: true,
-            email: true,
-            username: true,
-            profilePictureFileId: true,
-            createdAt: true,
-            updatedAt: true,
+
+    const normalizedAddress = walletAddress?.trim().toLowerCase();
+    if (!normalizedAddress) {
+      throw new BadRequestException('Invalid wallet address');
+    }
+
+    // If unchanged, return the current artist to avoid unnecessary write
+    if (artist.walletAddress?.toLowerCase() === normalizedAddress) {
+      return artist;
+    }
+
+    // Pre-check for uniqueness to provide a clearer error before hitting DB constraint
+    const existing = await this.prisma.artist.findUnique({
+      where: { walletAddress: normalizedAddress },
+      select: { id: true },
+    });
+    if (existing && existing.id !== artist.id) {
+      throw new ConflictException('Wallet address is already in use by another artist');
+    }
+
+    try {
+      return await this.prisma.artist.update({
+        where: { id: artist.id },
+        data: { walletAddress: normalizedAddress },
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              username: true,
+              profilePictureFileId: true,
+              createdAt: true,
+              updatedAt: true,
+            },
           },
         },
-      },
-    });
+      });
+    } catch (e) {
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === 'P2002'
+      ) {
+        throw new ConflictException('Wallet address is already in use');
+      }
+      throw e;
+    }
   }
 
   async deleteByUserId(userId: string) {
